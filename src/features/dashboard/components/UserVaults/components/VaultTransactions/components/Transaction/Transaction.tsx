@@ -27,7 +27,6 @@ export const Transaction = memo<TransactionProps>(function Transaction({ data, t
   const chainId = data.source?.chain || data.chain;
   const chain = useAppSelector(state => selectChainById(state, chainId));
   const {
-    internal,
     datetime,
     shareBalance,
     usdBalance,
@@ -40,8 +39,6 @@ export const Transaction = memo<TransactionProps>(function Transaction({ data, t
   const amountClassName = useMemo(() => {
     return underlyingDiff.gt(BIG_ZERO) ? classes.textGreen : classes.textRed;
   }, [classes.textGreen, classes.textRed, underlyingDiff]);
-
-  if (internal) return null;
 
   return (
     <Row>
@@ -109,7 +106,6 @@ export const TransactionMobile = memo<TransactionProps>(function TransactionMobi
   const chainId = data.source?.chain || data.chain;
   const chain = useAppSelector(state => selectChainById(state, chainId));
   const {
-    internal,
     datetime,
     shareBalance,
     usdBalance,
@@ -135,8 +131,6 @@ export const TransactionMobile = memo<TransactionProps>(function TransactionMobi
   const diff = useMemo(() => {
     return formatSignificantBigNumber(underlyingDiff, tokenDecimals, underlyingToUsdPrice, 0, 2);
   }, [underlyingDiff, tokenDecimals, underlyingToUsdPrice]);
-
-  if (internal) return null;
 
   return (
     <RowMobile className={classes.gridMobile}>
