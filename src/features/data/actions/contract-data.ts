@@ -38,9 +38,14 @@ export const fetchAllContractDataByChainAction = createAsyncThunk<
   const boosts = selectBoostsByChainId(state, chainId).map(vaultId =>
     selectBoostById(state, vaultId)
   );
-  const allVaults = selectVaultIdsByChainId(state, chainId).map(vaultId =>
+  let allVaults = selectVaultIdsByChainId(state, chainId).map(vaultId =>
     selectVaultById(state, vaultId)
   );
+
+  if (chainId === 'arbitrum') {
+    allVaults = allVaults.filter(vault => vault.id !== 'beefy-uniswap-eth-usdt');
+  }
+
   const standardVaults: VaultStandard[] = [];
   const govVaults: VaultGov[] = [];
   for (const vault of allVaults) {

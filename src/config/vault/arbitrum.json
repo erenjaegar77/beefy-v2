@@ -1,5 +1,27 @@
 [
   {
+    "id": "beefy-uniswap-eth-usdt",
+    "name": "ETH-USDT v3",
+    "token": "cowUniswapETH-USDT",
+    "tokenAddress": "0x641C00A822e8b671738d32a431a4Fb6074E5c79d",
+    "tokenDecimals": 18,
+    "tokenProviderId": "beefy",
+    "earnedToken": "cowUniswapETH-USDT",
+    "earnedTokenAddress": "0x487CeE58D6868f4662b716E4e1aB9DB728512789",
+    "earnContractAddress": "0x487CeE58D6868f4662b716E4e1aB9DB728512789",
+    "oracle": "lps",
+    "oracleId": "beefy-uniswap-eth-usdt",
+    "status": "active",
+    "createdAt": 1708929193,
+    "platformId": "beefy",
+    "assets": ["ETH", "USDT"],
+    "risks": ["COMPLEXITY_LOW", "IL_NONE", "MCAP_MEDIUM", "AUDIT", "CONTRACTS_VERIFIED"],
+    "strategyTypeId": "single-lp",
+    "network": "arbitrum",
+    "isV3": true
+  },
+
+  {
     "id": "equilibria-arb-seth",
     "name": "ETH 26Dec24",
     "token": "sETH-26Dec24",
