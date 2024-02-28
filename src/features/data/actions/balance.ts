@@ -52,13 +52,9 @@ export const fetchAllBalanceAction = createAsyncThunk<
   const chain = selectChainById(state, chainId);
   const api = await getBalanceApi(chain);
 
-  let tokens = selectAllTokenWhereUserCouldHaveBalance(state, chainId).map(address =>
+  const tokens = selectAllTokenWhereUserCouldHaveBalance(state, chainId).map(address =>
     selectTokenByAddress(state, chain.id, address)
   );
-
-  if (chainId === 'arbitrum') {
-    tokens = tokens.filter(token => token.address !== '0x641C00A822e8b671738d32a431a4Fb6074E5c79d');
-  }
 
   // maybe have a way to retrieve those easily
   const boosts = selectBoostsByChainId(state, chainId).map(boostId =>

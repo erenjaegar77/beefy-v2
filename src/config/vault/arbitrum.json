@@ -6,6 +6,7 @@
     "tokenAddress": "0x641C00A822e8b671738d32a431a4Fb6074E5c79d",
     "tokenDecimals": 18,
     "tokenProviderId": "beefy",
+    "type": "concentrated-liquidity",
     "earnedToken": "cowUniswapETH-USDT",
     "earnedTokenAddress": "0x487CeE58D6868f4662b716E4e1aB9DB728512789",
     "earnContractAddress": "0x487CeE58D6868f4662b716E4e1aB9DB728512789",
@@ -17,8 +18,7 @@
     "assets": ["ETH", "USDT"],
     "risks": ["COMPLEXITY_LOW", "IL_NONE", "MCAP_MEDIUM", "AUDIT", "CONTRACTS_VERIFIED"],
     "strategyTypeId": "single-lp",
-    "network": "arbitrum",
-    "isV3": true
+    "network": "arbitrum"
   },
 
   {

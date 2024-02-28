@@ -10,7 +10,7 @@ import type BigNumber from 'bignumber.js';
 export interface VaultConfig {
   id: string;
   name: string;
-  type?: 'standard' | 'gov' /*| 'concentrated-liquidity'*/;
+  type?: 'standard' | 'gov' | 'concentrated-liquidity';
   token: string;
   tokenAddress?: string | null;
   tokenDecimals: number;
@@ -50,7 +50,6 @@ export interface VaultConfig {
   bridged?: Record<ChainEntity['id'], string>;
   /* Oracle can be ChainLink | Pyth, then the oracle address*/
   lendingOracle?: { provider: string; address?: string; loops?: number };
-  isV3?: boolean;
 }
 
 export interface FeaturedVaultConfig {

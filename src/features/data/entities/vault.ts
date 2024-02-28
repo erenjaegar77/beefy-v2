@@ -141,12 +141,22 @@ export interface VaultGov {
   migrationIds?: string[];
 }
 
+export type VaultConcentratedLiquidity = Omit<VaultStandard, 'type'> & {
+  type: 'concentrated-liquidity';
+};
+
 export function isGovVault(vault: VaultEntity): vault is VaultGov {
   return vault.type === 'gov';
 }
 
 export function isStandardVault(vault: VaultEntity): vault is VaultStandard {
   return vault.type === 'standard';
+}
+
+export function isConcentratedLiquidityVault(
+  vault: VaultEntity
+): vault is VaultConcentratedLiquidity {
+  return vault.type === 'concentrated-liquidity';
 }
 
 export function isVaultRetired(vault: VaultEntity) {
@@ -178,4 +188,4 @@ export function shouldVaultShowInterest(vault: VaultEntity) {
   return true;
 }
 
-export type VaultEntity = VaultStandard | VaultGov;
+export type VaultEntity = VaultStandard | VaultGov | VaultConcentratedLiquidity;

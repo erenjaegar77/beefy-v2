@@ -518,7 +518,9 @@ function addVaultToState(
   if (existingDepositToken === undefined) {
     // Add the token
     sliceState.byChainId[chainId].byId[depositToken.id] = depositAddressKey;
-    sliceState.byChainId[chainId].interestingBalanceTokenAddresses.push(depositToken.address);
+    if (vault.type !== 'concentrated-liquidity') {
+      sliceState.byChainId[chainId].interestingBalanceTokenAddresses.push(depositToken.address);
+    }
     sliceState.byChainId[chainId].byAddress[depositAddressKey] = depositToken;
   } else {
     // Only add missing information
@@ -588,8 +590,8 @@ function addVaultToState(
       };
 
       sliceState.byChainId[chainId].byId[token.id] = token.address.toLowerCase();
-      sliceState.byChainId[chainId].interestingBalanceTokenAddresses.push(token.address);
       sliceState.byChainId[chainId].byAddress[token.address.toLowerCase()] = token;
+      sliceState.byChainId[chainId].interestingBalanceTokenAddresses.push(token.address);
 
       // Add bridged versions of receipt token
       if (vault.bridged) {
@@ -600,6 +602,7 @@ function addVaultToState(
     /** address book loaded first, and the vault receipt token is in the address book */
     // make sure vault token is still tagged as an interesting address
     ensureInterestingToken(vault.earnedTokenAddress ?? 'native', chainId, sliceState);
+
     // make sure bridged tokens are added/are marked as interesting
     if (vault.type !== 'gov' && vault.bridged) {
       const token = sliceState.byChainId[chainId].byAddress[addressKey];

@@ -3,8 +3,8 @@ import type { BeefyState } from '../../../redux-types';
 import type { FetchAllContractDataResult } from '../apis/contract-data/contract-data-types';
 import { getContractDataApi } from '../apis/instances';
 import type { ChainEntity } from '../entities/chain';
-import type { VaultGov, VaultStandard } from '../entities/vault';
-import { isGovVault } from '../entities/vault';
+import type { VaultConcentratedLiquidity, VaultGov, VaultStandard } from '../entities/vault';
+import { isGovVault, isStandardVault } from '../entities/vault';
 import { selectBoostById, selectBoostsByChainId } from '../selectors/boosts';
 import { selectChainById } from '../selectors/chains';
 import { selectVaultIdsByChainId, selectVaultById } from '../selectors/vaults';
@@ -38,21 +38,20 @@ export const fetchAllContractDataByChainAction = createAsyncThunk<
   const boosts = selectBoostsByChainId(state, chainId).map(vaultId =>
     selectBoostById(state, vaultId)
   );
-  let allVaults = selectVaultIdsByChainId(state, chainId).map(vaultId =>
+  const allVaults = selectVaultIdsByChainId(state, chainId).map(vaultId =>
     selectVaultById(state, vaultId)
   );
 
-  if (chainId === 'arbitrum') {
-    allVaults = allVaults.filter(vault => vault.id !== 'beefy-uniswap-eth-usdt');
-  }
-
   const standardVaults: VaultStandard[] = [];
   const govVaults: VaultGov[] = [];
+  const concentratedLiquidityVaults: VaultConcentratedLiquidity[] = [];
   for (const vault of allVaults) {
     if (isGovVault(vault)) {
       govVaults.push(vault);
-    } else {
+    } else if (isStandardVault(vault)) {
       standardVaults.push(vault);
+    } else {
+      concentratedLiquidityVaults.push(vault);
     }
   }
 

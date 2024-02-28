@@ -81,10 +81,12 @@ export const selectGovVaultById = (state: BeefyState, vaultId: VaultEntity['id']
 export const selectStandardVaultById = createCachedSelector(
   (state: BeefyState, vaultId: VaultEntity['id']) => selectVaultById(state, vaultId),
   standardVault => {
-    if (!isStandardVault(standardVault)) {
-      throw new Error(`selectStandardVaultById: Vault ${standardVault.id} is not a standard vault`);
+    // if (!isStandardVault(standardVault)) {
+    //   throw new Error(`selectStandardVaultById: Vault ${standardVault.id} is not a standard vault`);
+    // }
+    if (!isGovVault(standardVault)) {
+      return standardVault;
     }
-    return standardVault;
   }
 )((state: BeefyState, vaultId: VaultEntity['id']) => vaultId);
 
