@@ -269,7 +269,6 @@ function recomputeTotalApy(
     }
 
     if (isBoosted) {
-      console.log(vault);
       values.boostApr = boostApr;
       values.boostDaily = boostApr / 365;
       values.boostedTotalApy = values.boostApr ? values.totalApy + values.boostApr : 0;

@@ -13,6 +13,7 @@ import { AmountInput } from '../AmountInput';
 import { transactActions } from '../../../../../data/reducers/wallet/transact';
 import BigNumber from 'bignumber.js';
 import { selectTokenPriceByTokenOracleId } from '../../../../../data/selectors/tokens';
+import type { TokenEntity } from '../../../../../data/entities/token';
 
 const useStyles = makeStyles(styles);
 
@@ -56,6 +57,42 @@ export const DepositTokenAmountInput = memo<DepositTokenAmountInputProps>(
         maxValue={userBalance}
         tokenDecimals={depositToken.decimals}
         onChange={handleChange}
+        error={error}
+        allowInputAboveBalance={true}
+        fullWidth={true}
+        price={price}
+      />
+    );
+  }
+);
+
+type V3DepositTokenAmountInputProps = DepositTokenAmountInputProps & {
+  depositToken: TokenEntity;
+  onChange: AmountInputProps['onChange'];
+};
+
+export const V3DepositTokenAmountInput = memo<V3DepositTokenAmountInputProps>(
+  function DepositTokenAmountInput({ className, depositToken, onChange }) {
+    const classes = useStyles();
+    const userBalance = useAppSelector(state =>
+      selectUserBalanceOfToken(state, depositToken.chainId, depositToken.address)
+    );
+    const value = useAppSelector(selectTransactInputAmount);
+    const price = useAppSelector(state =>
+      selectTokenPriceByTokenOracleId(state, depositToken.oracleId)
+    );
+
+    const error = useMemo(() => {
+      return value.gt(userBalance);
+    }, [userBalance, value]);
+
+    return (
+      <AmountInput
+        className={clsx(classes.input, className)}
+        value={value}
+        maxValue={userBalance}
+        tokenDecimals={depositToken.decimals}
+        onChange={onChange}
         error={error}
         allowInputAboveBalance={true}
         fullWidth={true}

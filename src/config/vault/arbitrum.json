@@ -17,6 +17,7 @@
     "platformId": "beefy",
     "assets": ["ETH", "USDT"],
     "risks": ["COMPLEXITY_LOW", "IL_NONE", "MCAP_MEDIUM", "AUDIT", "CONTRACTS_VERIFIED"],
+    "addLiquidityUrl": "https://app.uniswap.org/swap?inputCurrency=0xdAC17F958D2ee523a2206206994597C13D831ec7&outputCurrency=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&chain=ethereum",
     "strategyTypeId": "single-lp",
     "network": "arbitrum"
   },
