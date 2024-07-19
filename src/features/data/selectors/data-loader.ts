@@ -119,7 +119,7 @@ export const selectIsUserBalanceAvailable = createSelector(
 export const selectIsVaultListAvailable = selectIsConfigAvailable;
 
 export const selectIsWalletPending = (state: BeefyState) =>
-  isPending(state.ui.dataLoader.global.wallet);
+  state.ui.dataLoader.global.wallet.status === 'pending';
 
 export const selectShouldInitAddressBook = (state: BeefyState, chainId: ChainEntity['id']) =>
   isInitialLoader(state.ui.dataLoader.global.addressBook) ||
