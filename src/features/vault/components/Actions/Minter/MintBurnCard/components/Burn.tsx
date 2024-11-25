@@ -79,12 +79,12 @@ export const Burn = memo(function Burn({ vaultId, minterId }: MinterCardParams) 
       const outputWei = inputWei
         .times(reserves)
         .div(totalSupply)
-        .decimalPlaces(depositToken.decimals, BigNumber.ROUND_FLOOR);
-      return fromWei(outputWei, depositToken.decimals);
+        .decimalPlaces(mintedToken.decimals, BigNumber.ROUND_FLOOR);
+      return fromWei(outputWei, mintedToken.decimals);
     }
 
     return formData.amount;
-  }, [minter.canBurn, formData.amount, reserves, totalSupply, depositToken, mintedToken]);
+  }, [minter.canBurn, formData.amount, reserves, totalSupply, mintedToken]);
 
   const handleWithdraw = () => {
     if (!isWalletConnected) {
