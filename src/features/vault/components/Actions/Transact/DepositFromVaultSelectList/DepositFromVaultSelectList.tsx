@@ -226,11 +226,15 @@ const VaultNameAndTags = styled('div', {
 
 const VaultRowName = styled('span', {
   base: {
+    textStyle: 'body',
     color: 'text.dark',
     fontWeight: 'normal',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    _hover: {
+      color: 'text.light',
+    },
   },
 });
 
