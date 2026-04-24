@@ -3,17 +3,17 @@ import { styled } from '@repo/styles/jsx';
 import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AssetsImage } from '../../../../../../components/AssetsImage/AssetsImage.tsx';
+import { ChainIcon } from '../../../../../../components/ChainIcon/ChainIcon.tsx';
 import {
   TokenImage,
   TokensImageWithChain,
 } from '../../../../../../components/TokenImage/TokenImage.tsx';
+import { VaultIcon } from '../../../../../../components/VaultIdentity/components/VaultIcon/VaultIcon.tsx';
 import { legacyMakeStyles } from '../../../../../../helpers/mui.ts';
-import { getPlatformSrc } from '../../../../../../helpers/platformsSrc.ts';
 import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
 import ExpandMore from '../../../../../../images/icons/mui/ExpandMore.svg?react';
 import { transactSwitchStep } from '../../../../../data/actions/transact.ts';
 import type { TokenEntity } from '../../../../../data/entities/token.ts';
-import { selectTokenByAddress } from '../../../../../data/selectors/tokens.ts';
 import {
   DepositSource,
   TransactMode,
@@ -129,17 +129,6 @@ const VaultSelectButton = memo(function VaultSelectButton({ cssProp }: VaultSele
   const fromVault = useAppSelector(state =>
     fromVaultId ? selectVaultById(state, fromVaultId) : undefined
   );
-  const fromDepositToken = useAppSelector(state =>
-    fromVault ?
-      selectTokenByAddress(state, fromVault.chainId, fromVault.depositTokenAddress)
-    : undefined
-  );
-
-  const platformIconSrc = useMemo(() => {
-    if (!fromVault) return undefined;
-    const providerId = fromDepositToken?.providerId;
-    return (providerId && getPlatformSrc(providerId)) || getPlatformSrc(fromVault.platformId);
-  }, [fromDepositToken?.providerId, fromVault]);
 
   const handleClick = useCallback(() => {
     dispatch(transactSwitchStep(TransactStep.DepositFromVaultSelect));
@@ -159,15 +148,10 @@ const VaultSelectButton = memo(function VaultSelectButton({ cssProp }: VaultSele
       {fromVault ?
         <div className={classes.select}>
           <VaultIconWrapper>
-            <AssetsImage
-              chainId={fromVault.chainId}
-              assetSymbols={fromVault.assetIds}
-              css={styles.iconAssets}
-              size={24}
-            />
-            {platformIconSrc ?
-              <VaultPlatformBadge src={platformIconSrc} alt="" />
-            : null}
+            <VaultIcon vaultId={fromVault.id} size={24} />
+            <VaultChainBadge>
+              <ChainIcon chainId={fromVault.chainId} size={10} />
+            </VaultChainBadge>
           </VaultIconWrapper>
           {fromVault.names.single}
         </div>
@@ -189,15 +173,16 @@ const VaultIconWrapper = styled('div', {
   },
 });
 
-const VaultPlatformBadge = styled('img', {
+const VaultChainBadge = styled('div', {
   base: {
     position: 'absolute',
     right: '-2px',
     bottom: '-2px',
-    width: '12px',
-    height: '12px',
+    width: '10px',
+    height: '10px',
     borderRadius: '50%',
-    objectFit: 'cover',
+    overflow: 'hidden',
+    lineHeight: 0,
   },
 });
 

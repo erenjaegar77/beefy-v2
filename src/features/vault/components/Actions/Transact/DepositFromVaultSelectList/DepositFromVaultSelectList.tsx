@@ -1,6 +1,6 @@
 import { css, type CssStyles, cx } from '@repo/styles/css';
 import { styled } from '@repo/styles/jsx';
-import type BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChainIcon } from '../../../../../../components/ChainIcon/ChainIcon.tsx';
@@ -8,6 +8,7 @@ import { SearchInput } from '../../../../../../components/Form/Input/SearchInput
 import { Scrollable } from '../../../../../../components/Scrollable/Scrollable.tsx';
 import { VaultIcon } from '../../../../../../components/VaultIdentity/components/VaultIcon/VaultIcon.tsx';
 import { VaultTags } from '../../../../../../components/VaultIdentity/components/VaultTags/VaultTags.tsx';
+import { BIG_ZERO } from '../../../../../../helpers/big-number.ts';
 import ChevronRight from '../../../../../../images/icons/chevron-right.svg?react';
 import { formatLargeUsd, formatTokenDisplayCondensed } from '../../../../../../helpers/format.ts';
 import { transactSelectDepositFromVault } from '../../../../../data/actions/transact.ts';
@@ -25,6 +26,10 @@ import {
   SelectListSearch,
 } from '../common/CommonListStyles.tsx';
 import { listItemArrow, selectListScrollable } from '../common/CommonListStylesRaw.ts';
+import { DustList } from '../TokenSelectList/components/DustList/DustList.tsx';
+
+// 10 USD
+const DUST_THRESHOLD = new BigNumber('10');
 
 export type DepositFromVaultSelectListProps = {
   css?: CssStyles;
@@ -44,6 +49,29 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
     return entries.filter(e => e.searchString.includes(lowerSearch));
   }, [entries, search]);
 
+  const { normalEntries, dustEntries, dustTotalUsd } = useMemo(() => {
+    // With an active search, show everything in the main list (no dust section).
+    if (search.length > 0) {
+      return { normalEntries: entriesFiltered, dustEntries: [], dustTotalUsd: BIG_ZERO };
+    }
+    const normal: typeof entriesFiltered = [];
+    const dust: typeof entriesFiltered = [];
+    let dustSum = BIG_ZERO;
+    for (const entry of entriesFiltered) {
+      if (entry.balanceUsd.lt(DUST_THRESHOLD)) {
+        dust.push(entry);
+        dustSum = dustSum.plus(entry.balanceUsd);
+      } else {
+        normal.push(entry);
+      }
+    }
+    // If nothing qualifies for the main list, promote dust so the screen isn't empty.
+    if (normal.length === 0 && dust.length > 0) {
+      return { normalEntries: dust, dustEntries: [], dustTotalUsd: BIG_ZERO };
+    }
+    return { normalEntries: normal, dustEntries: dust, dustTotalUsd: dustSum };
+  }, [entriesFiltered, search]);
+
   const handleSelect = useCallback(
     (vaultId: VaultEntity['id']) => {
       dispatch(transactSelectDepositFromVault(vaultId));
@@ -58,9 +86,8 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
       </SelectListSearch>
       <Scrollable css={selectListScrollable}>
         <SelectListItems noGap={true}>
-          {entriesFiltered.length === 0 ?
-            <SelectListNoResults>{t('Transact-DepositFromVault-NoResults')}</SelectListNoResults>
-          : entriesFiltered.map(entry => (
+          {normalEntries.length ?
+            normalEntries.map(entry => (
               <VaultListItem
                 key={entry.vaultId}
                 vaultId={entry.vaultId}
@@ -70,7 +97,23 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
                 onSelect={handleSelect}
               />
             ))
-          }
+          : !dustEntries.length ?
+            <SelectListNoResults>{t('Transact-DepositFromVault-NoResults')}</SelectListNoResults>
+          : null}
+          {dustEntries.length > 0 && (
+            <DustList dustTotalUsd={dustTotalUsd} labelKey="Transact-TokenSelect-LowValueVaults">
+              {dustEntries.map(entry => (
+                <VaultListItem
+                  key={entry.vaultId}
+                  vaultId={entry.vaultId}
+                  balance={entry.balance}
+                  balanceUsd={entry.balanceUsd}
+                  decimals={entry.decimals}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </DustList>
+          )}
         </SelectListItems>
       </Scrollable>
     </SelectListContainer>
