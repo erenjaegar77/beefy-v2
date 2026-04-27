@@ -88,6 +88,9 @@ import type {
 const strategyId = 'cross-chain';
 type StrategyId = typeof strategyId;
 
+/** Phased rollout: vault-to-vault paths dark until picker UX ships. */
+const VAULT_TO_VAULT_ENABLED: boolean = false;
+
 /**
  * Shared body of a cross-chain quote, before direction-specific wrapping.
  * `fetchDepositQuote` and `fetchWithdrawQuote` spread this into their
@@ -380,7 +383,9 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       })
     );
 
-    options.push(...this.enumerateVaultSrcDepositOptions());
+    if (VAULT_TO_VAULT_ENABLED) {
+      options.push(...this.enumerateVaultSrcDepositOptions());
+    }
 
     return options;
   }
@@ -753,7 +758,9 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       })
     );
 
-    options.push(...this.enumerateVaultDstWithdrawOptions());
+    if (VAULT_TO_VAULT_ENABLED) {
+      options.push(...this.enumerateVaultDstWithdrawOptions());
+    }
 
     return options;
   }
