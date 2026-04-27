@@ -29,8 +29,8 @@ export enum TransactMode {
 }
 
 export enum DepositSource {
-  Wallet,
-  Vault,
+  Wallet = 'wallet',
+  Vault = 'vault',
 }
 
 export enum TransactStatus {

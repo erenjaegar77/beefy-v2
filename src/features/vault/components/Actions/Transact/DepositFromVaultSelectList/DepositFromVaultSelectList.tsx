@@ -1,21 +1,27 @@
 import { css, type CssStyles, cx } from '@repo/styles/css';
 import { styled } from '@repo/styles/jsx';
-import BigNumber from 'bignumber.js';
+import type BigNumber from 'bignumber.js';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChainIcon } from '../../../../../../components/ChainIcon/ChainIcon.tsx';
 import { SearchInput } from '../../../../../../components/Form/Input/SearchInput.tsx';
 import { Scrollable } from '../../../../../../components/Scrollable/Scrollable.tsx';
 import { VaultIcon } from '../../../../../../components/VaultIdentity/components/VaultIcon/VaultIcon.tsx';
-import { VaultTags } from '../../../../../../components/VaultIdentity/components/VaultTags/VaultTags.tsx';
-import { BIG_ZERO } from '../../../../../../helpers/big-number.ts';
+import { VaultPlatformTag } from '../../../../../../components/VaultIdentity/components/VaultTags/VaultTags.tsx';
 import ChevronRight from '../../../../../../images/icons/chevron-right.svg?react';
 import { formatLargeUsd, formatTokenDisplayCondensed } from '../../../../../../helpers/format.ts';
+import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
 import { transactSelectDepositFromVault } from '../../../../../data/actions/transact.ts';
-import type { VaultEntity } from '../../../../../data/entities/vault.ts';
+import {
+  isCowcentratedGovVault,
+  isCowcentratedLikeVault,
+  isGovVault,
+  isVaultRetired,
+  type VaultEntity,
+} from '../../../../../data/entities/vault.ts';
 import { selectTransactDepositFromVaultEntries } from '../../../../../data/selectors/transact.ts';
 import { selectVaultById } from '../../../../../data/selectors/vaults.ts';
-import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
+import type { BeefyState } from '../../../../../data/store/types.ts';
 import {
   ListItemBalanceAmount,
   ListItemBalanceUsd,
@@ -26,10 +32,32 @@ import {
   SelectListSearch,
 } from '../common/CommonListStyles.tsx';
 import { listItemArrow, selectListScrollable } from '../common/CommonListStylesRaw.ts';
-import { DustList } from '../TokenSelectList/components/DustList/DustList.tsx';
 
-// 10 USD
-const DUST_THRESHOLD = new BigNumber('10');
+// Vaults with USD value below this threshold are hidden entirely.
+const LOW_BALANCE_USD_THRESHOLD = 1;
+
+type VaultGroupId = 'retired' | 'vault' | 'pool' | 'clmVault' | 'clmPool';
+
+const GROUP_LABELS: Record<VaultGroupId, string> = {
+  retired: 'Retired',
+  vault: 'Vault',
+  pool: 'Pool',
+  clmVault: 'CLM Vault',
+  clmPool: 'CLM Pool',
+};
+
+const categorizeVault = (vault: VaultEntity): VaultGroupId => {
+  if (isVaultRetired(vault)) return 'retired';
+  if (isGovVault(vault) && isCowcentratedGovVault(vault)) return 'clmPool';
+  if (isCowcentratedLikeVault(vault)) return 'clmVault';
+  if (isGovVault(vault)) return 'pool';
+  return 'vault';
+};
+
+const platformTagOverride = css.raw({
+  alignSelf: 'flex-start',
+  backgroundColor: 'white.100-4a',
+});
 
 export type DepositFromVaultSelectListProps = {
   css?: CssStyles;
@@ -41,36 +69,50 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const entries = useAppSelector(selectTransactDepositFromVaultEntries);
+  const vaultById = useAppSelector((state: BeefyState) => state.entities.vaults.byId);
   const [search, setSearch] = useState('');
 
-  const entriesFiltered = useMemo(() => {
-    if (search.length === 0) return entries;
+  const groups = useMemo(() => {
     const lowerSearch = search.toLowerCase();
-    return entries.filter(e => e.searchString.includes(lowerSearch));
-  }, [entries, search]);
+    const filtered = entries.filter(entry => {
+      if (entry.balanceUsd.lt(LOW_BALANCE_USD_THRESHOLD)) return false;
+      if (lowerSearch && !entry.searchString.includes(lowerSearch)) return false;
+      return true;
+    });
 
-  const { normalEntries, dustEntries, dustTotalUsd } = useMemo(() => {
-    // With an active search, show everything in the main list (no dust section).
-    if (search.length > 0) {
-      return { normalEntries: entriesFiltered, dustEntries: [], dustTotalUsd: BIG_ZERO };
-    }
-    const normal: typeof entriesFiltered = [];
-    const dust: typeof entriesFiltered = [];
-    let dustSum = BIG_ZERO;
-    for (const entry of entriesFiltered) {
-      if (entry.balanceUsd.lt(DUST_THRESHOLD)) {
-        dust.push(entry);
-        dustSum = dustSum.plus(entry.balanceUsd);
+    const buckets = new Map<VaultGroupId, { entries: typeof filtered; totalUsd: BigNumber }>();
+    for (const entry of filtered) {
+      const vault = vaultById[entry.vaultId];
+      if (!vault) continue;
+      const groupId = categorizeVault(vault);
+      const bucket = buckets.get(groupId);
+      if (bucket) {
+        bucket.entries.push(entry);
+        bucket.totalUsd = bucket.totalUsd.plus(entry.balanceUsd);
       } else {
-        normal.push(entry);
+        buckets.set(groupId, { entries: [entry], totalUsd: entry.balanceUsd });
       }
     }
-    // If nothing qualifies for the main list, promote dust so the screen isn't empty.
-    if (normal.length === 0 && dust.length > 0) {
-      return { normalEntries: dust, dustEntries: [], dustTotalUsd: BIG_ZERO };
+
+    const ordered: Array<{ id: VaultGroupId; label: string; entries: typeof filtered }> = [];
+    const retired = buckets.get('retired');
+    if (retired) {
+      ordered.push({ id: 'retired', label: GROUP_LABELS.retired, entries: retired.entries });
+      buckets.delete('retired');
     }
-    return { normalEntries: normal, dustEntries: dust, dustTotalUsd: dustSum };
-  }, [entriesFiltered, search]);
+    const rest = Array.from(buckets.entries()).sort(
+      ([, a], [, b]) => b.totalUsd.comparedTo(a.totalUsd) ?? 0
+    );
+    for (const [id, bucket] of rest) {
+      ordered.push({ id, label: GROUP_LABELS[id], entries: bucket.entries });
+    }
+    return ordered;
+  }, [entries, search, vaultById]);
+
+  const totalVisible = useMemo(
+    () => groups.reduce((sum, group) => sum + group.entries.length, 0),
+    [groups]
+  );
 
   const handleSelect = useCallback(
     (vaultId: VaultEntity['id']) => {
@@ -86,34 +128,24 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
       </SelectListSearch>
       <Scrollable css={selectListScrollable}>
         <SelectListItems noGap={true}>
-          {normalEntries.length ?
-            normalEntries.map(entry => (
-              <VaultListItem
-                key={entry.vaultId}
-                vaultId={entry.vaultId}
-                balance={entry.balance}
-                balanceUsd={entry.balanceUsd}
-                decimals={entry.decimals}
-                onSelect={handleSelect}
-              />
-            ))
-          : !dustEntries.length ?
+          {totalVisible === 0 ?
             <SelectListNoResults>{t('Transact-DepositFromVault-NoResults')}</SelectListNoResults>
-          : null}
-          {dustEntries.length > 0 && (
-            <DustList dustTotalUsd={dustTotalUsd} labelKey="Transact-TokenSelect-LowValueVaults">
-              {dustEntries.map(entry => (
-                <VaultListItem
-                  key={entry.vaultId}
-                  vaultId={entry.vaultId}
-                  balance={entry.balance}
-                  balanceUsd={entry.balanceUsd}
-                  decimals={entry.decimals}
-                  onSelect={handleSelect}
-                />
-              ))}
-            </DustList>
-          )}
+          : groups.map(group => (
+              <Group key={group.id}>
+                <GroupHeader variant={group.id}>{group.label}</GroupHeader>
+                {group.entries.map(entry => (
+                  <VaultListItem
+                    key={entry.vaultId}
+                    vaultId={entry.vaultId}
+                    balance={entry.balance}
+                    balanceUsd={entry.balanceUsd}
+                    decimals={entry.decimals}
+                    onSelect={handleSelect}
+                  />
+                ))}
+              </Group>
+            ))
+          }
         </SelectListItems>
       </Scrollable>
     </SelectListContainer>
@@ -156,9 +188,7 @@ const VaultListItem = memo(function VaultListItem({
         </IconWrapper>
         <VaultNameAndTags>
           <VaultRowName>{vault.names.list}</VaultRowName>
-          <TagsWrapper>
-            <VaultTags vaultId={vaultId} />
-          </TagsWrapper>
+          <VaultPlatformTag vaultId={vaultId} css={platformTagOverride} />
         </VaultNameAndTags>
       </VaultLeft>
       <ListItemRightSide>
@@ -174,6 +204,51 @@ const VaultListItem = memo(function VaultListItem({
       </ListItemRightSide>
     </VaultRowButton>
   );
+});
+
+const Group = styled('div', {
+  base: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+});
+
+const GroupHeader = styled('div', {
+  base: {
+    alignSelf: 'flex-start',
+    textStyle: 'subline.sm',
+    textTransform: 'uppercase',
+    letterSpacing: 'subline',
+    paddingBlock: '2px',
+    paddingInline: '10px',
+    borderRadius: '4px',
+    marginBlock: '12px 4px',
+    fontWeight: 'medium',
+  },
+  variants: {
+    variant: {
+      retired: {
+        color: 'text.lightest',
+        backgroundColor: 'tagRetiredBackground',
+      },
+      vault: {
+        color: 'text.dark',
+        backgroundColor: 'background.content.dark',
+      },
+      pool: {
+        color: 'text.dark',
+        backgroundColor: 'background.content.dark',
+      },
+      clmVault: {
+        color: 'text.lightest',
+        backgroundColor: 'tagClmBackground',
+      },
+      clmPool: {
+        color: 'text.lightest',
+        backgroundColor: 'tagClmBackground',
+      },
+    },
+  },
 });
 
 const VaultRowButton = styled('button', {
@@ -258,23 +333,6 @@ const ChainBadge = styled('div', {
     borderRadius: '50%',
     overflow: 'hidden',
     lineHeight: 0,
-  },
-});
-
-const TagsWrapper = styled('div', {
-  base: {
-    '& > div': {
-      marginTop: '0',
-      columnGap: '4px',
-      rowGap: '4px',
-    },
-    '& > div > div': {
-      height: '20px',
-      padding: '0 6px',
-    },
-    '& > div > div:first-child': {
-      backgroundColor: 'white.100-4a',
-    },
   },
 });
 
