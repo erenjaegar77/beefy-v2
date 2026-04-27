@@ -3,18 +3,14 @@ import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LinkButton } from '../../../../components/LinkButton/LinkButton.tsx';
 import { MarkdownText } from '../../../components/Markdown/MarkdownText.tsx';
-import type { PointStructureEntity } from '../../../data/entities/points.ts';
+import type { PointStructureBannerConfig } from '../../../data/apis/points/types.ts';
+import type { ChainEntity } from '../../../data/entities/chain.ts';
 import BoostIcon from '../../../../images/icons/boost.svg?react';
+import { getNetworkSrc } from '../../../../helpers/networkSrc.ts';
 
-const networkIconUrls = import.meta.glob<string>('../../../../images/networks/*.svg', {
-  eager: true,
-  import: 'default',
-  query: '?url',
-});
-
-function renderHeadingIcon(chainIcon: string | undefined, alt: string): ReactNode {
+function renderHeadingIcon(chainIcon: string | undefined): ReactNode {
   if (!chainIcon) return <BoostIcon />;
-  const url = networkIconUrls[`../../../../images/networks/${chainIcon}.svg`];
+  const url = getNetworkSrc(chainIcon as ChainEntity['id']);
   if (!url) {
     if (import.meta.env.DEV) {
       console.warn(
@@ -23,17 +19,15 @@ function renderHeadingIcon(chainIcon: string | undefined, alt: string): ReactNod
     }
     return <BoostIcon />;
   }
-  return <img src={url} alt={alt} />;
+  return <img src={url} alt="" />;
 }
 
 export type PointsBannerProps = {
-  structure: PointStructureEntity;
+  banner: PointStructureBannerConfig;
 };
 
-export const PointsBanner = memo(function PointsBanner({ structure }: PointsBannerProps) {
+export const PointsBanner = memo(function PointsBanner({ banner }: PointsBannerProps) {
   const { t } = useTranslation();
-  const banner = structure.banner;
-  if (!banner) return null;
 
   return (
     <Root>
@@ -42,7 +36,7 @@ export const PointsBanner = memo(function PointsBanner({ structure }: PointsBann
           <HeadingText>
             Points by <PartnerName>{banner.by}</PartnerName>
             <HeadingIconWrap aria-hidden="true">
-              {renderHeadingIcon(banner.chainIcon, '')}
+              {renderHeadingIcon(banner.chainIcon)}
             </HeadingIconWrap>
           </HeadingText>
         </Heading>
@@ -90,6 +84,7 @@ const Header = styled('div', {
       backgroundPosition: '25px 0, 0 20px',
       backgroundRepeat: 'repeat-x, repeat-y',
     },
+    // promote children above the absolute ::before so the grid doesn't paint over them
     '& > *': {
       position: 'relative',
     },

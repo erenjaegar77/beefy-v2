@@ -59,7 +59,7 @@ export async function initAppData(dispatch: BeefyDispatchFn, getState: BeefyStat
 
   // we fetch the configuration for all chain
   const promosPromise = dispatch(initPromos());
-  const pointsPromise = dispatch(initPoints());
+  dispatch(initPoints());
   const vaultsPromise = dispatch(fetchAllVaults());
 
   // we can start fetching prices right now and await them later
@@ -111,7 +111,6 @@ export async function initAppData(dispatch: BeefyDispatchFn, getState: BeefyStat
   // we need the chain list to handle the vault list
   await vaultsPromise;
   await promosPromise;
-  await pointsPromise;
   await addressBookPromise;
 
   // then, we work by chain
