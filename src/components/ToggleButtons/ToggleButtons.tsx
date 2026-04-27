@@ -91,7 +91,7 @@ const CardContent = memo(function CardContent({ label, subtitle, active }: CardC
   return (
     <>
       <CardHeader>
-        <CardRadio active={active}>
+        <CardRadio>
           {active ?
             <CardRadioDot />
           : null}
@@ -99,7 +99,7 @@ const CardContent = memo(function CardContent({ label, subtitle, active }: CardC
         <CardTitle>{label}</CardTitle>
       </CardHeader>
       {subtitle ?
-        <CardSubtitle>{subtitle}</CardSubtitle>
+        <CardSubtitle active={active}>{subtitle}</CardSubtitle>
       : null}
     </>
   );
@@ -125,13 +125,6 @@ const CardRadio = styled('span', {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  variants: {
-    active: {
-      true: {
-        borderColor: 'text.lightest',
-      },
-    },
-  },
 });
 
 const CardRadioDot = styled('span', {
@@ -139,7 +132,7 @@ const CardRadioDot = styled('span', {
     width: '6.4px',
     height: '6.4px',
     borderRadius: '50%',
-    background: 'text.lightest',
+    background: 'white.100',
   },
 });
 
@@ -154,8 +147,16 @@ const CardSubtitle = styled('span', {
   base: {
     textStyle: 'body.sm',
     color: 'text.dark',
+    paddingLeft: '24px',
     whiteSpace: 'normal',
     overflowWrap: 'break-word',
+  },
+  variants: {
+    active: {
+      true: {
+        color: 'text.lightest',
+      },
+    },
   },
 });
 

@@ -1088,12 +1088,12 @@ const config = buildConfig(
       card: {
         base: {
           color: '{colors.text.light}',
-          background: '{colors.background.content.darkest}',
+          background: '{colors.background.content.dark}',
           border: '{colors.background.border}',
         },
         hover: {
           color: '{colors.text.light}',
-          background: '{colors.background.content.darkest}',
+          background: '{colors.background.content.dark}',
           border: '{colors.background.content.light}',
         },
         active: {

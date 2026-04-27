@@ -10,7 +10,7 @@ export const SelectListContainer = styled('div', {
     borderRadius: '0 0 12px 12px',
     overflow: 'hidden',
     sm: {
-      padding: '24px 0 0 0',
+      padding: '20px 0 0 0',
     },
   },
 });

@@ -217,34 +217,32 @@ const GroupHeader = styled('div', {
   base: {
     alignSelf: 'flex-start',
     textStyle: 'subline.sm',
+    fontWeight: 'semiBold',
     textTransform: 'uppercase',
-    letterSpacing: 'subline',
+    color: 'text.lightest',
     paddingBlock: '2px',
-    paddingInline: '10px',
+    paddingInline: '8px',
     borderRadius: '4px',
     marginBlock: '12px 4px',
-    fontWeight: 'medium',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
   },
   variants: {
     variant: {
       retired: {
-        color: 'text.lightest',
         backgroundColor: 'tagRetiredBackground',
       },
       vault: {
-        color: 'text.dark',
-        backgroundColor: 'background.content.dark',
+        backgroundColor: 'tags.vault.background',
       },
       pool: {
-        color: 'text.dark',
-        backgroundColor: 'background.content.dark',
+        backgroundColor: 'tags.pool.background',
       },
       clmVault: {
-        color: 'text.lightest',
         backgroundColor: 'tagClmBackground',
       },
       clmPool: {
-        color: 'text.lightest',
         backgroundColor: 'tagClmBackground',
       },
     },
