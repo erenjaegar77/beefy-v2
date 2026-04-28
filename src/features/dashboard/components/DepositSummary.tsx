@@ -41,35 +41,35 @@ export const DepositSummary = memo(function DepositSummary({ address }: DepositS
 });
 
 export const DepositSummaryPlaceholder = memo(function DepositSummaryPlaceholder({
-  showZeroBalance,
+  mode = 'loading',
 }: {
-  showZeroBalance?: boolean;
+  mode?: 'loading' | 'empty';
 }) {
   const { t } = useTranslation();
   const userStats = useMemo(() => {
     const loading = <TextLoader placeholder={'Loading...'} />;
-    const zeroUsd = <div>{'$0'}</div>;
-    const zeroCount = <div>{'0'}</div>;
+    const usdValue = mode === 'loading' ? loading : <div>{'$0'}</div>;
+    const countValue = mode === 'loading' ? loading : <div>{'0'}</div>;
 
     return [
       {
         label: t('Summary-Deposit'),
-        value: showZeroBalance ? zeroUsd : loading,
+        value: usdValue,
       },
       {
         label: t('Summary-Vaults'),
-        value: showZeroBalance ? zeroCount : loading,
+        value: countValue,
       },
       {
         label: t('Summary-Yield'),
-        value: showZeroBalance ? zeroUsd : loading,
+        value: usdValue,
       },
       {
         label: t('Summary-Daily'),
-        value: showZeroBalance ? zeroUsd : loading,
+        value: usdValue,
       },
     ];
-  }, [showZeroBalance, t]);
+  }, [mode, t]);
 
   return <SummaryStats items={userStats} />;
 });
