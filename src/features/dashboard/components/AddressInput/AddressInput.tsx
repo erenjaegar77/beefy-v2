@@ -6,7 +6,6 @@ import {
   memo,
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -52,7 +51,6 @@ export const AddressInput = memo(function AddressInput({
   const { t } = useTranslation();
   const anchorEl = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
-  const inputId = useId();
   const isMobile = useBreakpoint({ to: 'xs' });
 
   const placeholder = useMemo(() => {
@@ -137,7 +135,6 @@ export const AddressInput = memo(function AddressInput({
   return (
     <>
       <BaseInput
-        id={inputId}
         ref={anchorEl}
         variant={variant}
         className={css(
