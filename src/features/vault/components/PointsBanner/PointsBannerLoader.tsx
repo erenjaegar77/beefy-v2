@@ -19,8 +19,8 @@ export const PointsBannerLoader = memo(function PointsBannerLoader({
 
   return (
     <>
-      {banners.map((banner, i) => (
-        <PointsBanner key={i} banner={banner} />
+      {banners.map(banner => (
+        <PointsBanner key={banner.by} banner={banner} />
       ))}
     </>
   );

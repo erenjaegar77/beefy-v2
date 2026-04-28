@@ -9,13 +9,8 @@ export type FulfilledInitPointsPayload = {
 export const initPoints = createAppAsyncThunk<FulfilledInitPointsPayload>(
   'points/init',
   async () => {
-    try {
-      const api = await getPointsApi();
-      const structures = await api.fetchPoints();
-      return { structures } satisfies FulfilledInitPointsPayload;
-    } catch (err) {
-      console.error('initPoints: failed to load points config, continuing with no structures', err);
-      return { structures: [] } satisfies FulfilledInitPointsPayload;
-    }
+    const api = await getPointsApi();
+    const structures = await api.fetchPoints();
+    return { structures };
   }
 );

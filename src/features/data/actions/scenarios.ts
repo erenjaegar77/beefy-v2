@@ -59,7 +59,6 @@ export async function initAppData(dispatch: BeefyDispatchFn, getState: BeefyStat
 
   // we fetch the configuration for all chain
   const promosPromise = dispatch(initPromos());
-  dispatch(initPoints());
   const vaultsPromise = dispatch(fetchAllVaults());
 
   // we can start fetching prices right now and await them later
@@ -85,6 +84,8 @@ export async function initAppData(dispatch: BeefyDispatchFn, getState: BeefyStat
     dispatch(fetchOffChainCampaignsAction());
 
     dispatch(fetchAvgApyAction());
+
+    dispatch(initPoints());
 
     // Zap (we need the data to know if zap is available for each vault)
     dispatch(fetchZapConfigsAction());

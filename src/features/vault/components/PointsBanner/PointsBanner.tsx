@@ -1,5 +1,5 @@
 import { styled } from '@repo/styles/jsx';
-import { memo, type ReactNode } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LinkButton } from '../../../../components/LinkButton/LinkButton.tsx';
 import { MarkdownText } from '../../../components/Markdown/MarkdownText.tsx';
@@ -8,8 +8,14 @@ import type { ChainEntity } from '../../../data/entities/chain.ts';
 import BoostIcon from '../../../../images/icons/boost.svg?react';
 import { getNetworkSrc } from '../../../../helpers/networkSrc.ts';
 
-function renderHeadingIcon(chainIcon: string | undefined): ReactNode {
-  if (!chainIcon) return <BoostIcon />;
+const ICON_SIZE = 24;
+
+type HeaderIconProps = {
+  chainIcon: string | undefined;
+};
+
+const HeaderIcon = memo(function HeaderIcon({ chainIcon }: HeaderIconProps) {
+  if (!chainIcon) return <BoostIcon width={ICON_SIZE} height={ICON_SIZE} />;
   const url = getNetworkSrc(chainIcon as ChainEntity['id']);
   if (!url) {
     if (import.meta.env.DEV) {
@@ -17,10 +23,10 @@ function renderHeadingIcon(chainIcon: string | undefined): ReactNode {
         `PointsBanner: no chain icon found for "${chainIcon}", falling back to flame. Check src/images/networks/ for a matching SVG.`
       );
     }
-    return <BoostIcon />;
+    return <BoostIcon width={ICON_SIZE} height={ICON_SIZE} />;
   }
-  return <img src={url} alt="" />;
-}
+  return <ChainIconImg src={url} width={ICON_SIZE} height={ICON_SIZE} alt="" />;
+});
 
 export type PointsBannerProps = {
   banner: PointStructureBannerConfig;
@@ -34,10 +40,13 @@ export const PointsBanner = memo(function PointsBanner({ banner }: PointsBannerP
       <Header>
         <Heading>
           <HeadingText>
-            Points by <PartnerName>{banner.by}</PartnerName>
-            <HeadingIconWrap aria-hidden="true">
-              {renderHeadingIcon(banner.chainIcon)}
-            </HeadingIconWrap>
+            Points by{' '}
+            <PartnerWithIcon>
+              <PartnerName>{banner.by}</PartnerName>
+              <span aria-hidden="true">
+                <HeaderIcon chainIcon={banner.chainIcon} />
+              </span>
+            </PartnerWithIcon>
           </HeadingText>
         </Heading>
         {banner.learn && <LinkButton href={banner.learn} text={t('Boost-learn-more')} />}
@@ -62,7 +71,6 @@ const Root = styled('div', {
 
 const Header = styled('div', {
   base: {
-    position: 'relative',
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -71,28 +79,13 @@ const Header = styled('div', {
     gap: '16px',
     padding: '16px',
     backgroundColor: 'background.content.points',
-    '&::before': {
-      content: '""',
-      position: 'absolute',
-      insetInline: 0,
-      top: 0,
-      bottom: '8px',
-      pointerEvents: 'none',
-      backgroundImage:
-        'linear-gradient(to right, var(--colors-white-70-24a) 1px, transparent 1px), linear-gradient(to bottom, var(--colors-white-70-24a) 1px, transparent 1px)',
-      backgroundSize: '51px 100%, 100% 39px',
-      backgroundPosition: '25px 0, 0 20px',
-      backgroundRepeat: 'repeat-x, repeat-y',
-    },
-    // promote children above the absolute ::before so the grid doesn't paint over them
-    '& > *': {
-      position: 'relative',
-    },
+    backgroundImage:
+      'linear-gradient(to right, var(--colors-white-70-24a) 1px, transparent 1px), linear-gradient(to bottom, var(--colors-white-70-24a) 1px, transparent 1px)',
+    backgroundSize: '51px 100%, 100% 39px',
+    backgroundPosition: '25px 0, 0 20px',
+    backgroundRepeat: 'repeat-x, repeat-y',
     sm: {
       padding: '24px',
-      '&::before': {
-        bottom: 0,
-      },
     },
   },
 });
@@ -123,21 +116,19 @@ const PartnerName = styled('span', {
   },
 });
 
-const HeadingIconWrap = styled('span', {
+const PartnerWithIcon = styled('span', {
   base: {
     display: 'inline-flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '24px',
-    height: '24px',
-    marginLeft: '4px',
+    gap: '4px',
     verticalAlign: 'middle',
     color: 'text.points',
-    '& svg, & img': {
-      width: '100%',
-      height: '100%',
-      display: 'block',
-    },
+  },
+});
+
+const ChainIconImg = styled('img', {
+  base: {
+    objectFit: 'contain',
   },
 });
 
