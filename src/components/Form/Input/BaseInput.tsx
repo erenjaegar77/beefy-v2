@@ -37,14 +37,14 @@ export const BaseInput = memo(
         ref={ref}
         data-disabled={disabled ? '' : undefined}
       >
-        {startAdornment && <Adornments data-slot="adornments">{startAdornment}</Adornments>}
+        {startAdornment && <Adornments>{startAdornment}</Adornments>}
         <input
           {...inputProps}
           ref={inputRef}
           disabled={disabled}
           className={cx('BaseInput-input', classes.input)}
         />
-        {endAdornment && <Adornments data-slot="adornments">{endAdornment}</Adornments>}
+        {endAdornment && <Adornments>{endAdornment}</Adornments>}
       </div>
     );
   })
@@ -85,9 +85,6 @@ const recipe = sva({
       '&[data-disabled]': {
         opacity: '0.5',
         pointerEvents: 'none',
-      },
-      '& [data-slot="adornments"]': {
-        color: 'inherit',
       },
     },
     input: {
@@ -138,9 +135,6 @@ const recipe = sva({
           '&[data-disabled]': {
             opacity: '0.5',
             pointerEvents: 'none',
-          },
-          '& [data-slot="adornments"]': {
-            color: 'inherit',
           },
         },
         input: {
@@ -216,6 +210,6 @@ const Adornments = styled('div', {
     flexShrink: '0',
     flexGrow: '0',
     paddingInline: '0',
-    color: 'text.dark',
+    color: 'inherit',
   },
 });

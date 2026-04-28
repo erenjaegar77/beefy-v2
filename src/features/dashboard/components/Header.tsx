@@ -1,41 +1,49 @@
-import { memo, type ReactNode } from 'react';
+import { memo, type ReactNode, useState } from 'react';
 import { Container } from '../../../components/Container/Container.tsx';
 import { ShortAddress } from './ShortAddress/ShortAddress.tsx';
 import { AddressInput } from './AddressInput/AddressInput.tsx';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@repo/styles/jsx';
 
-type HeaderProps = {
+type AddressProps = {
   address: string;
   addressLabel?: string;
-  children?: ReactNode;
 };
 
-export const Header = memo(function Header({ address, addressLabel, children }: HeaderProps) {
-  const { t } = useTranslation();
+type HeaderProps = {
+  children?: ReactNode;
+} & AddressProps;
 
+export const Header = memo(function Header({ children, ...addressProps }: HeaderProps) {
   return (
     <HeaderContainer>
       <Container maxWidth="lg">
         <Content>
-          <TitleSearch>
-            <Title data-slot="title">
-              <TitlePrefix>
-                {t('Dashboard-Title')}
-                {address && <Slash> /</Slash>}
-              </TitlePrefix>
-              {address ?
-                <ShortAddress address={address} addressLabel={addressLabel} />
-              : null}
-            </Title>
-            <AddressInputContainer data-slot="search">
-              <AddressInput variant="transparent" />
-            </AddressInputContainer>
-          </TitleSearch>
+          <TitleSearchRow {...addressProps} />
           {children}
         </Content>
       </Container>
     </HeaderContainer>
+  );
+});
+
+const TitleSearchRow = memo(function ({ address, addressLabel }: AddressProps) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <TitleSearch expanded={expanded}>
+      <Title collapsed={expanded}>
+        <TitlePrefix>
+          {t('Dashboard-Title')}
+          {address && <Slash> /</Slash>}
+        </TitlePrefix>
+        {address ?
+          <ShortAddress address={address} addressLabel={addressLabel} />
+        : null}
+      </Title>
+      <AddressInput variant="transparent" active={expanded} setActive={setExpanded} />
+    </TitleSearch>
   );
 });
 
@@ -64,18 +72,15 @@ const TitleSearch = styled('div', {
     justifyContent: 'space-between',
     gap: '8px',
     lg: {
-      //14px + 4px
       paddingInline: '18px',
     },
-    // on mobile, when the search input is focused or has a value, hide the title
-    // so the input can take the full row.
-    smDown: {
-      '&:has([data-search-active="true"]) > [data-slot="title"]': {
-        display: 'none',
-      },
-      '&:has([data-search-active="true"]) > [data-slot="search"]': {
-        flexGrow: 1,
-        flexShrink: 1,
+  },
+  variants: {
+    expanded: {
+      true: {
+        smDown: {
+          gap: 0,
+        },
       },
     },
   },
@@ -92,6 +97,15 @@ const Title = styled('div', {
     fontWeight: 500,
     flexShrink: 1,
   },
+  variants: {
+    collapsed: {
+      true: {
+        smDown: {
+          flexBasis: 0,
+        },
+      },
+    },
+  },
 });
 
 const TitlePrefix = styled('span', {
@@ -104,20 +118,5 @@ const TitlePrefix = styled('span', {
 const Slash = styled('span', {
   base: {
     color: 'text.dark',
-  },
-});
-
-const AddressInputContainer = styled('div', {
-  base: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    minWidth: 0,
-    // mobile collapsed: don't shrink (so the icon trigger stays visible)
-    flexShrink: 0,
-    sm: {
-      // tablet+: allow the search area to shrink so the input's growth
-      // is bounded by the available space next to the title
-      flexShrink: 1,
-    },
   },
 });

@@ -6,6 +6,7 @@ import {
   memo,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -26,22 +27,32 @@ import { BaseInput } from '../../../../components/Form/Input/BaseInput.tsx';
 import { CircularProgress } from '../../../../components/CircularProgress/CircularProgress.tsx';
 import EnterIcon from '../../../../images/icons/enter.svg?react';
 import { useBreakpoint } from '../../../../hooks/useBreakpoint.ts';
+import { styled } from '@repo/styles/jsx';
 
 type AddressInputProps = {
+  active?: boolean;
+  setActive?: (active: boolean) => void;
   variant?: 'default' | 'transparent';
 };
 
-export const AddressInput = memo(function AddressInput({ variant = 'default' }: AddressInputProps) {
+export const AddressInput = memo(function AddressInput({
+  variant = 'default',
+  active: controlledActive = false,
+  setActive: controlledSetActive,
+}: AddressInputProps) {
   const [userInput, setUserInput] = useState<string>('');
   const [inputMode, setInputMode] = useState<'address' | 'domain'>('address');
   const resolverStatus = useResolveDomain(inputMode === 'domain' ? userInput : '');
   const [isDomainValid, setIsDomainValid] = useState<boolean>(false);
   const [isDomainResolving, setIsDomainResolving] = useState<boolean>(false);
   const [hasFocus, setHasFocus] = useState<boolean>(false);
+  const [localActive, localSetActive] = useState<boolean>(false);
+  const isActive = controlledSetActive === undefined ? localActive : controlledActive;
+  const setActive = controlledSetActive ?? localSetActive;
   const { t } = useTranslation();
   const anchorEl = useRef<HTMLInputElement | null>(null);
   const navigate = useNavigate();
-
+  const inputId = useId();
   const isMobile = useBreakpoint({ to: 'xs' });
 
   const placeholder = useMemo(() => {
@@ -92,6 +103,11 @@ export const AddressInput = memo(function AddressInput({ variant = 'default' }: 
     setHasFocus(false);
   }, [setHasFocus]);
 
+  const inputLength = userInput.length;
+  useEffect(() => {
+    setActive(inputLength !== 0 || hasFocus);
+  }, [inputLength, hasFocus, setActive]);
+
   useEffect(() => {
     if (isMaybeDomain(userInput)) {
       setInputMode('domain');
@@ -118,17 +134,17 @@ export const AddressInput = memo(function AddressInput({ variant = 'default' }: 
     }
   }, [inputMode, resolverStatus, setIsDomainValid, setIsDomainResolving]);
 
-  const isActive = userInput.length !== 0 || hasFocus;
+  const showPlaceholder = inputLength === 0;
 
   return (
     <>
       <BaseInput
+        id={inputId}
         ref={anchorEl}
         variant={variant}
-        data-search-active={isActive ? 'true' : undefined}
         className={css(
-          variant === 'transparent' ? transparentBaseWidth : defaultBaseWidth,
-          isActive && (variant === 'transparent' ? transparentActiveWidth : defaultActiveWidth)
+          variant === 'transparent' ? transparentRoot : defaultRoot,
+          isActive && (variant === 'transparent' ? transparentRootActive : defaultRootActive)
         )}
         value={userInput}
         onChange={handleChange}
@@ -136,8 +152,11 @@ export const AddressInput = memo(function AddressInput({ variant = 'default' }: 
         onBlur={handleBlur}
         fullWidth={true}
         onKeyDown={handleGoToDashboardOnEnterKey}
+        startAdornment={
+          showPlaceholder && <Placeholder htmlFor={inputId}>{placeholder}</Placeholder>
+        }
         endAdornment={
-          <EndAdornment
+          <SearchIndicatorButton
             domainResolving={isDomainResolving}
             isValid={isValid}
             userInput={userInput}
@@ -145,7 +164,6 @@ export const AddressInput = memo(function AddressInput({ variant = 'default' }: 
             inputMode={inputMode}
           />
         }
-        placeholder={placeholder}
       />
       {(
         hasFocus &&
@@ -167,7 +185,22 @@ export const AddressInput = memo(function AddressInput({ variant = 'default' }: 
   );
 });
 
-interface EndAdornmentProps {
+const Placeholder = styled('label', {
+  base: {
+    textStyle: 'label',
+    color: 'inherit',
+    fontWeight: 500,
+    height: '20px',
+    opacity: '0.64',
+    textDecoration: 'underline',
+    textDecorationColor: 'inherit',
+    textDecorationThickness: '0.5px',
+    textUnderlineOffset: '2px',
+    cursor: 'text',
+  },
+});
+
+interface SearchIndicatorButtonProps {
   isValid: boolean;
   userInput: string;
   handleClear: () => void;
@@ -175,13 +208,13 @@ interface EndAdornmentProps {
   inputMode: 'address' | 'domain';
 }
 
-const EndAdornment = memo(function EndAdornment({
+const SearchIndicatorButton = memo(function SearchIndicatorButton({
   isValid,
   userInput,
   handleClear,
   domainResolving,
   inputMode,
-}: EndAdornmentProps) {
+}: SearchIndicatorButtonProps) {
   const navigate = useNavigate();
 
   const handleGoToDashboard = useCallback(() => {
@@ -189,88 +222,72 @@ const EndAdornment = memo(function EndAdornment({
     handleClear();
   }, [userInput, handleClear, navigate]);
 
+  let children = (
+    <IconDiv state="disabled">
+      <Search />
+    </IconDiv>
+  );
+
   if (domainResolving && inputMode === 'domain') {
-    return (
+    children = (
       <LoaderContainer>
         <CircularProgress size={20} />
       </LoaderContainer>
     );
-  }
-
-  if (isValid) {
-    return (
+  } else if (isValid) {
+    children = (
       <IconButton state="active" enter={true} onClick={handleGoToDashboard}>
         <EnterIcon />
       </IconButton>
     );
-  }
-
-  if (userInput.length !== 0) {
-    return (
+  } else if (userInput.length !== 0) {
+    children = (
       <IconButton state="active" onClick={handleClear}>
         <CloseRounded />
       </IconButton>
     );
   }
 
-  return (
-    <IconDiv state="disabled">
-      <Search />
-    </IconDiv>
-  );
+  return <SearchIndicatorLayout>{children}</SearchIndicatorLayout>;
 });
 
-const transparentBaseWidth = css.raw({
+const SearchIndicatorLayout = styled('div', {
+  base: {
+    marginLeft: '8px',
+  },
+});
+
+const transparentRoot = css.raw({
   // mobile: collapsed input shows the "Search" placeholder + icon
   width: '79px',
   minWidth: 0,
   transition: 'width 0.2s ease-in-out',
+  gap: 0,
+  '& .BaseInput-input': {
+    fieldSizing: 'content',
+    minWidth: 0,
+  },
   sm: {
-    // tablet+: input auto-sizes with text content (placeholder when empty).
     width: 'auto',
     transition: 'none',
-    '& .BaseInput-input': {
-      // input hugs its content — placeholder when empty, typed text when not.
-      fieldSizing: 'content',
-      minWidth: 0,
-      maxWidth: '100%',
-      // Fake a thicker caret: hide the native one and paint a 2px green bar
-      // at the input's right edge, sized to the font cap-height (visible
-      // only while focused, with blink). Safe here because field-sizing
-      // keeps the input the exact width of its text, so "right edge of
-      // input" == "end of text".
-      caretColor: 'transparent',
-    },
-    '& .BaseInput-input:focus': {
-      // 2px-wide vertical bar at the right edge, ~12px tall (font cap
-      // height for the 12px label text), vertically centered.
-      backgroundImage:
-        'linear-gradient(to right, {colors.indicators.success}, {colors.indicators.success})',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: '2px 12px',
-      backgroundPosition: 'right center',
-      paddingRight: '2px',
-      animation: 'addressInputCaretBlink 1s steps(1) infinite',
-    },
   },
 });
 
-const transparentActiveWidth = css.raw({
+const transparentRootActive = css.raw({
   // mobile (active): take the full row available
   width: '100%',
-  minWidth: 0,
   sm: {
     // tablet+: handled by field-sizing on the input itself
     width: 'auto',
   },
 });
 
-const defaultBaseWidth = css.raw({
+const defaultRoot = css.raw({
   transition: 'width 0.2s ease-in-out',
   width: '272px',
 });
 
-const defaultActiveWidth = css.raw({
+const defaultRootActive = css.raw({
   width: '100%',
   md: {
     width: '443px',
