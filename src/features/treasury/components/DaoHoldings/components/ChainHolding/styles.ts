@@ -45,7 +45,4 @@ export const styles = {
     backgroundImage:
       'linear-gradient(90deg, var(--colors-color-palette-header-primary) 0%, var(--colors-color-palette-header-secondary, var(--colors-color-palette-header-primary)) 100%)',
   }),
-  'headerMM-system9': css.raw({
-    backgroundColor: 'treasuryHeaderSystem9',
-  }),
 };
