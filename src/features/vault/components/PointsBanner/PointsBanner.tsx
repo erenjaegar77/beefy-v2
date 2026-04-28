@@ -43,9 +43,9 @@ export const PointsBanner = memo(function PointsBanner({ banner }: PointsBannerP
             Points by{' '}
             <PartnerWithIcon>
               <PartnerName>{banner.by}</PartnerName>
-              <span aria-hidden="true">
+              <HeadingIconWrap aria-hidden="true">
                 <HeaderIcon chainIcon={banner.chainIcon} />
-              </span>
+              </HeadingIconWrap>
             </PartnerWithIcon>
           </HeadingText>
         </Heading>
@@ -118,11 +118,17 @@ const PartnerName = styled('span', {
 
 const PartnerWithIcon = styled('span', {
   base: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '4px',
-    verticalAlign: 'middle',
+    display: 'inline',
+    whiteSpace: 'nowrap',
     color: 'text.points',
+  },
+});
+
+const HeadingIconWrap = styled('span', {
+  base: {
+    display: 'inline-block',
+    verticalAlign: 'middle',
+    marginLeft: '4px',
   },
 });
 
