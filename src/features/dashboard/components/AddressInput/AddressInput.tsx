@@ -134,8 +134,6 @@ export const AddressInput = memo(function AddressInput({
     }
   }, [inputMode, resolverStatus, setIsDomainValid, setIsDomainResolving]);
 
-  const showPlaceholder = inputLength === 0;
-
   return (
     <>
       <BaseInput
@@ -153,18 +151,31 @@ export const AddressInput = memo(function AddressInput({
         fullWidth={true}
         onKeyDown={handleGoToDashboardOnEnterKey}
         startAdornment={
-          showPlaceholder && <Placeholder htmlFor={inputId}>{placeholder}</Placeholder>
+          variant === 'default' ?
+            <SearchIndicatorButton
+              domainResolving={isDomainResolving}
+              isValid={isValid}
+              userInput={userInput}
+              handleClear={handleClear}
+              inputMode={inputMode}
+              variant="start"
+            />
+          : null
         }
         endAdornment={
-          <SearchIndicatorButton
-            domainResolving={isDomainResolving}
-            isValid={isValid}
-            userInput={userInput}
-            handleClear={handleClear}
-            inputMode={inputMode}
-          />
+          variant === 'transparent' ?
+            <SearchIndicatorButton
+              domainResolving={isDomainResolving}
+              isValid={isValid}
+              userInput={userInput}
+              handleClear={handleClear}
+              inputMode={inputMode}
+            />
+          : null
         }
+        placeholder={placeholder}
       />
+
       {(
         hasFocus &&
         !isValid &&
@@ -185,27 +196,13 @@ export const AddressInput = memo(function AddressInput({
   );
 });
 
-const Placeholder = styled('label', {
-  base: {
-    textStyle: 'label',
-    color: 'inherit',
-    fontWeight: 500,
-    height: '20px',
-    opacity: '0.64',
-    textDecoration: 'underline',
-    textDecorationColor: 'inherit',
-    textDecorationThickness: '0.5px',
-    textUnderlineOffset: '2px',
-    cursor: 'text',
-  },
-});
-
 interface SearchIndicatorButtonProps {
   isValid: boolean;
   userInput: string;
   handleClear: () => void;
   domainResolving: boolean;
   inputMode: 'address' | 'domain';
+  variant?: 'start' | 'end';
 }
 
 const SearchIndicatorButton = memo(function SearchIndicatorButton({
@@ -214,6 +211,7 @@ const SearchIndicatorButton = memo(function SearchIndicatorButton({
   handleClear,
   domainResolving,
   inputMode,
+  variant = 'end',
 }: SearchIndicatorButtonProps) {
   const navigate = useNavigate();
 
@@ -223,7 +221,7 @@ const SearchIndicatorButton = memo(function SearchIndicatorButton({
   }, [userInput, handleClear, navigate]);
 
   let children = (
-    <IconDiv state="disabled">
+    <IconDiv variant={variant} state="disabled">
       <Search />
     </IconDiv>
   );
@@ -248,12 +246,21 @@ const SearchIndicatorButton = memo(function SearchIndicatorButton({
     );
   }
 
-  return <SearchIndicatorLayout>{children}</SearchIndicatorLayout>;
+  return <SearchIndicatorLayout variant={variant}>{children}</SearchIndicatorLayout>;
 });
 
 const SearchIndicatorLayout = styled('div', {
-  base: {
-    marginLeft: '8px',
+  base: {},
+  variants: {
+    variant: {
+      start: {},
+      end: {
+        marginLeft: '8px',
+      },
+    },
+  },
+  defaultVariants: {
+    variant: 'end',
   },
 });
 
