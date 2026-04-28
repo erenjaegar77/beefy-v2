@@ -15,17 +15,16 @@ type HeaderIconProps = {
 };
 
 const HeaderIcon = memo(function HeaderIcon({ chainIcon }: HeaderIconProps) {
-  if (!chainIcon) return <BoostIcon width={ICON_SIZE} height={ICON_SIZE} />;
-  const url = getNetworkSrc(chainIcon as ChainEntity['id']);
-  if (!url) {
-    if (import.meta.env.DEV) {
-      console.warn(
-        `PointsBanner: no chain icon found for "${chainIcon}", falling back to flame. Check src/images/networks/ for a matching SVG.`
-      );
-    }
-    return <BoostIcon width={ICON_SIZE} height={ICON_SIZE} />;
+  const url = chainIcon && getNetworkSrc(chainIcon as ChainEntity['id']);
+  if (url) {
+    return <ChainIconImg src={url} width={ICON_SIZE} height={ICON_SIZE} alt="" />;
   }
-  return <ChainIconImg src={url} width={ICON_SIZE} height={ICON_SIZE} alt="" />;
+  if (import.meta.env.DEV && chainIcon && !url) {
+    console.warn(
+      `PointsBanner: no chain icon found for "${chainIcon}", falling back to flame. Check src/images/networks/ for a matching SVG.`
+    );
+  }
+  return <BoostIcon width={ICON_SIZE} height={ICON_SIZE} />;
 });
 
 export type PointsBannerProps = {
@@ -39,15 +38,11 @@ export const PointsBanner = memo(function PointsBanner({ banner }: PointsBannerP
     <Root>
       <Header>
         <Heading>
-          <HeadingText>
-            Points by{' '}
-            <PartnerWithIcon>
-              <PartnerName>{banner.by}</PartnerName>
-              <HeadingIconWrap aria-hidden="true">
-                <HeaderIcon chainIcon={banner.chainIcon} />
-              </HeadingIconWrap>
-            </PartnerWithIcon>
-          </HeadingText>
+          Points by{' '}
+          <PartnerWithIcon>
+            <PartnerName>{banner.by}</PartnerName>
+            <HeaderIcon chainIcon={banner.chainIcon} />
+          </PartnerWithIcon>
         </Heading>
         {banner.learn && <LinkButton href={banner.learn} text={t('Boost-learn-more')} />}
       </Header>
@@ -90,18 +85,7 @@ const Header = styled('div', {
   },
 });
 
-const Heading = styled('div', {
-  base: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: '4px',
-    flexGrow: 1,
-    minHeight: '32px',
-  },
-});
-
-const HeadingText = styled('h2', {
+const Heading = styled('h2', {
   base: {
     textStyle: 'h2',
     margin: 0,
@@ -118,23 +102,18 @@ const PartnerName = styled('span', {
 
 const PartnerWithIcon = styled('span', {
   base: {
-    display: 'inline',
+    display: 'inline-flex',
     whiteSpace: 'nowrap',
     color: 'text.points',
-  },
-});
-
-const HeadingIconWrap = styled('span', {
-  base: {
-    display: 'inline-block',
-    verticalAlign: 'middle',
-    marginLeft: '4px',
+    alignItems: 'center',
+    gap: '4px',
   },
 });
 
 const ChainIconImg = styled('img', {
   base: {
     objectFit: 'contain',
+    width: ICON_SIZE,
   },
 });
 
