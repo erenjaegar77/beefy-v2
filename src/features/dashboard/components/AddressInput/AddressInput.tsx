@@ -1,4 +1,4 @@
-import CloseRounded from '../../../../images/icons/mui/CloseRounded.svg?react';
+import CloseRounded from '../../../../images/icons/clear.svg?react';
 import Search from '../../../../images/icons/search.svg?react';
 import {
   type ChangeEvent,
@@ -152,26 +152,20 @@ export const AddressInput = memo(function AddressInput({
         onKeyDown={handleGoToDashboardOnEnterKey}
         startAdornment={
           variant === 'default' ?
-            <SearchIndicatorButton
-              domainResolving={isDomainResolving}
-              isValid={isValid}
-              userInput={userInput}
-              handleClear={handleClear}
-              inputMode={inputMode}
-              variant="start"
-            />
+            <IconDiv variant={variant} state="disabled">
+              <Search />
+            </IconDiv>
           : null
         }
         endAdornment={
-          variant === 'transparent' ?
-            <SearchIndicatorButton
-              domainResolving={isDomainResolving}
-              isValid={isValid}
-              userInput={userInput}
-              handleClear={handleClear}
-              inputMode={inputMode}
-            />
-          : null
+          <SearchIndicatorButton
+            domainResolving={isDomainResolving}
+            isValid={isValid}
+            userInput={userInput}
+            handleClear={handleClear}
+            inputMode={inputMode}
+            variant={variant}
+          />
         }
         placeholder={placeholder}
       />
@@ -202,7 +196,7 @@ interface SearchIndicatorButtonProps {
   handleClear: () => void;
   domainResolving: boolean;
   inputMode: 'address' | 'domain';
-  variant?: 'start' | 'end';
+  variant: 'default' | 'transparent';
 }
 
 const SearchIndicatorButton = memo(function SearchIndicatorButton({
@@ -211,7 +205,7 @@ const SearchIndicatorButton = memo(function SearchIndicatorButton({
   handleClear,
   domainResolving,
   inputMode,
-  variant = 'end',
+  variant,
 }: SearchIndicatorButtonProps) {
   const navigate = useNavigate();
 
@@ -244,6 +238,8 @@ const SearchIndicatorButton = memo(function SearchIndicatorButton({
         <CloseRounded />
       </IconButton>
     );
+  } else if (variant === 'default') {
+    children = <></>;
   }
 
   return <SearchIndicatorLayout variant={variant}>{children}</SearchIndicatorLayout>;
@@ -253,14 +249,14 @@ const SearchIndicatorLayout = styled('div', {
   base: {},
   variants: {
     variant: {
-      start: {},
-      end: {
+      default: {},
+      transparent: {
         marginLeft: '8px',
       },
     },
   },
   defaultVariants: {
-    variant: 'end',
+    variant: 'transparent',
   },
 });
 

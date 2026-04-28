@@ -59,15 +59,15 @@ export const IconDiv = styled('div', {
       },
     },
     variant: {
-      start: {
+      default: {
         transform: 'rotate(270deg)',
       },
-      end: {},
+      transparent: {},
     },
   },
   defaultVariants: {
     state: 'disabled',
-    variant: 'end',
+    variant: 'transparent',
   },
 });
 
