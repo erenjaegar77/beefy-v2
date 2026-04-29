@@ -1562,6 +1562,32 @@ class BalancerStrategyImpl implements IComposableStrategy<StrategyId> {
     };
   }
 
+  async canAcceptTokenAsDeposit(token: TokenEntity): Promise<boolean> {
+    return this.canRouteAcrossEitherEmissionPath(token);
+  }
+
+  async canEmitTokenAsWithdraw(token: TokenEntity): Promise<boolean> {
+    return this.canRouteAcrossEitherEmissionPath(token);
+  }
+
+  // Mirrors Balancer's two emission paths (`buildDepositOptionsForAll` +
+  // `buildDepositOptionsForSingle`); direction-symmetric.
+  protected async canRouteAcrossEitherEmissionPath(token: TokenEntity): Promise<boolean> {
+    if (this.singleTokenOptions.some(t => isTokenEqual(t, token))) return true;
+
+    if (this.allTokenOptions.length > 0) {
+      const allRoutable = await this.aggregatorTokensCanSwapToAllOf(this.allTokenOptions);
+      if (allRoutable.some(t => isTokenEqual(t, token))) return true;
+    }
+
+    if (this.singleTokenOptions.length > 0) {
+      const { inputTokens } = await this.aggregatorTokensCanSwapToTokens(this.singleTokenOptions);
+      if (inputTokens.some(t => isTokenEqual(t, token))) return true;
+    }
+
+    return false;
+  }
+
   protected async aggregatorTokensCanSwapToAllOf(allTokens: TokenEntity[]): Promise<TokenEntity[]> {
     const { swapAggregator, getState } = this.helpers;
     const state = getState();
