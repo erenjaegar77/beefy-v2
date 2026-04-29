@@ -172,10 +172,6 @@ export const selectTransactWithdrawSelectionsForChain = (
   );
 };
 
-function orderTransactRows<T extends { order: number; balanceValue: BigNumber }>(rows: T[]): T[] {
-  return orderBy(rows, [o => o.order, o => o.balanceValue.toNumber()], ['asc', 'desc']);
-}
-
 export const selectTransactWithdrawSelectionsForChainWithBalances = (
   state: BeefyState,
   chainId: ChainEntity['id'],
@@ -203,7 +199,7 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
     return selectionsWithModifiedSymbols;
   }
 
-  return orderTransactRows(
+  return orderBy(
     selectionsWithModifiedSymbols.map(selection => {
       if (selection.vaultRefId) {
         return selection;
@@ -228,7 +224,9 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
       }
 
       return selection;
-    })
+    }),
+    [o => o.order, o => o.balanceValue.toNumber()],
+    ['asc', 'desc']
   );
 };
 
@@ -254,42 +252,36 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
     selectionId => state.ui.transact.selections.bySelectionId[selectionId]
   );
 
-  const rows = options.flatMap((option): DepositRow[] => {
+  const rows = options.map((option): DepositRow => {
     const tokens = option.tokens;
 
     if (option.vaultRefId) {
       if (!walletAddress) {
-        if (option.hideIfZeroBalance) return [];
-        return [
-          {
-            ...option,
-            balanceValue: BIG_ZERO,
-            balance: BIG_ZERO,
-            decimals: tokens[0].decimals,
-            tag: undefined,
-          },
-        ];
+        return {
+          ...option,
+          balanceValue: BIG_ZERO,
+          balance: BIG_ZERO,
+          decimals: tokens[0].decimals,
+          tag: undefined,
+        };
       }
       const shareBalance = selectUserVaultBalanceInShareTokenIncludingDisplaced(
         state,
         option.vaultRefId,
         walletAddress
       );
-      if (option.hideIfZeroBalance && shareBalance.lte(BIG_ZERO)) return [];
       const balanceValue = selectUserVaultBalanceInUsdIncludingDisplaced(
         state,
         option.vaultRefId,
         walletAddress
       );
-      return [
-        {
-          ...option,
-          balanceValue,
-          balance: shareBalance,
-          decimals: tokens[0].decimals,
-          tag: undefined,
-        },
-      ];
+      return {
+        ...option,
+        balanceValue,
+        balance: shareBalance,
+        decimals: tokens[0].decimals,
+        tag: undefined,
+      };
     }
 
     const balances = tokens.map(token =>
@@ -312,19 +304,21 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
     };
 
     if (tokens.length === 1) {
-      return [
-        {
-          ...base,
-          ...extractTagFromLpSymbol(tokens, vault),
-          balance: balances[0],
-          decimals: tokens[0].decimals,
-        },
-      ];
+      return {
+        ...base,
+        ...extractTagFromLpSymbol(tokens, vault),
+        balance: balances[0],
+        decimals: tokens[0].decimals,
+      };
     }
 
-    return [base];
+    return base;
   });
-  return orderTransactRows(rows);
+  return orderBy(
+    rows.filter(row => !row.hideIfZeroBalance || !row.balanceValue.isZero()),
+    [o => o.order, o => o.balanceValue.toNumber()],
+    ['asc', 'desc']
+  );
 };
 
 export const selectTransactOptionById = createSelector(
