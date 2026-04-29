@@ -352,22 +352,13 @@ export type CrossChainSrcHandlerKind = 'swap' | 'vault';
 /** Discriminates destination-side behavior for a cross-chain withdraw. */
 export type CrossChainDestHandlerKind = 'passthrough' | 'swap' | 'vault';
 
-/**
- * Common shape for cross-chain deposit options. Concrete variants discriminate
- * on `srcHandlerKind` so `srcVaultId` is required on the `'vault'` variant
- * without a runtime check.
- */
+/** Common shape for cross-chain deposit options; variants discriminate on `srcHandlerKind`. */
 type CrossChainDepositOptionBase = ZapBaseDepositOption & {
   strategyId: 'cross-chain';
-  /** Chain where the user provides input tokens */
   sourceChainId: ChainEntity['id'];
-  /** Chain where the vault lives (same as option.chainId) */
   destChainId: ChainEntity['id'];
-  /** USDC token on the source chain (bridge input) */
   bridgeToken: TokenEntity;
-  /** USDC token on the destination chain (bridge output) */
   destBridgeToken: TokenEntity;
-  /** Destination-side handler kind. Always `'vault'` for deposits — the dst leg deposits USDC into the target vault. */
   destHandlerKind: 'vault';
 };
 
@@ -387,36 +378,27 @@ export type CrossChainDepositOption =
   | CrossChainSwapSrcDepositOption
   | CrossChainVaultSrcDepositOption;
 
-/**
- * Common shape for cross-chain withdraw options. Concrete variants discriminate
- * on `destHandlerKind` so `destVaultId` is required on the `'vault'` variant
- * without a runtime check.
- */
+/** Common shape for cross-chain withdraw options; variants discriminate on `destHandlerKind`. */
 type CrossChainWithdrawOptionBase = ZapBaseWithdrawOption & {
   strategyId: 'cross-chain';
-  /** Chain where the vault lives (same as option.chainId) */
   sourceChainId: ChainEntity['id'];
-  /** Chain where the user wants to receive tokens */
   destChainId: ChainEntity['id'];
-  /** USDC token on the source chain (bridge input) */
   bridgeToken: TokenEntity;
-  /** USDC token on the destination chain (bridge output) */
   destBridgeToken: TokenEntity;
-  /** Source-side handler kind. Always `'vault'` for withdraws — the src leg withdraws from the page vault. */
   srcHandlerKind: 'vault';
 };
 
-/** Passthrough-dst withdraw: USDC is minted directly to the user on the dst chain (Path A). */
+/** Passthrough-dst withdraw: USDC is minted directly to the user on the dst chain. */
 export type CrossChainPassthroughDstWithdrawOption = CrossChainWithdrawOptionBase & {
   destHandlerKind: 'passthrough';
 };
 
-/** Swap-dst withdraw: USDC is swapped to a target token on the dst chain (Path B). */
+/** Swap-dst withdraw: USDC is swapped to a target token on the dst chain. */
 export type CrossChainSwapDstWithdrawOption = CrossChainWithdrawOptionBase & {
   destHandlerKind: 'swap';
 };
 
-/** Vault-dst withdraw (Path C): USDC is deposited into `destVaultId` on the dst chain. */
+/** Vault-dst withdraw: USDC is deposited into `destVaultId` on the dst chain. */
 export type CrossChainVaultDstWithdrawOption = CrossChainWithdrawOptionBase & {
   destHandlerKind: 'vault';
   destVaultId: VaultEntity['id'];
@@ -665,12 +647,8 @@ export type RecoveryQuote = {
   fee: ZapFee;
   allowances: AllowanceTokenAmount[];
   /**
-   * Inner `DestHandlerQuote` captured at quote time and reused at step time
-   * so `fetchZapSteps` runs against the same route the user saw (no second
-   * aggregator call between display and execution). The `<unknown>` `Q`
-   * keeps the per-handler `.state` opaque to callers — only the producing
-   * handler should read it. NOT serializable (carries BigNumber etc.) — do
-   * not persist or feed through `structuredClone`.
+   * Captured at quote time, reused at step time so fetchZapSteps runs against the same route.
+   * NOT serializable (BigNumber etc.) — do not persist or structuredClone.
    */
   destHandlerQuote: DestHandlerQuote<unknown>;
 };
@@ -763,11 +741,6 @@ export type CurveDepositQuote = BaseZapQuote<CurveDepositOption> & {
   viaToken: CurveTokenOption;
 };
 
-// export type BalancerSwapDepositQuote = BaseZapQuote<BalancerSwapDepositOption> & {
-//   via: 'aggregator' | 'direct';
-//   viaToken: BalancerTokenOption;
-// };
-
 export type BalancerDepositQuote = BaseZapQuote<BalancerDepositOption>;
 
 export type GammaDepositQuote = BaseZapQuote<GammaDepositOption> & {
@@ -780,25 +753,12 @@ export type ConicDepositQuote = BaseZapQuote<ConicDepositOption>;
 
 /** Quote for a cross-chain deposit: source swap → bridge → dest swap + deposit */
 export type CrossChainDepositQuote = BaseZapQuote<CrossChainDepositOption> & {
-  /** Source-side handler kind — mirrors `option.srcHandlerKind`. Carried on the quote so consumers can narrow without reaching back to `option`. */
   srcHandlerKind: CrossChainSrcHandlerKind;
-  /** Destination-side handler kind. Always `'vault'` for deposits. */
   destHandlerKind: 'vault';
-  /** Steps on the source chain (swap input → USDC, bridge) */
   sourceSteps: ZapQuoteStep[];
-  /** Steps on the destination chain (from dest strategy) */
   destSteps: ZapQuoteStep[];
-  /** The CCTP bridge quote */
   bridgeQuote: CCTPBridgeQuote;
-  /**
-   * Source-side handler quote — opaque to consumers; the orchestrator
-   * downcasts to `SourceHandlerQuote<...>` when calling `fetchZapSteps`.
-   */
   srcHandlerQuote: unknown;
-  /**
-   * Destination-side handler quote — opaque to consumers; the orchestrator
-   * downcasts to `DestHandlerQuote<...>` when calling `fetchZapSteps`.
-   */
   destHandlerQuote: unknown;
 };
 
@@ -927,19 +887,12 @@ export type VaultComposerZapWithdrawQuote = BaseZapQuote<VaultComposerWithdrawOp
 
 /** Quote for a cross-chain withdrawal: vault withdraw → swap to USDC → bridge → optional dest swap */
 export type CrossChainWithdrawQuote = BaseZapQuote<CrossChainWithdrawOption> & {
-  /** Source-side handler kind. Always `'vault'` for withdraws. */
   srcHandlerKind: 'vault';
-  /** Destination-side handler kind — mirrors `option.destHandlerKind`. */
   destHandlerKind: CrossChainDestHandlerKind;
-  /** Steps on the source chain (vault withdraw → swap to USDC → bridge) */
   sourceSteps: ZapQuoteStep[];
-  /** Steps on the destination chain (swap USDC → desired token). Empty if USDC output. */
   destSteps: ZapQuoteStep[];
-  /** The CCTP bridge quote */
   bridgeQuote: CCTPBridgeQuote;
-  /** Source-side handler quote — opaque to consumers; see `CrossChainDepositQuote`. */
   srcHandlerQuote: unknown;
-  /** Destination-side handler quote — opaque to consumers; see `CrossChainDepositQuote`. */
   destHandlerQuote: unknown;
 };
 

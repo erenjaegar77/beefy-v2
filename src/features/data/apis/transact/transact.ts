@@ -83,10 +83,6 @@ export function isComposableStrategyConstructorWithOptions(
 }
 
 export class TransactApi implements ITransactApi {
-  /**
-   * Get chain-level transact helpers (no vault context).
-   * Guarantees zap router exists (throws otherwise).
-   */
   async getHelpersForChain(
     chainId: ChainEntity['id'],
     getState: BeefyStateFn
@@ -133,10 +129,8 @@ export class TransactApi implements ITransactApi {
     const { vaultType } = helpers;
     const options: DepositOption[] = [];
 
-    // direct deposit option
     let vaultDepositOption: DepositOption | undefined = await vaultType.fetchDepositOption();
 
-    // zaps
     const zapStrategies = await this.getZapStrategiesForVault(helpers);
     if (zapStrategies.length) {
       const zapOptions = await Promise.allSettled(
@@ -193,7 +187,6 @@ export class TransactApi implements ITransactApi {
       strategies.map((strategy, i) => [strategyIds[i], strategy])
     );
 
-    // Call beforeQuote hooks
     await Promise.allSettled(
       strategies.map(async strategy => {
         if (strategy.beforeQuote) {
@@ -202,7 +195,6 @@ export class TransactApi implements ITransactApi {
       })
     );
 
-    // Get quotes
     const quotes = await Promise.allSettled(
       options.map(async option => {
         const strategy = strategiesById[option.strategyId];
@@ -243,7 +235,6 @@ export class TransactApi implements ITransactApi {
     const helpers = await this.getHelpersForVault(quote.option.vaultId, getState);
     const strategy = await this.getStrategyById(quote.option.strategyId, helpers);
 
-    // Call beforeStep hooks
     if (strategy.beforeStep) {
       await strategy.beforeStep();
     }
@@ -261,10 +252,8 @@ export class TransactApi implements ITransactApi {
     const { vaultType } = helpers;
     const options: WithdrawOption[] = [];
 
-    // direct deposit option
     let vaultWithdrawOption: WithdrawOption | undefined = await vaultType.fetchWithdrawOption();
 
-    // zaps
     const zapStrategies = await this.getZapStrategiesForVault(helpers);
     if (zapStrategies.length) {
       const zapOptions = await Promise.allSettled(
@@ -321,7 +310,6 @@ export class TransactApi implements ITransactApi {
       strategies.map((strategy, i) => [strategyIds[i], strategy])
     );
 
-    // Call beforeQuote hooks
     await Promise.allSettled(
       strategies.map(async strategy => {
         if (strategy.beforeQuote) {
@@ -330,7 +318,6 @@ export class TransactApi implements ITransactApi {
       })
     );
 
-    // Get quotes
     const quotes = await Promise.allSettled(
       options.map(option => {
         const strategy = strategiesById[option.strategyId];
@@ -386,7 +373,6 @@ export class TransactApi implements ITransactApi {
     const helpers = await this.getHelpersForVault(quote.option.vaultId, getState);
     const strategy = await this.getStrategyById(quote.option.strategyId, helpers);
 
-    // Call beforeStep hooks
     if (strategy.beforeStep) {
       await strategy.beforeStep();
     }
@@ -398,7 +384,6 @@ export class TransactApi implements ITransactApi {
   async fetchVaultHasZap(vaultId: VaultEntity['id'], getState: BeefyStateFn): Promise<boolean> {
     const helpers = await this.getHelpersForVault(vaultId, getState);
 
-    // No zap in config
     if (!helpers.vault.zaps || helpers.vault.zaps.length === 0) {
       return false;
     }
@@ -412,7 +397,6 @@ export class TransactApi implements ITransactApi {
       return false;
     }
 
-    // No strategies could be initialized
     const zapStrategies = await this.getZapStrategiesForVault(helpers);
     if (!zapStrategies.length) {
       return false;
@@ -422,7 +406,6 @@ export class TransactApi implements ITransactApi {
       zapStrategies.map(zapStrategy => zapStrategy.fetchDepositOptions())
     );
 
-    // Must have at least 1 deposit option from any strategy
     return options.flat().length > 0;
   }
 
@@ -648,9 +631,6 @@ export class TransactApi implements ITransactApi {
     return xChainStrategy.fetchRecoveryStep(recovery, quote, destChainHelpers, opId, t);
   }
 
-  /**
-   * Check if any composable zap strategy returned a deposit option that accepts USDC as a single input.
-   */
   private anyComposableStrategyAcceptsUsdcDeposit(
     helpers: ZapTransactHelpers,
     zapStrategies: IStrategy[],
@@ -682,9 +662,6 @@ export class TransactApi implements ITransactApi {
     return false;
   }
 
-  /**
-   * Check if any composable zap strategy returned a withdraw option that outputs USDC as a single output.
-   */
   private anyComposableStrategyAcceptsUsdcWithdraw(
     helpers: ZapTransactHelpers,
     zapStrategies: IStrategy[],
@@ -694,7 +671,7 @@ export class TransactApi implements ITransactApi {
     const destUSDC = cctp.getUSDCForChain(helpers.vault.chainId, state);
     const usdcAddr = destUSDC.address.toLowerCase();
 
-    // Vault natively deposits USDC: any composable strategy can withdraw to USDC
+    // Vault holds USDC: any composable strategy can withdraw to USDC
     if (helpers.vault.depositTokenAddress.toLowerCase() === usdcAddr) {
       return zapStrategies.some(
         (s, i) => isFulfilledResult(zapOptions[i]) && isComposableStrategy(s)
@@ -718,9 +695,8 @@ export class TransactApi implements ITransactApi {
 }
 
 /**
- * SingleStrategy emits a token→same-token identity option so composable consumers
- * (cross-chain) can discover it via fetchOptions, but the picker should only show
- * the direct vaulttype path when both exist.
+ * Drop SingleStrategy's identity (depositToken→depositToken) option — emitted so
+ *  cross-chain can find the vault via fetchOptions; the picker uses the vault-type path instead.
  */
 function dropSingleIdentityOption<
   T extends {

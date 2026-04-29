@@ -173,7 +173,6 @@ const transactSlice = createSlice({
         if (sliceState.confirm.requestId === action.payload.requestId) {
           sliceState.confirm.status = TransactStatus.Fulfilled;
           sliceState.confirm.changes = action.payload.changes;
-          // replace quote
           delete sliceState.quotes.byQuoteId[action.payload.originalQuoteId];
           sliceState.quotes.byQuoteId[action.payload.newQuote.id] = action.payload.newQuote;
           sliceState.quotes.allQuoteIds = Object.keys(sliceState.quotes.byQuoteId);
@@ -418,23 +417,17 @@ function addOptionsToState(sliceState: Draft<TransactState>, options: TransactOp
       continue;
     }
 
-    // Add optionId => option mapping
     sliceState.options.byOptionId[option.id] = option;
     sliceState.options.allOptionIds.push(option.id);
 
-    // Add selectionId -> optionId[] mapping
     if (!(option.selectionId in sliceState.options.bySelectionId)) {
       sliceState.options.bySelectionId[option.selectionId] = [option.id];
     } else {
       sliceState.options.bySelectionId[option.selectionId].push(option.id);
     }
 
-    // Add selectionId -> address[] mapping
     const existingSelection = sliceState.selections.bySelectionId[option.selectionId];
     if (!existingSelection) {
-      // Vault-to-vault selections carry the referenced vault + its chain so
-      // the picker can render a VaultSelectionRow. Deposits point at the src
-      // vault; withdraws point at the dst vault
       const vaultRef =
         isCrossChainVaultSrcDepositOption(option) ?
           { vaultRefId: option.srcVaultId, chainId: option.sourceChainId }
@@ -455,7 +448,6 @@ function addOptionsToState(sliceState: Draft<TransactState>, options: TransactOp
       existingSelection.hideIfZeroBalance = false;
     }
 
-    // Add chainId -> selectionId[] mapping
     // Cross-chain options are indexed by the chain the user interacts with:
     // deposits by sourceChainId, withdrawals by destChainId
     const chainKey =

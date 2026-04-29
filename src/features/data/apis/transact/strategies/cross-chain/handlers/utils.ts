@@ -6,17 +6,8 @@ import type { TokenEntity } from '../../../../../entities/token.ts';
 import type { OrderOutput, ZapStep } from '../../../zap/types.ts';
 
 /**
- * Build a ZapStep that does a self-transfer of the bridge token on the zap
- * router.
- *
- * Acts as a minimum-balance assertion: if the router holds less than
- * `minAmount`, the ERC20 transfer reverts, failing the tx on the source chain
- * rather than letting an under-funded CCTP burn go through to the destination
- * chain.
- *
- * The orchestrator inserts this step between the source handler's zap steps
- * and the CCTP burn step to guard against slippage / fee drift between
- * quote and execution.
+ * Self-transfer of the bridge token on the zap router; reverts if balance < minAmount.
+ * Inserted between source handler steps and the CCTP burn to guard against slippage drift.
  */
 export function buildBalanceCheckZapStep(
   bridgeTokenAddress: string,
@@ -37,10 +28,7 @@ export function buildBalanceCheckZapStep(
   };
 }
 
-/**
- * Extract the bridge-token minimum amount from a source handler's
- * `orderOutputs`. Throws if the handler didn't include the bridge token
- */
+/** Extract bridge-token minOutputAmount from handler orderOutputs; throws if missing. */
 export function findBridgeTokenMin(
   orderOutputs: OrderOutput[],
   bridgeToken: TokenEntity

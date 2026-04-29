@@ -6,22 +6,12 @@ import type {
   IDestHandler,
 } from './types.ts';
 
-/**
- * Passthrough destination handler — used when a withdrawal delivers the
- * bridge token straight to the user on the destination chain (today's
- * "Path A").
- *
- * Emits an empty dst-side route and a single bridge-token output. The
- * orchestrator encodes that into the same `CircleBeefyZapReceiver` hookData
- * as every other handler — the only thing that distinguishes passthrough
- * from swap/vault dst handlers is `route: []`.
- *
- * No recovery hooks: passthrough cannot fail on the dst chain — the bridge
- * token is the user's expected output; once CCTP attests, the receiver
- * forwards USDC directly to the user's wallet.
- */
 type PassthroughState = Record<string, never>;
 
+/**
+ * Passthrough dest handler: empty dst route, bridge token delivered straight to user.
+ * No recovery — bridge token IS the expected output, nothing to redo.
+ */
 export class PassthroughDestHandler implements IDestHandler<PassthroughState> {
   readonly kind = 'passthrough' as const;
 

@@ -39,10 +39,7 @@ export type TransactSelection = {
   tokens: TokenEntity[];
   order: number;
   hideIfZeroBalance: boolean;
-  /**
-   * For cross-chain vault-to-vault options: `src` vault id on deposit
-   * selections, `dst` vault id on withdraw selections.
-   */
+  /** Cross-chain v2v: src vaultId on deposit, dst vaultId on withdraw. */
   vaultRefId?: VaultEntity['id'];
   /** Denormalized so picker rows render a chain badge without a second selector lookup. */
   chainId?: ChainEntity['id'];
@@ -90,14 +87,6 @@ export type CrossChainOpStatus =
   | 'dest-failed'
   | 'dest-recovered';
 
-/**
- * Recovery params describe what the dst-chain "complete" action needs, not
- * how the original op was framed (deposit/withdraw, src handler). The
- * recovery dispatcher branches only on `destHandlerKind`; direction lives on
- * the wrapping `PendingCrossChainOp`.
- */
-
-/** USDC was minted directly to the user on the dst chain. Retry attempts are no-ops. */
 export type CrossChainRecoveryPassthrough = {
   destHandlerKind: 'passthrough';
   destChainId: ChainEntity['id'];
@@ -105,7 +94,6 @@ export type CrossChainRecoveryPassthrough = {
   bridgedAmount: string;
 };
 
-/** Dst-chain aggregator swap from bridge token to `desiredOutputAddress`. */
 export type CrossChainRecoverySwap = {
   destHandlerKind: 'swap';
   destChainId: ChainEntity['id'];
@@ -114,7 +102,6 @@ export type CrossChainRecoverySwap = {
   desiredOutputAddress: string;
 };
 
-/** Dst-chain deposit of bridge token into `destVaultId`. */
 export type CrossChainRecoveryVault = {
   destHandlerKind: 'vault';
   destChainId: ChainEntity['id'];
@@ -134,11 +121,7 @@ export type PendingCrossChainOp = {
   direction: 'deposit' | 'withdraw';
   sourceChainId: ChainEntity['id'];
   destChainId: ChainEntity['id'];
-  /**
-   * The vault page from which the op originated. Deposits: dst vault.
-   * Withdraws: src vault. For vault-to-vault withdraws, the dst vault id
-   * lives on `recovery` when `destHandlerKind === 'vault'`.
-   */
+  /** Page-vault id (deposit: dst, withdraw: src). For v2v withdraws, dst lives on recovery.destVaultId. */
   vaultId: VaultEntity['id'];
   sourceTxHash: string;
   destTxHash?: string;

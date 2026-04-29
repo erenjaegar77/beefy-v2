@@ -17,26 +17,13 @@ import type {
   IDestHandler,
 } from './types.ts';
 
-/**
- * State preserved between `fetchQuote` and `fetchZapSteps` for the swap
- * destination handler.
- */
 type SwapDestState = {
   swapStep: ZapQuoteStepSwapAggregator;
 };
 
 /**
- * Destination handler for the "bridge-token → desired-token via aggregator
- * swap" flow — today's "Path B" (hookData-encoded destination swap) and the
- * dst-only recovery path when that hookData overflows.
- *
- * `fetchZapSteps` produces the ZapSteps that run on the dst chain inside
- * `CircleBeefyZapReceiver` via the CCTP hook. The orchestrator owns oversize
- * detection and will fall back to passthrough + two-step recovery when the
- * hookData exceeds the CCTP message size limit; in that case
- * `CrossChainStrategy.fetchRecoveryStep` re-invokes `fetchZapSteps` (the
- * handler quote captured at recovery-quote time is reused — no second
- * `fetchQuote`) to build the dst-chain "complete withdraw" step.
+ * Swap dest handler: aggregator swap from bridge token to desired output on the dst chain.
+ * fetchZapSteps may run via the dst-only recovery path when hookData oversizes.
  */
 export class SwapDestHandler implements IDestHandler<SwapDestState> {
   readonly kind = 'swap' as const;
@@ -145,9 +132,6 @@ export class SwapDestHandler implements IDestHandler<SwapDestState> {
     const orderOutputs: OrderOutput[] = [
       {
         token: getTokenAddress(this.desiredOutput),
-        // Double slippage is intentional: minOutputs already includes aggregator slippage,
-        // but the destination swap executes minutes later (after CCTP bridge), so we apply
-        // additional slippage as safety margin for quote staleness.
         minOutputAmount: toWeiString(
           slipBy(destSwapZap.minOutputs[0].amount, slippage, this.desiredOutput.decimals),
           this.desiredOutput.decimals
@@ -158,10 +142,7 @@ export class SwapDestHandler implements IDestHandler<SwapDestState> {
     return {
       zapSteps: destSwapZap.zaps,
       orderOutputs,
-      // Declare the desiredOutput as the post-tx balance to refresh. The
-      // normal cross-chain flow (balance refresh driven by
-      // `selectVaultTokensToRefresh`) is a superset; the dst-only recovery
-      // path relies on this list to trigger the refresh.
+      // Recovery path needs expectedTokens for post-tx refresh; normal flow's selectVaultTokensToRefresh covers it.
       expectedTokens: [this.desiredOutput],
     };
   }

@@ -13,35 +13,17 @@ import type {
   IDestHandler,
 } from './types.ts';
 
-/**
- * Matches the private `{ strategy, option }` return shape of the strategy-
- * resolution helper used by both fetch-quote and recovery flows.
- */
 type StrategyMatch = { strategy: IStrategy; option: DepositOption };
 
-/**
- * State preserved between `fetchQuote` and `fetchZapSteps`.
- * `strategyId` is re-resolved against dst helpers at reconstruction time so
- * no stale strategy instance is held across RPC calls.
- */
+/** strategyId (not instance) is re-resolved at step time to avoid stale state across RPC calls. */
 type VaultDestState = {
   destQuote: ZapDepositQuote;
   strategyId: IStrategy['id'];
 };
 
 /**
- * Destination handler for the "deposit into a vault on the dst chain" flow.
- * Services three callers (via the same two methods):
- * - Today's deposit path (dst vault = page vault).
- * - Phase 2 Path C: cross-chain withdraw whose dst is a vault
- *   (dst vault != page vault).
- * - The dst-only recovery path when hookData overflows; the orchestrator
- *   re-invokes `fetchZapSteps` via `CrossChainStrategy.fetchRecoveryStep`
- *   to produce the "complete deposit" step. `fetchQuote` is skipped — the
- *   handler quote captured at recovery-quote time is reused.
- *
- * Resolves dst helpers via `ctx.resolveHelpersForVault` so the handler works
- * for the page vault (today) or an arbitrary dst vault (Phase 2+ Path C).
+ * Vault dest handler: deposit bridge token into a vault on the dst chain.
+ * fetchZapSteps may run via the dst-only recovery path when hookData oversizes.
  */
 export class VaultDestHandler implements IDestHandler<VaultDestState> {
   readonly kind = 'vault' as const;
@@ -119,12 +101,7 @@ export class VaultDestHandler implements IDestHandler<VaultDestState> {
     };
   }
 
-  /**
-   * Find a composable strategy on the dst vault that accepts the bridge
-   * token as a deposit input. The identity case (depositToken == bridgeToken)
-   * is handled by SingleStrategy emitting an identity option, which the loop
-   * discovers naturally.
-   */
+  /** Find a composable dst strategy accepting the bridge token; identity case is handled by SingleStrategy's identity option. */
   private static async findStrategyForBridgeTokenDeposit(
     strategies: IStrategy[],
     destBridgeToken: TokenErc20 | { address: string }

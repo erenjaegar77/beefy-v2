@@ -91,11 +91,6 @@ type StrategyId = typeof strategyId;
 /** Phased rollout: vault-to-vault paths dark until picker UX ships. */
 const VAULT_TO_VAULT_ENABLED: boolean = false;
 
-/**
- * Shared body of a cross-chain quote, before direction-specific wrapping.
- * `fetchDepositQuote` and `fetchWithdrawQuote` spread this into their
- * respective quote shapes.
- */
 type CrossChainQuoteBody = {
   bridgeQuote: CCTPBridgeQuote;
   sourceSteps: ZapQuoteStep[];
@@ -128,15 +123,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // HANDLER FACTORIES
-  // ---------------------------------------------------------------------------
+  // --- HANDLER FACTORIES ---
 
-  /**
-   * Build the `SourceHandlerContext` passed to the src handler for an option.
-   * Only fields the src side actually reads — the src chain id and src
-   * bridge token, src-chain helpers, and the shared resolver.
-   */
   private makeSourceContext(
     option: CrossChainDepositOption | CrossChainWithdrawOption
   ): SourceHandlerContext {
@@ -151,16 +139,9 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   /**
-   * Build a `DestHandlerContext`. Both the normal cross-chain flow and the
-   * dst-only recovery flow construct a context through this single factory —
-   * each call site resolves its own `helpers`, `destChainId`, and
-   * `destBridgeToken` from its natural input shape (live option vs persisted
-   * recovery params).
-   *
-   * `pageVaultId` and `resolveHelpersForVault` are sourced off `this.helpers`
-   * because the orchestrator is constructed with the page vault's helpers in
-   * both paths — the recovery dispatcher reconstructs the strategy via
-   * `getHelpersForVault(pageVaultId)` in `transact.ts:621/646`.
+   * Single factory for both the normal flow and the dst-only recovery flow.
+   * `pageVaultId` and `resolveHelpersForVault` are sourced off `this.helpers` because the
+   * orchestrator is constructed with the page vault's helpers in both paths.
    */
   private makeDestContext(args: {
     helpers: ChainTransactHelpers;
@@ -175,12 +156,6 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     };
   }
 
-  /**
-   * Select the source handler for an option. Dispatches on `srcHandlerKind`;
-   * only the `'vault'` arm needs to resolve where the src vault id lives —
-   * deposits carry it explicitly (`option.srcVaultId`), withdraws inherit the
-   * page vault (`this.helpers.vault.id`).
-   */
   private makeSourceHandler(
     option: CrossChainDepositOption | CrossChainWithdrawOption
   ): ISourceHandler {
@@ -201,12 +176,6 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     }
   }
 
-  /**
-   * Select the destination handler for an option. Dispatches on
-   * `destHandlerKind`; only the `'vault'` arm needs to resolve where the dst
-   * vault id lives — deposits inherit the page vault (`option.vaultId`),
-   * withdraw-vault (Path C) carries it explicitly (`option.destVaultId`).
-   */
   private makeDestHandler(
     option: CrossChainDepositOption | CrossChainWithdrawOption
   ): IDestHandler {
@@ -229,12 +198,6 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     }
   }
 
-  /**
-   * Async helper resolving cross-chain `ZapTransactHelpers` for an arbitrary
-   * vault. Wired into `resolveHelpersForVault` on both handler contexts and
-   * used by vault handlers that need to operate on a vault other than the
-   * orchestrator's page vault.
-   */
   private async resolveHelpersForVault(vaultId: VaultEntity['id']): Promise<ZapTransactHelpers> {
     const helpers = await (
       await getTransactApi()
@@ -245,18 +208,12 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     return helpers;
   }
 
-  // ---------------------------------------------------------------------------
-  // BURN STEP COMPOSITION (shared by deposit & withdraw step builders)
-  // ---------------------------------------------------------------------------
+  // --- BURN STEP COMPOSITION ---
 
   /**
-   * Build the CCTP burn step and post-tx expected-token list. One linear flow:
-   * the dst handler declares its zap-steps + outputs, the orchestrator encodes
-   * them into hookData, and on oversize falls back to an empty-route
-   * passthrough payload (the dst leg then becomes a recovery tx).
-   *
-   * `isTwoStep` is true iff a non-passthrough handler hit the oversize
-   * fallback; callers use it to mark the `PendingCrossChainOp`.
+   * Build the CCTP burn step. On oversize, falls back to an empty-route passthrough payload
+   * and the dst leg becomes a recovery tx. `isTwoStep` is true iff a non-passthrough handler
+   * hit the fallback; callers use it to mark the `PendingCrossChainOp`.
    */
   private async composeBurnStep(
     destHandler: IDestHandler,
@@ -335,9 +292,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     };
   }
 
-  // ---------------------------------------------------------------------------
-  // DEPOSIT
-  // ---------------------------------------------------------------------------
+  // --- DEPOSIT ---
 
   async fetchDepositOptions(): Promise<CrossChainDepositOption[]> {
     const { vault, swapAggregator, getState } = this.helpers;
@@ -391,10 +346,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   /**
-   * Vault-to-vault deposit enumeration. For each user-held vault on a
-   * CCTP-supported other chain that can withdraw to USDC, emit a
-   * `srcHandlerKind='vault'` option. Selection identity includes the src
-   * vault id so the picker can group per-vault entries (Phase 4 UI).
+   * Vault-to-vault deposit enumeration: for each user-held vault on a CCTP-supported other
+   * chain that can withdraw to USDC, emit a `srcHandlerKind='vault'` option.
    */
   private enumerateVaultSrcDepositOptions(): CrossChainDepositOption[] {
     const { vault, getState } = this.helpers;
@@ -449,16 +402,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   /**
-   * Direction-agnostic quote assembly. Both `fetchDepositQuote` and
-   * `fetchWithdrawQuote` adapt this into their respective quote shapes.
-   *
-   * `bridgeSlippageReturned` returns `undefined` when no slippage was applied
-   * (`srcHandlerQuote.bridgeTokenOut === bridgeUsdcAmount`), so the outer
-   * `slippageAppliesToBridge` gate is redundant.
-   *
-   * `returned` includes `srcHandlerQuote.returned` for both directions:
-   * swap-src makes it a no-op (always `[]`); vault-src (deposit Path C' and
-   * all withdraws) gains visibility of src-side dust in the UI.
+   * Direction-agnostic quote assembly; `fetchDepositQuote` and `fetchWithdrawQuote` adapt
+   * this into their respective quote shapes.
    */
   private async quoteCrossChain(
     input: InputTokenAmount,
@@ -474,10 +419,9 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const srcHandler = this.makeSourceHandler(option);
     const destHandler = this.makeDestHandler(option);
 
-    // A. Source-side quote.
     const srcHandlerQuote = await srcHandler.fetchQuote(input, srcCtx);
 
-    // B. CCTP bridge — slip only when src produced the bridge token via swap/withdraw.
+    // CCTP bridge — slip only when src produced the bridge token via swap/withdraw.
     const bridgeUsdcAmount =
       srcHandlerQuote.slippageAppliesToBridge ?
         slipBy(srcHandlerQuote.bridgeTokenOut, srcCtx.slippage, srcCtx.bridgeToken.decimals)
@@ -505,10 +449,9 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       } satisfies ZapQuoteStepBridge,
     ];
 
-    // C. Destination-side quote.
     const destHandlerQuote = await destHandler.fetchQuote(bridgeQuote.toAmount, destCtx);
 
-    // D. Slippage buffer — excess bridge token arrives on dst as an `unused` step.
+    // Slippage buffer — excess bridge token arrives on dst as an `unused` step.
     const destSlippageReturn = bridgeSlippageReturned(
       srcHandlerQuote.bridgeTokenOut,
       bridgeUsdcAmount,
@@ -570,18 +513,9 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   /**
-   * Direction-agnostic step assembly. `fetchDepositStep` and
-   * `fetchWithdrawStep` both delegate here; labels (stepKind + i18n noun key)
-   * are derived from `quote.option.mode`.
-   *
-   * `order.inputs` comes from the source handler's `srcSteps.orderInputs`:
-   * vault-src produces the vault share token (mooToken); swap-src produces
-   * the user's input token. The Zap Router uses `order.inputs` to
-   * `transferFrom` the user.
-   *
-   * Withdrawals execute on the src chain but are cross-chain ops (bridge
-   * token is CCTP-bridged to dst), so the step envelope is identical to a
-   * deposit — only the stepKind label differs.
+   * Direction-agnostic step assembly; deposit and withdraw both delegate here.
+   * `order.inputs` comes from the source handler: vault-src produces the share token (mooToken),
+   * swap-src produces the user's input token; the Zap Router uses it to `transferFrom` the user.
    */
   private async stepCrossChain(
     quote: CrossChainDepositQuote | CrossChainWithdrawQuote,
@@ -611,11 +545,9 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const srcHandlerQuote = quote.srcHandlerQuote as SourceHandlerQuote<unknown>;
     const destHandlerQuote = quote.destHandlerQuote as DestHandlerQuote<unknown>;
 
-    // 1. Source-side zap steps + minimum bridge token after slippage.
     const srcSteps = await srcHandler.fetchZapSteps(srcHandlerQuote, srcCtx);
     const minBridgeToken = findBridgeTokenMin(srcSteps.orderOutputs, bridgeToken);
 
-    // 2. Burn step composition (passthrough, hook, or oversize fallback).
     const { burnStep, isTwoStep, expectedTokens } = await this.composeBurnStep(
       destHandler,
       destHandlerQuote,
@@ -629,7 +561,6 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       }
     );
 
-    // 3. Balance check + assemble source zap steps.
     const balanceCheck = buildBalanceCheckZapStep(
       bridgeToken.address,
       sourceZap.router,
@@ -637,7 +568,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     );
     const sourceZapSteps: ZapStep[] = [...srcSteps.zapSteps, balanceCheck, burnStep];
 
-    // 4. Source outputs = dust only; bridge token is burned by CCTP.
+    // Source outputs = dust only; bridge token is burned by CCTP.
     const sourceOutputs = buildDustOutputs(srcHandlerQuote.dustTokens);
 
     const zapRequest: UserlessZapRequest = {
@@ -682,9 +613,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     return this.stepCrossChain(quote, t);
   }
 
-  // ---------------------------------------------------------------------------
-  // WITHDRAW
-  // ---------------------------------------------------------------------------
+  // --- WITHDRAW ---
 
   async fetchWithdrawOptions(): Promise<CrossChainWithdrawOption[]> {
     const { vault, swapAggregator, getState } = this.helpers;
@@ -702,7 +631,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
 
         const destUSDC = getUSDCForChain(destChainId, state);
 
-        // Path A: USDC output (no hooks)
+        // USDC output (no hooks)
         const usdcSelectionId = createSelectionId(destChainId, [destUSDC], 'cross-chain-withdraw');
         options.push({
           id: createOptionId('cross-chain', vault.id, usdcSelectionId),
@@ -723,7 +652,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
           async: true,
         });
 
-        // Path B: Non-USDC outputs (with hooks for dest swap)
+        // Non-USDC outputs (with hooks for dest swap)
         const destTokenSupport = await swapAggregator.fetchTokenSupport(
           [destUSDC],
           vault.id,
@@ -766,11 +695,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   /**
-   * Vault-to-vault withdraw enumeration (Path C). Scan dst-vault candidates
-   * on every supported chain other than the page vault's; emit a
-   * `destHandlerKind='vault'` option per candidate. Enumeration is
-   * synchronous (no network I/O) so the list can grow large without blocking
-   * the options load.
+   * Vault-to-vault withdraw enumeration: emit a `destHandlerKind='vault'` option per dst-vault
+   * candidate on every supported chain other than the page vault's.
    */
   private enumerateVaultDstWithdrawOptions(): CrossChainWithdrawOption[] {
     const { vault, getState } = this.helpers;
@@ -843,9 +769,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     return this.stepCrossChain(quote, t);
   }
 
-  // ---------------------------------------------------------------------------
-  // RECOVERY
-  // ---------------------------------------------------------------------------
+  // --- RECOVERY ---
 
   private buildRecoveryMetadata(
     quote: CrossChainDepositQuote | CrossChainWithdrawQuote,
@@ -873,7 +797,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
         };
         break;
       case 'vault': {
-        // Deposit: dst vault IS the page vault. Withdraw Path C: dst vault is on the option.
+        // Deposit: dst vault IS the page vault. Withdraw: dst vault is on the option.
         const destVaultId =
           quote.option.mode === TransactMode.Deposit ? vaultId : quote.option.destVaultId;
         recovery = { ...base, destHandlerKind: 'vault', destVaultId };
@@ -902,11 +826,6 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     };
   }
 
-  /**
-   * Select the dst handler for a recovery op. Mirrors `makeDestHandler` but
-   * dispatches on the persisted `CrossChainRecoveryParams`. Passthrough is
-   * excluded at the type level — the dispatcher short-circuits it.
-   */
   private makeRecoveryHandler(
     recovery: Exclude<CrossChainRecoveryParams, { destHandlerKind: 'passthrough' }>,
     destChainHelpers: ChainTransactHelpers
@@ -932,11 +851,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   /**
-   * Unified recovery quote entry point. Switches on `recovery.destHandlerKind`
-   * to pick the dst handler and captures the inner `DestHandlerQuote` on
-   * `RecoveryQuote.destHandlerQuote` so the step path can reuse it without
-   * re-querying the aggregator (eliminates display-vs-execution route drift
-   * for swap-dst).
+   * Captures the inner DestHandlerQuote on `RecoveryQuote.destHandlerQuote` so the step path
+   * can reuse it without re-querying the aggregator (no display-vs-execution route drift).
    */
   async fetchRecoveryQuote(
     recovery: Exclude<CrossChainRecoveryParams, { destHandlerKind: 'passthrough' }>,
@@ -976,11 +892,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   /**
-   * Unified recovery step entry point. Reads the inner `DestHandlerQuote`
-   * from `quote.destHandlerQuote` (set at quote time) and calls
-   * `fetchZapSteps` directly — no second `fetchQuote` call.
-   * `attributedVaultId` is the dst vault for vault-dst (where the deposit
-   * lands) and the page vault for swap-dst (no dst vault).
+   * Reuses the captured `DestHandlerQuote` on `quote.destHandlerQuote` and calls fetchZapSteps
+   * directly — no second fetchQuote call.
    */
   async fetchRecoveryStep(
     recovery: Exclude<CrossChainRecoveryParams, { destHandlerKind: 'passthrough' }>,

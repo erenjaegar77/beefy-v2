@@ -17,31 +17,17 @@ import type {
   SourceHandlerSteps,
 } from './types.ts';
 
-/**
- * Match shape returned by the strategy-resolution helper; mirrors the
- * private `{ strategy, option }` type used across the orchestrator.
- */
 type StrategyMatch = { strategy: IStrategy; option: WithdrawOption };
 
-/**
- * State preserved between `fetchQuote` and `fetchZapSteps`. The underlying
- * strategy is identified by id so the handler can re-resolve the instance
- * against fresh dst helpers at step time (mirrors the current orchestrator's
- * re-resolve-at-step-time pattern).
- */
+/** strategyId (not instance) is re-resolved at step time to avoid stale state across RPC calls. */
 type VaultSourceState = {
   underlyingQuote: ZapWithdrawQuote;
   strategyId: IStrategy['id'];
 };
 
 /**
- * Source handler for the "withdraw vault shares → bridge-token" flow on the
- * src chain. Services two callers:
- * - Today's withdraw path (src vault = page vault).
- * - Phase 2 vault-to-vault deposit (src vault is arbitrary).
- *
- * Vault withdraws always produce some slippage (decimals/accounting), so
- * `slippageAppliesToBridge` is hard-coded to `true`.
+ * Vault source handler: withdraw vault shares to bridge token on the src chain.
+ * `slippageAppliesToBridge` is hard-coded true — vault withdraws always slip.
  */
 export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
   readonly kind = 'vault' as const;
@@ -128,12 +114,7 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
     };
   }
 
-  /**
-   * Find a composable strategy on the src vault whose withdraw produces the
-   * bridge token. The identity case (depositToken == bridgeToken) is handled
-   * by SingleStrategy emitting an identity option, which the loop discovers
-   * naturally.
-   */
+  /** Find a composable src strategy whose withdraw produces the bridge token; identity case is handled by SingleStrategy's identity option. */
   private static async findStrategyForBridgeTokenWithdraw(
     strategies: IStrategy[],
     sourceBridgeToken: TokenErc20 | { address: string }

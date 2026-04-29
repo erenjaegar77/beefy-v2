@@ -14,23 +14,14 @@ import {
   vaultCanWithdrawToBridgeToken,
 } from './eligibility.ts';
 
-/**
- * Output shape for both enumeration helpers: a vault id plus its chain so
- * callers don't have to re-resolve the vault just to learn where it lives.
- */
 export type VaultCandidate = {
   vaultId: VaultEntity['id'];
   chainId: ChainEntity['id'];
 };
 
 /**
- * Candidate src vaults for a vault-to-vault deposit: user holds balance in
- * vault X on chain A, wants to redeploy into `destVaultId` on chain B. We
- * scan the user's deposited vaults on other CCTP chains and keep the ones
- * whose underlying can be withdrawn to the bridge token.
- *
- * Pure function — no network I/O, safe to call during option emission even
- * across many chain pairs.
+ * Candidate src vaults for a vault-to-vault deposit: scan user's deposited vaults on other
+ * CCTP chains whose underlying can withdraw to the bridge token.
  */
 export function enumerateSrcVaultCandidates(
   destVaultId: VaultEntity['id'],
@@ -59,12 +50,8 @@ export function enumerateSrcVaultCandidates(
 }
 
 /**
- * Candidate dst vaults for a vault-to-vault withdraw (Path C): user wants
- * to exit `srcVaultId` and redeploy into some vault on another CCTP chain.
- * We scan active vaults on every supported chain other than the src.
- *
- * Pure function — no network I/O. May return a long list on well-populated
- * chains; UI surfaces via paged/grouped selector (Phase 4).
+ * Candidate dst vaults for a vault-to-vault withdraw: scan active vaults on every
+ * supported chain other than src that accept the bridge token as deposit.
  */
 export function enumerateDstVaultCandidates(
   srcVaultId: VaultEntity['id'],

@@ -21,10 +21,6 @@ import type {
   SourceHandlerSteps,
 } from './types.ts';
 
-/**
- * State preserved between `fetchQuote` and `fetchZapSteps` for the swap
- * source handler.
- */
 type SwapSourceState = {
   input: InputTokenAmount;
   /** Present only when the input token is not already the bridge token. */
@@ -32,13 +28,8 @@ type SwapSourceState = {
 };
 
 /**
- * Source handler for the "token-in → bridge-token via aggregator swap" flow —
- * pre-bridge source behavior (swap-src). The handler produces at most one swap
- * step (none if the input is already the bridge token); the bridge step is the
- * orchestrator's concern and is appended outside the handler.
- *
- * `slippageAppliesToBridge` is true whenever a swap ran, matching the
- * `sourceSteps.length > 0` gate in the orchestrator's deposit quote.
+ * Swap source handler: aggregator swap from input token to bridge token before CCTP burn.
+ * Produces at most one swap step (none if input is already the bridge token).
  */
 export class SwapSourceHandler implements ISourceHandler<SwapSourceState> {
   readonly kind = 'swap' as const;
