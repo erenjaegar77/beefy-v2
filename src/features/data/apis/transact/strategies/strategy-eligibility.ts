@@ -4,7 +4,7 @@ import type { StrategySwapConfig } from './strategy-configs.ts';
 
 // Shared body for the LP-style canAcceptTokenAsDeposit/canEmitTokenAsWithdraw predicates.
 // Mirrors aggregatorTokenSupport's filter: identity on any pool token, or aggregator routes
-// between token and EVERY pool token. Direction-symmetric (swap aggregator is symmetric).
+// between token and EVERY pool token
 async function canRouteTokenAcrossPool(
   helpers: ZapTransactHelpers,
   swapConfig: StrategySwapConfig | undefined,
