@@ -86,6 +86,10 @@ import type {
   ZapTransactHelpers,
 } from '../IStrategy.ts';
 import type { CurveStrategyConfig } from '../strategy-configs.ts';
+import {
+  canRouteTokenFromAllOfAsWithdraw,
+  canRouteTokenToAllOfAsDeposit,
+} from '../strategy-eligibility.ts';
 import { CurvePool } from './CurvePool.ts';
 import type { CurveMethod, CurveTokenOption } from './types.ts';
 
@@ -1060,6 +1064,24 @@ class CurveStrategyImpl implements IComposableStrategy<StrategyId> {
       pending: false,
       extraInfo: { zap: true, vaultId: quote.option.vaultId },
     };
+  }
+
+  async canAcceptTokenAsDeposit(token: TokenEntity): Promise<boolean> {
+    return canRouteTokenToAllOfAsDeposit(
+      this.helpers,
+      this.options.swap,
+      this.possibleTokens.map(option => option.token),
+      token
+    );
+  }
+
+  async canEmitTokenAsWithdraw(token: TokenEntity): Promise<boolean> {
+    return canRouteTokenFromAllOfAsWithdraw(
+      this.helpers,
+      this.options.swap,
+      this.possibleTokens.map(option => option.token),
+      token
+    );
   }
 
   protected async aggregatorTokenSupport() {
