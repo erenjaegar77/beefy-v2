@@ -27,18 +27,6 @@ import {
 } from '../../../common/CommonListStyles.tsx';
 import { listItemArrow } from '../../../common/CommonListStylesRaw.ts';
 
-/**
- * Row variant rendered by the cross-chain picker when a selection references a
- * whole vault rather than a token (vault-to-vault options).
- *
- * Deposit side (`vault-src`): user holds shares in a vault on another chain
- * and wants to redeploy into the page vault. Show vault name, chain badge,
- * and the user's balance so they can confirm the source before picking it.
- *
- * Withdraw side (`vault-dst`): user is exiting the page vault and targeting a
- * vault on another chain. No user balance to surface yet — show the vault's
- * APY instead so the picker doubles as a yield comparison.
- */
 export type VaultListItemProps = {
   selectionId: string;
   vaultId: VaultEntity['id'];
@@ -46,9 +34,7 @@ export type VaultListItemProps = {
   /** Defined for deposit side (src-vault) when a wallet is connected. */
   balance?: BigNumber;
   balanceValue?: BigNumber;
-  /** Share-token decimals; used to format the balance line. */
   decimals: number;
-  /** Controls what the right column displays. */
   mode: 'vault-src' | 'vault-dst';
   onSelect: (id: string) => void;
   css?: CssStyles;
