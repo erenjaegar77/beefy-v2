@@ -7,13 +7,15 @@ import { isVaultActive } from '../../../../entities/vault.ts';
 import { selectUserVaultBalanceInShareTokenIncludingDisplaced } from '../../../../selectors/balance.ts';
 import { selectVaultById } from '../../../../selectors/vaults.ts';
 import type { BeefyState } from '../../../../store/types.ts';
+import { getTransactApi } from '../../../instances.ts';
 import { isChainSupported } from '../../cctp/CCTPProvider.ts';
+import { isComposableStrategy, isZapTransactHelpers } from '../IStrategy.ts';
 
-export function vaultAcceptsBridgeTokenDeposit(
+export async function vaultAcceptsBridgeTokenDeposit(
   vaultId: VaultEntity['id'],
   state: BeefyState,
   bridgeToken: TokenEntity
-): boolean {
+): Promise<boolean> {
   const vault = selectVaultById(state, vaultId);
   if (!vault) return false;
   if (!isVaultActive(vault)) return false;
@@ -21,22 +23,49 @@ export function vaultAcceptsBridgeTokenDeposit(
 
   if (vault.depositTokenAddress.toLowerCase() === bridgeToken.address.toLowerCase()) return true;
 
-  return (vault.zaps?.length ?? 0) > 0;
+  return anyComposableStrategyAccepts(vaultId, state, bridgeToken, 'deposit');
 }
 
 // Mirror of vaultAcceptsBridgeTokenDeposit minus the active check — EOL vaults are still allowed to exit via the bridge.
-export function vaultCanWithdrawToBridgeToken(
+export async function vaultCanWithdrawToBridgeToken(
   vaultId: VaultEntity['id'],
   state: BeefyState,
   bridgeToken: TokenEntity
-): boolean {
+): Promise<boolean> {
   const vault = selectVaultById(state, vaultId);
   if (!vault) return false;
   if (!('depositTokenAddress' in vault)) return false;
 
   if (vault.depositTokenAddress.toLowerCase() === bridgeToken.address.toLowerCase()) return true;
 
-  return (vault.zaps?.length ?? 0) > 0;
+  return anyComposableStrategyAccepts(vaultId, state, bridgeToken, 'withdraw');
+}
+
+async function anyComposableStrategyAccepts(
+  vaultId: VaultEntity['id'],
+  state: BeefyState,
+  bridgeToken: TokenEntity,
+  direction: 'deposit' | 'withdraw'
+): Promise<boolean> {
+  const vault = selectVaultById(state, vaultId);
+  if (!vault?.zaps?.length) return false;
+
+  const api = await getTransactApi();
+  const helpers = await api.getHelpersForVault(vaultId, () => state);
+  if (!isZapTransactHelpers(helpers)) return false;
+
+  const strategies = await api.getZapStrategiesForVault(helpers);
+  const composables = strategies.filter(isComposableStrategy);
+  if (composables.length === 0) return false;
+
+  const verdicts = await Promise.all(
+    composables.map(s =>
+      direction === 'deposit' ?
+        s.canAcceptTokenAsDeposit(bridgeToken)
+      : s.canEmitTokenAsWithdraw(bridgeToken)
+    )
+  );
+  return verdicts.some(Boolean);
 }
 
 // Includes displaced (boosted/bridged) shares so src-vault candidates surface even when the user is currently staking.
