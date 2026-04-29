@@ -79,18 +79,15 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
       throw new Error('Withdrawal did not produce bridge token');
     }
 
-    // Dust token contributions for the source (withdraw-source) context.
-    // Orchestrator owns the bridge-token contribution separately.
     const dustTokens = collectIntermediateTokens({
-      context: 'withdraw-source',
-      inputs: [input],
       bridgeToken: ctx.bridgeToken,
-      withdrawQuote: {
+      inputs: [input],
+      picks: {
         outputs: underlyingQuote.outputs,
         inputs: underlyingQuote.inputs,
         returned: underlyingQuote.returned,
-        steps: underlyingQuote.steps,
       },
+      swapSteps: underlyingQuote.steps,
     });
 
     return {

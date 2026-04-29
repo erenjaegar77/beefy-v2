@@ -76,13 +76,12 @@ export class VaultDestHandler implements IDestHandler<VaultDestState> {
     }
 
     const dustTokens = collectIntermediateTokens({
-      context: 'deposit-dest',
-      pickTokensFrom: {
+      bridgeToken: ctx.destBridgeToken,
+      picks: {
         outputs: destQuote.outputs,
         inputs: destQuote.inputs,
         returned: destQuote.returned,
       },
-      bridgeToken: ctx.destBridgeToken,
       swapSteps: destQuote.steps,
     });
 

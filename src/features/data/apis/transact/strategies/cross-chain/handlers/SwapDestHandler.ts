@@ -82,7 +82,6 @@ export class SwapDestHandler implements IDestHandler<SwapDestState> {
     };
 
     const dustTokens = collectIntermediateTokens({
-      context: 'withdraw-dest',
       bridgeToken: destBridgeToken,
       swapSteps: [swapStep],
     });

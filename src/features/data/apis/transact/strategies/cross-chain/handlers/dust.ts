@@ -7,166 +7,52 @@ import {
   type InputTokenAmount,
   type TokenAmount,
   type ZapQuoteStep,
-  type ZapQuoteStepSwapAggregator,
 } from '../../../transact-types.ts';
 import type { OrderOutput } from '../../../zap/types.ts';
 
 // ===== Dust Output Helper Types and Functions =====
 
 /**
- * Configuration for deposit destination dust outputs.
- * Used when building ZapPayload for CircleBeefyZapReceiver on dest chain.
- */
-export type DepositDestConfig = {
-  context: 'deposit-dest';
-  pickTokensFrom: {
-    outputs: TokenAmount[];
-    inputs: InputTokenAmount[];
-    returned: TokenAmount[];
-  };
-  bridgeToken: TokenEntity;
-  swapSteps: ZapQuoteStep[];
-};
-
-/**
- * Configuration for deposit source dust outputs.
- * Used when building UserlessZapRequest for source chain (bridge-token burn case).
- */
-export type DepositSourceConfig = {
-  context: 'deposit-source';
-  inputs: InputTokenAmount[];
-  bridgeToken: TokenEntity;
-  swapStep?: ZapQuoteStepSwapAggregator;
-};
-
-/**
- * Configuration for withdraw destination dust outputs.
- * Used when building ZapPayload for destination swap (non-bridge-token output).
- */
-export type WithdrawDestConfig = {
-  context: 'withdraw-dest';
-  bridgeToken: TokenEntity;
-  swapSteps: ZapQuoteStep[];
-};
-
-/**
- * Configuration for withdraw source dust outputs.
- * Used when building UserlessZapRequest for vault chain (withdrawal flow).
- */
-export type WithdrawSourceConfig = {
-  context: 'withdraw-source';
-  inputs: InputTokenAmount[];
-  bridgeToken: TokenEntity;
-  withdrawQuote: {
-    outputs: TokenAmount[];
-    inputs: InputTokenAmount[];
-    returned: TokenAmount[];
-    steps: ZapQuoteStep[];
-  };
-};
-
-/**
- * Discriminated union for all dust output building contexts.
- */
-export type IntermediateTokenConfig =
-  | DepositDestConfig
-  | DepositSourceConfig
-  | WithdrawDestConfig
-  | WithdrawSourceConfig;
-
-/**
- * Collects all intermediate tokens that should be returned as dust outputs.
- * Uses discriminated union to handle different contexts type-safely.
+ * Configuration for `collectIntermediateTokens`.
  *
- * Each context has different token sources:
- * - deposit-dest: pickTokens + bridgeToken + swapSteps + zapSteps
- * - deposit-source: inputs + bridgeToken + optional swapStep + zapSteps
- * - withdraw-dest: bridgeToken + swapSteps + zapSteps
- * - withdraw-source: inputs + bridgeToken + withdrawQuote + zapSteps
+ * Each handler passes the tokens it touched. Only `bridgeToken` is required
+ * (every cross-chain flow transits the router with the bridge token); the
+ * rest are optional, contributed per-handler:
+ * - `inputs`: user inputs feeding the handler.
+ * - `picks`: outputs/inputs/returned from a composable strategy breakdown.
+ * - `swapSteps`: swap steps whose from/to tokens may be intermediate-only.
+ */
+export type IntermediateTokenConfig = {
+  bridgeToken: TokenEntity;
+  inputs?: InputTokenAmount[];
+  picks?: { outputs: TokenAmount[]; inputs: InputTokenAmount[]; returned: TokenAmount[] };
+  swapSteps?: ZapQuoteStep[];
+};
+
+/**
+ * Collects all tokens that should be returned as dust outputs (min=0 router
+ * refunds). Bridge token is always included; everything else is optional.
  *
- * @param config - Configuration with context-specific token sources
  * @returns Array of unique TokenEntity objects (deduplicated by chainId + address)
  */
 export function collectIntermediateTokens(config: IntermediateTokenConfig): TokenEntity[] {
-  const tokens: TokenEntity[] = [];
+  const tokens: TokenEntity[] = [config.bridgeToken];
 
-  switch (config.context) {
-    case 'deposit-dest': {
-      // pickTokens(outputs, inputs, returned)
-      const pickedTokens = pickTokens(
-        config.pickTokensFrom.outputs,
-        config.pickTokensFrom.inputs,
-        config.pickTokensFrom.returned
-      );
-      tokens.push(...pickedTokens);
-
-      // Bridge token (arrives from bridge)
-      tokens.push(config.bridgeToken);
-
-      // Swap step tokens
-      config.swapSteps.filter(isZapQuoteStepSwap).forEach(swapStep => {
-        tokens.push(swapStep.fromToken);
-        tokens.push(swapStep.toToken);
-      });
-
-      break;
-    }
-
-    case 'deposit-source': {
-      // Input tokens (in case of partial consumption)
-      tokens.push(...config.inputs.map(i => i.token));
-
-      // Bridge token (before burn)
-      tokens.push(config.bridgeToken);
-
-      // Swap step tokens (if present)
-      if (config.swapStep) {
-        tokens.push(config.swapStep.fromToken);
-        tokens.push(config.swapStep.toToken);
-      }
-
-      break;
-    }
-
-    case 'withdraw-dest': {
-      // Bridge token
-      tokens.push(config.bridgeToken);
-
-      // Swap step tokens
-      config.swapSteps.filter(isZapQuoteStepSwap).forEach(swapStep => {
-        tokens.push(swapStep.fromToken);
-        tokens.push(swapStep.toToken);
-      });
-
-      break;
-    }
-
-    case 'withdraw-source': {
-      // Input tokens (mooToken)
-      tokens.push(...config.inputs.map(i => i.token));
-
-      // Bridge token (before burn)
-      tokens.push(config.bridgeToken);
-
-      // Withdraw quote tokens
-      const pickedTokens = pickTokens(
-        config.withdrawQuote.outputs,
-        config.withdrawQuote.inputs,
-        config.withdrawQuote.returned
-      );
-      tokens.push(...pickedTokens);
-
-      // Swap intermediates from withdraw steps
-      config.withdrawQuote.steps.filter(isZapQuoteStepSwap).forEach(swapStep => {
-        tokens.push(swapStep.fromToken);
-        tokens.push(swapStep.toToken);
-      });
-
-      break;
-    }
+  if (config.inputs) {
+    tokens.push(...config.inputs.map(i => i.token));
   }
 
-  // Return unique tokens (by chainId + address)
+  if (config.picks) {
+    tokens.push(...pickTokens(config.picks.outputs, config.picks.inputs, config.picks.returned));
+  }
+
+  if (config.swapSteps) {
+    config.swapSteps.filter(isZapQuoteStepSwap).forEach(swapStep => {
+      tokens.push(swapStep.fromToken);
+      tokens.push(swapStep.toToken);
+    });
+  }
+
   return uniqueTokens(tokens);
 }
 

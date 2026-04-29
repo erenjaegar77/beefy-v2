@@ -106,10 +106,9 @@ export class SwapSourceHandler implements ISourceHandler<SwapSourceState> {
       : [];
 
     const dustTokens = collectIntermediateTokens({
-      context: 'deposit-source',
-      inputs: [input],
       bridgeToken,
-      swapStep,
+      inputs: [input],
+      swapSteps: swapStep ? [swapStep] : undefined,
     });
 
     return {
