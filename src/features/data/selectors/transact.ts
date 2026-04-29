@@ -172,6 +172,10 @@ export const selectTransactWithdrawSelectionsForChain = (
   );
 };
 
+function orderTransactRows<T extends { order: number; balanceValue: BigNumber }>(rows: T[]): T[] {
+  return orderBy(rows, [o => o.order, o => o.balanceValue.toNumber()], ['asc', 'desc']);
+}
+
 export const selectTransactWithdrawSelectionsForChainWithBalances = (
   state: BeefyState,
   chainId: ChainEntity['id'],
@@ -199,11 +203,8 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
     return selectionsWithModifiedSymbols;
   }
 
-  return orderBy(
+  return orderTransactRows(
     selectionsWithModifiedSymbols.map(selection => {
-      // Vault-to-vault dst withdraw: token entity is on a different chain
-      // than the user's wallet-balance scope, so `selectUserBalanceOfToken`
-      // doesn't apply. The defaults pre-filled above are the right shape.
       if (selection.vaultRefId) {
         return selection;
       }
@@ -222,15 +223,12 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
           ...selection,
           balance,
           decimals: token.decimals,
-          price,
           balanceValue: balance.multipliedBy(price),
         };
       }
 
       return selection;
-    }),
-    [o => o.order, o => o.balanceValue.toNumber()],
-    ['asc', 'desc']
+    })
   );
 };
 
@@ -238,12 +236,7 @@ type DepositRow = TransactSelection & {
   balanceValue: BigNumber;
   balance: BigNumber | undefined;
   decimals: number;
-  price: BigNumber | undefined;
   tag: string | undefined;
-  /** Token-list rows only; vault-to-vault rows omit these — `balanceValue` comes from a vault selector, not `sum(balances * prices)`. */
-  balances?: BigNumber[];
-  prices?: BigNumber[];
-  balanceValues?: BigNumber[];
 };
 
 export const selectTransactDepositTokensForChainIdWithBalances = (
@@ -261,42 +254,42 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
     selectionId => state.ui.transact.selections.bySelectionId[selectionId]
   );
 
-  const rows = options.map((option): DepositRow | null => {
+  const rows = options.flatMap((option): DepositRow[] => {
     const tokens = option.tokens;
 
-    // Vault-to-vault src: balance comes from the referenced vault's position
-    // (including displaced/boosted shares) — the raw ERC20 path under-counts.
     if (option.vaultRefId) {
       if (!walletAddress) {
-        if (option.hideIfZeroBalance) return null;
-        return {
-          ...option,
-          balanceValue: BIG_ZERO,
-          balance: BIG_ZERO,
-          decimals: tokens[0].decimals,
-          price: undefined,
-          tag: undefined,
-        };
+        if (option.hideIfZeroBalance) return [];
+        return [
+          {
+            ...option,
+            balanceValue: BIG_ZERO,
+            balance: BIG_ZERO,
+            decimals: tokens[0].decimals,
+            tag: undefined,
+          },
+        ];
       }
       const shareBalance = selectUserVaultBalanceInShareTokenIncludingDisplaced(
         state,
         option.vaultRefId,
         walletAddress
       );
-      if (option.hideIfZeroBalance && shareBalance.lte(BIG_ZERO)) return null;
+      if (option.hideIfZeroBalance && shareBalance.lte(BIG_ZERO)) return [];
       const balanceValue = selectUserVaultBalanceInUsdIncludingDisplaced(
         state,
         option.vaultRefId,
         walletAddress
       );
-      return {
-        ...option,
-        balanceValue,
-        balance: shareBalance,
-        decimals: tokens[0].decimals,
-        price: undefined,
-        tag: undefined,
-      };
+      return [
+        {
+          ...option,
+          balanceValue,
+          balance: shareBalance,
+          decimals: tokens[0].decimals,
+          tag: undefined,
+        },
+      ];
     }
 
     const balances = tokens.map(token =>
@@ -305,35 +298,33 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
     const prices = tokens.map(token =>
       selectTokenPriceByAddress(state, token.chainId, token.address)
     );
-    const balanceValues = balances.map((balance, index) => balance.multipliedBy(prices[index]));
-    const balanceValueTotal = balanceValues.reduce((acc, value) => acc.plus(value), BIG_ZERO);
+    const balanceValueTotal = balances.reduce(
+      (acc, balance, index) => acc.plus(balance.multipliedBy(prices[index])),
+      BIG_ZERO
+    );
 
     const base: DepositRow = {
       ...option,
-      balances,
-      prices,
-      balanceValues,
       balanceValue: balanceValueTotal,
       balance: undefined,
       decimals: 0,
-      price: undefined,
       tag: undefined,
     };
 
     if (tokens.length === 1) {
-      return {
-        ...base,
-        ...extractTagFromLpSymbol(tokens, vault),
-        balance: balances[0],
-        decimals: tokens[0].decimals,
-        price: prices[0],
-      };
+      return [
+        {
+          ...base,
+          ...extractTagFromLpSymbol(tokens, vault),
+          balance: balances[0],
+          decimals: tokens[0].decimals,
+        },
+      ];
     }
 
-    return base;
+    return [base];
   });
-  const mapped = rows.filter((r): r is DepositRow => r !== null);
-  return orderBy(mapped, [o => o.order, o => o.balanceValue.toNumber()], ['asc', 'desc']);
+  return orderTransactRows(rows);
 };
 
 export const selectTransactOptionById = createSelector(
