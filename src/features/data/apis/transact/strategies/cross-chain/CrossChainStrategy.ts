@@ -339,7 +339,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     );
 
     if (VAULT_TO_VAULT_ENABLED) {
-      options.push(...this.enumerateVaultSrcDepositOptions());
+      options.push(...(await this.enumerateVaultSrcDepositOptions()));
     }
 
     return options;
@@ -349,7 +349,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
    * Vault-to-vault deposit enumeration: for each user-held vault on a CCTP-supported other
    * chain that can withdraw to USDC, emit a `srcHandlerKind='vault'` option.
    */
-  private enumerateVaultSrcDepositOptions(): CrossChainDepositOption[] {
+  private async enumerateVaultSrcDepositOptions(): Promise<CrossChainDepositOption[]> {
     const { vault, getState } = this.helpers;
     const state = getState();
     const walletAddress = selectWalletAddress(state);
@@ -359,7 +359,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const destUSDC = getUSDCForChain(vault.chainId, state);
     const results: CrossChainDepositOption[] = [];
 
-    const candidates = enumerateSrcVaultCandidates(
+    const candidates = await enumerateSrcVaultCandidates(
       vault.id,
       state,
       walletAddress,
@@ -688,7 +688,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     );
 
     if (VAULT_TO_VAULT_ENABLED) {
-      options.push(...this.enumerateVaultDstWithdrawOptions());
+      options.push(...(await this.enumerateVaultDstWithdrawOptions()));
     }
 
     return options;
@@ -698,7 +698,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
    * Vault-to-vault withdraw enumeration: emit a `destHandlerKind='vault'` option per dst-vault
    * candidate on every supported chain other than the page vault's.
    */
-  private enumerateVaultDstWithdrawOptions(): CrossChainWithdrawOption[] {
+  private async enumerateVaultDstWithdrawOptions(): Promise<CrossChainWithdrawOption[]> {
     const { vault, getState } = this.helpers;
     const state = getState();
     if (!isChainSupported(vault.chainId)) return [];
@@ -707,7 +707,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const sourceUSDC = getUSDCForChain(vault.chainId, state);
     const results: CrossChainWithdrawOption[] = [];
 
-    const candidates = enumerateDstVaultCandidates(vault.id, state, this.allowedDestChains);
+    const candidates = await enumerateDstVaultCandidates(vault.id, state, this.allowedDestChains);
     for (const candidate of candidates) {
       const destVault = selectVaultById(state, candidate.vaultId);
       if (!destVault || !('contractAddress' in destVault)) continue;
