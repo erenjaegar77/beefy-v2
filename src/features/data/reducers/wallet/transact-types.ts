@@ -41,8 +41,6 @@ export type TransactSelection = {
   hideIfZeroBalance: boolean;
   /** Cross-chain v2v: src vaultId on deposit, dst vaultId on withdraw. */
   vaultRefId?: VaultEntity['id'];
-  /** Denormalized so picker rows render a chain badge without a second selector lookup. */
-  chainId?: ChainEntity['id'];
 };
 
 export type TransactSelections = {
