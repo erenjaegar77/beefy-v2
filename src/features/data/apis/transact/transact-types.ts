@@ -360,6 +360,7 @@ type CrossChainDepositOptionBase = ZapBaseDepositOption & {
   bridgeToken: TokenEntity;
   destBridgeToken: TokenEntity;
   destHandlerKind: 'vault';
+  destVaultId: VaultEntity['id'];
 };
 
 /** Swap-src deposit: a user token is swapped to USDC on the src chain. */
@@ -386,6 +387,7 @@ type CrossChainWithdrawOptionBase = ZapBaseWithdrawOption & {
   bridgeToken: TokenEntity;
   destBridgeToken: TokenEntity;
   srcHandlerKind: 'vault';
+  srcVaultId: VaultEntity['id'];
 };
 
 /** Passthrough-dst withdraw: USDC is minted directly to the user on the dst chain. */

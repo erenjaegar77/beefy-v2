@@ -59,9 +59,6 @@ export const WithdrawTokenSelectList = memo(function WithdrawTokenSelectList({
     const other: SelectionRow[] = [];
     const vaultRefs: SelectionRow[] = [];
     for (const option of options) {
-      // Vault-to-vault dst selections (Path C) get their own bucket so the
-      // picker can render them after the plain token rows without interleaving
-      // with the page vault's native outputs.
       if (option.vaultRefId) {
         vaultRefs.push(option);
         continue;

@@ -119,7 +119,7 @@ export type PendingCrossChainOp = {
   direction: 'deposit' | 'withdraw';
   sourceChainId: ChainEntity['id'];
   destChainId: ChainEntity['id'];
-  /** Page-vault id (deposit: dst, withdraw: src). For v2v withdraws, dst lives on recovery.destVaultId. */
+  /** Page-vault id. For v2v withdraws, the destination vault is on recovery.destVaultId. */
   vaultId: VaultEntity['id'];
   sourceTxHash: string;
   destTxHash?: string;
