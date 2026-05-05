@@ -26,6 +26,12 @@ import {
 } from '../../../common/CommonListStyles.tsx';
 import { listItemArrow } from '../../../common/CommonListStylesRaw.ts';
 
+const chainNameClass = css({
+  textStyle: 'body.sm',
+  color: 'text.dark',
+  marginLeft: '8px',
+});
+
 export type VaultListItemProps = {
   selectionId: string;
   vaultId: VaultEntity['id'];
@@ -71,15 +77,7 @@ export const VaultListItem = memo(function VaultListItem({
         <VaultIcon vaultId={vaultId} size={24} />
         <ListItemName>
           {punctuationWrap(vault.names.list)}
-          <span
-            className={css({
-              textStyle: 'body.sm',
-              color: 'text.dark',
-              marginLeft: '8px',
-            })}
-          >
-            {chain.name}
-          </span>
+          <span className={chainNameClass}>{chain.name}</span>
         </ListItemName>
       </ListItemSide>
       <ListItemRightSide>

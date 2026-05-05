@@ -19,10 +19,9 @@ import type {
 
 type StrategyMatch = { strategy: IStrategy; option: WithdrawOption };
 
-/** strategyId (not instance) is re-resolved at step time to avoid stale state across RPC calls. */
+/** Strategy is re-resolved at step time (via underlyingQuote.strategyId) to avoid stale state across RPC calls. */
 type VaultSourceState = {
   underlyingQuote: ZapWithdrawQuote;
-  strategyId: IStrategy['id'];
 };
 
 /**
@@ -83,7 +82,7 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
       returned: underlyingQuote.returned,
       dustTokens,
       slippageAppliesToBridge: true,
-      state: { underlyingQuote, strategyId: match.strategy.id },
+      state: { underlyingQuote },
     };
   }
 
@@ -94,18 +93,15 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
     const srcHelpers = await ctx.resolveHelpersForVault(this.srcVaultId);
     const strategies = await (await getTransactApi()).getZapStrategiesForVault(srcHelpers);
 
-    const strategy = strategies.find(s => s.id === quote.state.strategyId);
+    const { underlyingQuote } = quote.state;
+    const strategy = strategies.find(s => s.id === underlyingQuote.strategyId);
     if (!strategy || !isComposableStrategy(strategy)) {
       throw new Error(
-        `[cross-chain/vault-source] Source withdraw strategy '${quote.state.strategyId}' on chain ${ctx.sourceChainId} is not composable`
+        `[cross-chain/vault-source] Source withdraw strategy '${underlyingQuote.strategyId}' on chain ${ctx.sourceChainId} is not composable`
       );
     }
 
-    const breakdown = await strategy.fetchWithdrawUserlessZapBreakdown(
-      quote.state.underlyingQuote as Parameters<
-        typeof strategy.fetchWithdrawUserlessZapBreakdown
-      >[0]
-    );
+    const breakdown = await strategy.fetchWithdrawUserlessZapBreakdown(underlyingQuote);
 
     return {
       zapSteps: breakdown.zapRequest.steps,

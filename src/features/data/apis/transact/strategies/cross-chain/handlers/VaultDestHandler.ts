@@ -15,10 +15,9 @@ import type {
 
 type StrategyMatch = { strategy: IStrategy; option: DepositOption };
 
-/** strategyId (not instance) is re-resolved at step time to avoid stale state across RPC calls. */
+/** Strategy is re-resolved at step time (via destQuote.strategyId) to avoid stale state across RPC calls. */
 type VaultDestState = {
   destQuote: ZapDepositQuote;
-  strategyId: IStrategy['id'];
 };
 
 /**
@@ -73,7 +72,7 @@ export class VaultDestHandler implements IDestHandler<VaultDestState> {
       returned: destQuote.returned,
       dustTokens,
       allowances: destQuote.allowances.filter(a => a.amount.gt(BIG_ZERO)),
-      state: { destQuote, strategyId: match.strategy.id },
+      state: { destQuote },
     };
   }
 
@@ -84,16 +83,15 @@ export class VaultDestHandler implements IDestHandler<VaultDestState> {
     const destHelpers = await ctx.resolveHelpersForVault(this.destVaultId);
     const destStrategies = await (await getTransactApi()).getZapStrategiesForVault(destHelpers);
 
-    const destStrategy = destStrategies.find(s => s.id === quote.state.strategyId);
+    const { destQuote } = quote.state;
+    const destStrategy = destStrategies.find(s => s.id === destQuote.strategyId);
     if (!destStrategy || !isComposableStrategy(destStrategy)) {
       throw new Error(
-        `[cross-chain/vault-dest] Destination strategy '${quote.state.strategyId}' on chain ${ctx.destChainId} is not composable`
+        `[cross-chain/vault-dest] Destination strategy '${destQuote.strategyId}' on chain ${ctx.destChainId} is not composable`
       );
     }
 
-    const breakdown = await destStrategy.fetchDepositUserlessZapBreakdown(
-      quote.state.destQuote as Parameters<typeof destStrategy.fetchDepositUserlessZapBreakdown>[0]
-    );
+    const breakdown = await destStrategy.fetchDepositUserlessZapBreakdown(destQuote);
     return {
       zapSteps: breakdown.zapRequest.steps,
       orderOutputs: breakdown.zapRequest.order.outputs,

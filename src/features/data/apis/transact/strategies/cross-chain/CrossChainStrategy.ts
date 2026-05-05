@@ -100,8 +100,8 @@ type CrossChainQuoteBody = {
   allowances: AllowanceTokenAmount[];
   priceImpact: number;
   fee: ZapFee;
-  srcHandlerQuote: SourceHandlerQuote<unknown>;
-  destHandlerQuote: DestHandlerQuote<unknown>;
+  srcHandlerQuote: SourceHandlerQuote;
+  destHandlerQuote: DestHandlerQuote;
 };
 
 class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
@@ -164,12 +164,10 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
         return new SwapSourceHandler(this.options.swap);
       case 'vault':
         return new VaultSourceHandler(option.srcVaultId);
-      default: {
-        const _exhaustive: never = option;
+      default:
         throw new Error(
-          `CrossChainStrategy: unknown srcHandlerKind ${JSON.stringify(_exhaustive)}`
+          `CrossChainStrategy: unknown srcHandlerKind ${JSON.stringify(option satisfies never)}`
         );
-      }
     }
   }
 
@@ -183,12 +181,10 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
         return new SwapDestHandler(option.wantedOutputs[0], this.options.swap);
       case 'vault':
         return new VaultDestHandler(option.destVaultId);
-      default: {
-        const _exhaustive: never = option;
+      default:
         throw new Error(
-          `CrossChainStrategy: unknown destHandlerKind ${JSON.stringify(_exhaustive)}`
+          `CrossChainStrategy: unknown destHandlerKind ${JSON.stringify(option satisfies never)}`
         );
-      }
     }
   }
 
@@ -211,7 +207,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
    */
   private async composeBurnStep(
     destHandler: IDestHandler,
-    destHandlerQuote: DestHandlerQuote<unknown>,
+    destHandlerQuote: DestHandlerQuote,
     destCtx: DestHandlerContext,
     args: {
       userAddress: Address;
@@ -538,8 +534,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const srcHandler = this.makeSourceHandler(quote.option);
     const destHandler = this.makeDestHandler(quote.option);
 
-    const srcHandlerQuote = quote.srcHandlerQuote as SourceHandlerQuote<unknown>;
-    const destHandlerQuote = quote.destHandlerQuote as DestHandlerQuote<unknown>;
+    const { srcHandlerQuote, destHandlerQuote } = quote;
 
     const srcSteps = await srcHandler.fetchZapSteps(srcHandlerQuote, srcCtx);
     const minBridgeToken = findBridgeTokenMin(srcSteps.orderOutputs, bridgeToken);
@@ -802,12 +797,10 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
           destVaultId: quote.option.destVaultId,
         };
         break;
-      default: {
-        const _exhaustive: never = quote.option;
+      default:
         throw new Error(
-          `CrossChainStrategy: unknown destHandlerKind ${JSON.stringify(_exhaustive)}`
+          `CrossChainStrategy: unknown destHandlerKind ${JSON.stringify(quote.option satisfies never)}`
         );
-      }
     }
 
     return {
@@ -840,12 +833,10 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       }
       case 'vault':
         return new VaultDestHandler(recovery.destVaultId);
-      default: {
-        const _exhaustive: never = recovery;
+      default:
         throw new Error(
-          `CrossChainStrategy: unknown recovery destHandlerKind ${JSON.stringify(_exhaustive)}`
+          `CrossChainStrategy: unknown recovery destHandlerKind ${JSON.stringify(recovery satisfies never)}`
         );
-      }
     }
   }
 

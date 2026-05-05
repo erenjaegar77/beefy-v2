@@ -1,5 +1,5 @@
 import { BIG_ZERO, toWeiString } from '../../../../../../../helpers/big-number.ts';
-import type { TokenErc20 } from '../../../../../entities/token.ts';
+import { isTokenErc20 } from '../../../../../entities/token.ts';
 import { selectTransactSlippage } from '../../../../../selectors/transact.ts';
 import { selectZapByChainId } from '../../../../../selectors/zap.ts';
 import { Balances } from '../../../helpers/Balances.ts';
@@ -86,10 +86,10 @@ export class SwapSourceHandler implements ISourceHandler<SwapSourceState> {
     }
 
     const allowances =
-      input.amount.gt(BIG_ZERO) ?
+      input.amount.gt(BIG_ZERO) && isTokenErc20(input.token) ?
         [
           {
-            token: input.token as TokenErc20,
+            token: input.token,
             amount: input.amount,
             spenderAddress: sourceZap.manager,
           },

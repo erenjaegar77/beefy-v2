@@ -1,6 +1,6 @@
 import type BigNumber from 'bignumber.js';
 import { BIG_ZERO, toWeiString } from '../../../../../../../helpers/big-number.ts';
-import type { TokenEntity, TokenErc20 } from '../../../../../entities/token.ts';
+import { isTokenErc20, type TokenEntity } from '../../../../../entities/token.ts';
 import { selectTransactSlippage } from '../../../../../selectors/transact.ts';
 import { selectZapByChainId } from '../../../../../selectors/zap.ts';
 import { slipBy } from '../../../helpers/amounts.ts';
@@ -79,10 +79,10 @@ export class SwapDestHandler implements IDestHandler<SwapDestState> {
     }
 
     const allowances =
-      bridgeTokenIn.gt(BIG_ZERO) ?
+      bridgeTokenIn.gt(BIG_ZERO) && isTokenErc20(destBridgeToken) ?
         [
           {
-            token: destBridgeToken as TokenErc20,
+            token: destBridgeToken,
             amount: bridgeTokenIn,
             spenderAddress: destZap.manager,
           },
