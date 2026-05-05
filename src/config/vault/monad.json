@@ -6,13 +6,13 @@
     "token": "USDC",
     "tokenAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
     "tokenDecimals": 6,
-    "earnContractAddress": "0x93a990cf85dd48d3359229192519c4fbddB690e7",
+    "earnContractAddress": "0xA3d999114BCE3d9771703f06C490e77EE83E589a",
     "earnedToken": "mooMorphoV2MonadAugustUSDCV2",
-    "earnedTokenAddress": "0x93a990cf85dd48d3359229192519c4fbddB690e7",
+    "earnedTokenAddress": "0xA3d999114BCE3d9771703f06C490e77EE83E589a",
     "oracle": "tokens",
     "oracleId": "USDC",
     "status": "active",
-    "createdAt": 1777429260,
+    "createdAt": 1777942008,
     "platformId": "morpho",
     "curatorId": "august-digital",
     "assets": ["USDC"],
@@ -29,6 +29,43 @@
     },
     "strategyTypeId": "single",
     "underlyingPlatformUrl": "https://app.morpho.org/monad/vault/0x80017bF0f793EBbE9679Cd61ff0e395B62CAbB59/august-usdc-v2",
+    "network": "monad",
+    "zaps": [
+      {
+        "strategyId": "single"
+      }
+    ]
+  },
+  {
+    "id": "morpho-v2-monad-hyperithm-apex-cbbtc",
+    "name": "cbBTC (Hyperithm, Apex)",
+    "type": "standard",
+    "token": "cbBTC",
+    "tokenAddress": "0xd18B7EC58Cdf4876f6AFebd3Ed1730e4Ce10414b",
+    "tokenDecimals": 8,
+    "earnContractAddress": "0x3793B8E2AF54984762880c7051721b139c2305D9",
+    "earnedToken": "mooMorphoV2MonadHyperithmApexcbBTC",
+    "earnedTokenAddress": "0x3793B8E2AF54984762880c7051721b139c2305D9",
+    "oracle": "tokens",
+    "oracleId": "cbBTC",
+    "status": "active",
+    "createdAt": 1777392942,
+    "platformId": "morpho",
+    "curatorId": "hyperithm",
+    "assets": ["cbBTC"],
+    "migrationIds": ["morpho"],
+    "risks": {
+      "complex": false,
+      "curated": true,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": false,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "single",
+    "underlyingPlatformUrl": "https://app.morpho.org/monad/vault/0xe09A93786275546690247d70f1767cF0b69e8Ea0/hyperithm-cbbtc-apex",
     "network": "monad",
     "zaps": [
       {
