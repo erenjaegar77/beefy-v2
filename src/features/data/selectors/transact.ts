@@ -391,7 +391,7 @@ export function selectTransactCrossChainPreflight(state: BeefyState): boolean {
   if (!selection) return true;
 
   const inputAmounts = selectTransactInputAmounts(state);
-  if (inputAmounts.length === 0 || inputAmounts.some(amount => amount.lte(BIG_ZERO))) {
+  if (inputAmounts.length === 0 || inputAmounts.every(amount => amount.lte(BIG_ZERO))) {
     return true;
   }
 
@@ -404,7 +404,7 @@ export function selectTransactCrossChainPreflight(state: BeefyState): boolean {
   if (slippageDivisor <= 0) return true;
 
   const inputUsd = BigNumber.sum(
-    ...selection.tokens.map((token, i) =>
+    ...option.inputs.map((token, i) =>
       selectTokenAmountValue(state, { token, amount: inputAmounts[i] || BIG_ZERO })
     )
   );
