@@ -18,7 +18,10 @@ import type { ZapStrategyId } from './strategies/strategy-configs.ts';
 import type { ChainTransactHelpers, IStrategy, TransactHelpers } from './strategies/IStrategy.ts';
 import type { QuoteResponse } from './swap/ISwapProvider.ts';
 import type { CCTPBridgeQuote } from './cctp/types.ts';
-import type { DestHandlerQuote } from './strategies/cross-chain/handlers/types.ts';
+import type {
+  DestHandlerQuote,
+  SourceHandlerQuote,
+} from './strategies/cross-chain/handlers/types.ts';
 
 export type TokenAmount<T extends TokenEntity = TokenEntity> = {
   amount: BigNumber;
@@ -360,6 +363,7 @@ type CrossChainDepositOptionBase = ZapBaseDepositOption & {
   bridgeToken: TokenEntity;
   destBridgeToken: TokenEntity;
   destHandlerKind: 'vault';
+  destVaultId: VaultEntity['id'];
 };
 
 /** Swap-src deposit: a user token is swapped to USDC on the src chain. */
@@ -386,6 +390,7 @@ type CrossChainWithdrawOptionBase = ZapBaseWithdrawOption & {
   bridgeToken: TokenEntity;
   destBridgeToken: TokenEntity;
   srcHandlerKind: 'vault';
+  srcVaultId: VaultEntity['id'];
 };
 
 /** Passthrough-dst withdraw: USDC is minted directly to the user on the dst chain. */
@@ -650,7 +655,7 @@ export type RecoveryQuote = {
    * Captured at quote time, reused at step time so fetchZapSteps runs against the same route.
    * NOT serializable (BigNumber etc.) — do not persist or structuredClone.
    */
-  destHandlerQuote: DestHandlerQuote<unknown>;
+  destHandlerQuote: DestHandlerQuote;
 };
 
 export type StandardVaultDepositQuote = BaseQuote<StandardVaultDepositOption> & {
@@ -758,8 +763,8 @@ export type CrossChainDepositQuote = BaseZapQuote<CrossChainDepositOption> & {
   sourceSteps: ZapQuoteStep[];
   destSteps: ZapQuoteStep[];
   bridgeQuote: CCTPBridgeQuote;
-  srcHandlerQuote: unknown;
-  destHandlerQuote: unknown;
+  srcHandlerQuote: SourceHandlerQuote;
+  destHandlerQuote: DestHandlerQuote;
 };
 
 export type VaultDepositQuote =
@@ -892,8 +897,8 @@ export type CrossChainWithdrawQuote = BaseZapQuote<CrossChainWithdrawOption> & {
   sourceSteps: ZapQuoteStep[];
   destSteps: ZapQuoteStep[];
   bridgeQuote: CCTPBridgeQuote;
-  srcHandlerQuote: unknown;
-  destHandlerQuote: unknown;
+  srcHandlerQuote: SourceHandlerQuote;
+  destHandlerQuote: DestHandlerQuote;
 };
 
 export type ZapWithdrawQuote =

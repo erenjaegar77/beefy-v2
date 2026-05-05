@@ -429,17 +429,15 @@ function addOptionsToState(sliceState: Draft<TransactState>, options: TransactOp
     const existingSelection = sliceState.selections.bySelectionId[option.selectionId];
     if (!existingSelection) {
       const vaultRef =
-        isCrossChainVaultSrcDepositOption(option) ?
-          { vaultRefId: option.srcVaultId, chainId: option.sourceChainId }
-        : isCrossChainVaultDstWithdrawOption(option) ?
-          { vaultRefId: option.destVaultId, chainId: option.destChainId }
+        isCrossChainVaultSrcDepositOption(option) ? { vaultRefId: option.srcVaultId }
+        : isCrossChainVaultDstWithdrawOption(option) ? { vaultRefId: option.destVaultId }
         : undefined;
       sliceState.selections.bySelectionId[option.selectionId] = {
         id: option.selectionId,
         tokens: option.mode === TransactMode.Deposit ? option.inputs : option.wantedOutputs,
         order: option.selectionOrder,
         hideIfZeroBalance: !!option.selectionHideIfZeroBalance,
-        ...(vaultRef ?? {}),
+        ...vaultRef,
       };
 
       sliceState.selections.allSelectionIds.push(option.selectionId);

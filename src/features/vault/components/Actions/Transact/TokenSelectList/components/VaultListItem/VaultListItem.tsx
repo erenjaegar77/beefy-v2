@@ -2,7 +2,6 @@ import { css, type CssStyles, cx } from '@repo/styles/css';
 import type BigNumber from 'bignumber.js';
 import { memo, useCallback, useMemo } from 'react';
 import { useAppSelector } from '../../../../../../../data/store/hooks.ts';
-import type { ChainEntity } from '../../../../../../../data/entities/chain.ts';
 import type { VaultEntity } from '../../../../../../../data/entities/vault.ts';
 import { selectChainById } from '../../../../../../../data/selectors/chains.ts';
 import { selectVaultById } from '../../../../../../../data/selectors/vaults.ts';
@@ -27,10 +26,15 @@ import {
 } from '../../../common/CommonListStyles.tsx';
 import { listItemArrow } from '../../../common/CommonListStylesRaw.ts';
 
+const chainNameClass = css({
+  textStyle: 'body.sm',
+  color: 'text.dark',
+  marginLeft: '8px',
+});
+
 export type VaultListItemProps = {
   selectionId: string;
   vaultId: VaultEntity['id'];
-  chainId: ChainEntity['id'];
   /** Defined for deposit side (src-vault) when a wallet is connected. */
   balance?: BigNumber;
   balanceValue?: BigNumber;
@@ -43,7 +47,6 @@ export type VaultListItemProps = {
 export const VaultListItem = memo(function VaultListItem({
   selectionId,
   vaultId,
-  chainId,
   balance,
   balanceValue,
   decimals,
@@ -53,7 +56,7 @@ export const VaultListItem = memo(function VaultListItem({
 }: VaultListItemProps) {
   const handleClick = useCallback(() => onSelect(selectionId), [onSelect, selectionId]);
   const vault = useAppSelector(state => selectVaultById(state, vaultId));
-  const chain = useAppSelector(state => selectChainById(state, chainId));
+  const chain = useAppSelector(state => selectChainById(state, vault.chainId));
   const totalApy = useAppSelector(state => selectVaultTotalApyOrUndefined(state, vaultId));
 
   const balanceValueFormatted = useMemo(() => {
@@ -70,19 +73,11 @@ export const VaultListItem = memo(function VaultListItem({
   return (
     <ListItemButton type="button" css={cssProp} onClick={handleClick}>
       <ListItemSide>
-        <VaultNetwork chainId={chainId} />
+        <VaultNetwork chainId={vault.chainId} />
         <VaultIcon vaultId={vaultId} size={24} />
         <ListItemName>
           {punctuationWrap(vault.names.list)}
-          <span
-            className={css({
-              textStyle: 'body.sm',
-              color: 'text.dark',
-              marginLeft: '8px',
-            })}
-          >
-            {chain.name}
-          </span>
+          <span className={chainNameClass}>{chain.name}</span>
         </ListItemName>
       </ListItemSide>
       <ListItemRightSide>

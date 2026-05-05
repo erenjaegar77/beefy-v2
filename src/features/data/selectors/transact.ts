@@ -230,7 +230,7 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
   );
 };
 
-type DepositRow = TransactSelection & {
+export type SelectionRow = TransactSelection & {
   balanceValue: BigNumber;
   balance: BigNumber | undefined;
   decimals: number;
@@ -252,7 +252,7 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
     selectionId => state.ui.transact.selections.bySelectionId[selectionId]
   );
 
-  const rows = options.map((option): DepositRow => {
+  const rows = options.map((option): SelectionRow => {
     const tokens = option.tokens;
 
     if (option.vaultRefId) {
@@ -295,7 +295,7 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
       BIG_ZERO
     );
 
-    const base: DepositRow = {
+    const base: SelectionRow = {
       ...option,
       balanceValue: balanceValueTotal,
       balance: undefined,

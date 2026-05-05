@@ -10,6 +10,7 @@ import OpenInNewRoundedIcon from '../../../../../../images/icons/external-link.s
 import { transactSelectSelection } from '../../../../../data/actions/transact.ts';
 import type { VaultEntity } from '../../../../../data/entities/vault.ts';
 import {
+  type SelectionRow,
   selectTransactDepositTokensForChainIdWithBalances,
   selectTransactSelectedChainId,
   selectTransactVaultId,
@@ -67,9 +68,9 @@ export const DepositTokenSelectList = memo(function DepositTokenSelectList({
   }, [optionsForChain, search]);
 
   const { normalOptions, dustOptions, dustTotalUsd } = useMemo(() => {
-    const vaultDeposits = [];
-    const other = [];
-    const dust = [];
+    const vaultDeposits: SelectionRow[] = [];
+    const other: SelectionRow[] = [];
+    const dust: SelectionRow[] = [];
     let dustSum = BIG_ZERO;
     const showDustSection = isWalletConnected && !search.length;
 
@@ -143,12 +144,11 @@ export const DepositTokenSelectList = memo(function DepositTokenSelectList({
         <SelectListItems noGap={true}>
           {normalOptions.length ?
             normalOptions.map(option =>
-              option.vaultRefId && option.chainId ?
+              option.vaultRefId ?
                 <VaultListItem
                   key={option.id}
                   selectionId={option.id}
                   vaultId={option.vaultRefId}
-                  chainId={option.chainId}
                   balance={isWalletConnected ? option.balance : undefined}
                   balanceValue={isWalletConnected ? option.balanceValue : undefined}
                   decimals={option.decimals}

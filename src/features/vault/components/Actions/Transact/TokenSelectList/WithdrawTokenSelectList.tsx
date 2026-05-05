@@ -6,6 +6,7 @@ import { Scrollable } from '../../../../../../components/Scrollable/Scrollable.t
 import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
 import { transactSelectSelection } from '../../../../../data/actions/transact.ts';
 import {
+  type SelectionRow,
   selectTransactSelectedChainId,
   selectTransactVaultId,
   selectTransactWithdrawSelectionsForChainWithBalances,
@@ -54,13 +55,10 @@ export const WithdrawTokenSelectList = memo(function WithdrawTokenSelectList({
       );
     }
 
-    const vaultWithdrawals = [];
-    const other = [];
-    const vaultRefs = [];
+    const vaultWithdrawals: SelectionRow[] = [];
+    const other: SelectionRow[] = [];
+    const vaultRefs: SelectionRow[] = [];
     for (const option of options) {
-      // Vault-to-vault dst selections (Path C) get their own bucket so the
-      // picker can render them after the plain token rows without interleaving
-      // with the page vault's native outputs.
       if (option.vaultRefId) {
         vaultRefs.push(option);
         continue;
@@ -97,12 +95,11 @@ export const WithdrawTokenSelectList = memo(function WithdrawTokenSelectList({
         <SelectListItems noGap={true}>
           {filteredOptions.length ?
             filteredOptions.map(option =>
-              option.vaultRefId && option.chainId ?
+              option.vaultRefId ?
                 <VaultListItem
                   key={option.id}
                   selectionId={option.id}
                   vaultId={option.vaultRefId}
-                  chainId={option.chainId}
                   decimals={option.decimals}
                   mode="vault-dst"
                   onSelect={handleTokenSelect}
