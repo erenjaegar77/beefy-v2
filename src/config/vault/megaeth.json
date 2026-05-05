@@ -1,5 +1,82 @@
 [
   {
+    "id": "kumbaya-cow-megaeth-stcusd-usdm-rp",
+    "name": "stcUSD-USDm Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowKumbayaMegaethstcUSD-USDM",
+    "tokenAddress": "0xcc190033FA23bccd8083e6f17989Cb77ef2f38EF",
+    "tokenDecimals": 18,
+    "tokenProviderId": "kumbaya",
+    "earnContractAddress": "0x0DCaA9d79D79cd02D911f347e83ADD6B95dd5021",
+    "earnedToken": "rCowKumbayaMegaethstcUSD-USDM",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": [],
+    "oracle": "lps",
+    "oracleId": "kumbaya-cow-megaeth-stcusd-usdm",
+    "status": "active",
+    "createdAt": 1777939992,
+    "platformId": "kumbaya",
+    "assets": ["stcUSD", "USDm"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": true
+    },
+    "strategyTypeId": "compounds",
+    "network": "megaeth",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      }
+    ]
+  },
+  {
+    "id": "kumbaya-cow-megaeth-stcusd-usdm",
+    "name": "stcUSD-USDm",
+    "type": "cowcentrated",
+    "token": "stcUSD-USDm kumbaya",
+    "tokenAddress": "0x0B1810B2f8B4EbA1ae12840A4F8a0EAA656b1e4e",
+    "tokenDecimals": 18,
+    "tokenProviderId": "kumbaya",
+    "depositTokenAddresses": [
+      "0x88887bE419578051FF9F4eb6C858A951921D8888",
+      "0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7"
+    ],
+    "earnContractAddress": "0xcc190033FA23bccd8083e6f17989Cb77ef2f38EF",
+    "earnedToken": "cowKumbayaMegaethstcUSD-USDM",
+    "earnedTokenAddress": "0xcc190033FA23bccd8083e6f17989Cb77ef2f38EF",
+    "oracle": "lps",
+    "oracleId": "kumbaya-cow-megaeth-stcusd-usdm",
+    "status": "active",
+    "createdAt": 1777939992,
+    "platformId": "beefy",
+    "feeTier": "0.05",
+    "assets": ["stcUSD", "USDm"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": true
+    },
+    "strategyTypeId": "compounds",
+    "network": "megaeth",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
+      }
+    ]
+  },
+  {
     "id": "kumbaya-cow-megaeth-mega-usdm-rp",
     "name": "MEGA-USDm Reward Pool",
     "type": "gov",
