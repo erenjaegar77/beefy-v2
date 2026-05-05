@@ -169,3 +169,34 @@ export function getApyLabelsTypeForVault(
 
   return vault.type;
 }
+
+const LENDING_PLATFORM_IDS = new Set<VaultEntity['platformId']>([
+  'aave',
+  'morpho',
+  'euler',
+  'gearbox',
+  'curvance',
+  'neverland',
+  'curvelend',
+]);
+
+export function isLendingPlatform(platformId: string | undefined): boolean {
+  return !!platformId && LENDING_PLATFORM_IDS.has(platformId);
+}
+
+/**
+ * Returns label fallback chains for a vault. For lending platforms, prepends
+ * a higher-priority `Vault-Apy-Lending-*-Trading` key so the `trading` APR
+ * component renders as "Lending APR" / "Lending Daily" instead of "Trading APR".
+ */
+export function getApyLabelsForVault(vault: VaultEntity, totalType: 'apy' | 'apr'): ApyLabels {
+  const labels = getApyLabelsForType(getApyLabelsTypeForVault(vault, totalType));
+  if (!isLendingPlatform(vault.platformId)) {
+    return labels;
+  }
+  return {
+    ...labels,
+    tradingApr: ['Vault-Apy-Lending-Yearly-Trading', ...labels.tradingApr],
+    tradingDaily: ['Vault-Apy-Lending-Daily-Trading', ...labels.tradingDaily],
+  };
+}
