@@ -26,6 +26,7 @@ import {
 import {
   crossChainClearRecoveryQuote,
   crossChainFetchRecoveryQuote,
+  crossChainMarkRecoveryQuoteStale,
   crossChainOpDismiss,
   crossChainOpInitiated,
   crossChainOpStatusUpdate,
@@ -85,6 +86,7 @@ const initialRecoveryQuoteState: CrossChainRecoveryQuoteState = {
   quote: undefined,
   status: TransactStatus.Idle,
   error: undefined,
+  isStale: false,
 };
 
 const initialTransactState: TransactState = {
@@ -316,12 +318,14 @@ const transactSlice = createSlice({
         );
       })
       .addCase(crossChainFetchRecoveryQuote.pending, (sliceState, action) => {
-        sliceState.crossChain.recoveryQuote = {
-          opId: action.meta.arg.opId,
-          quote: undefined,
-          status: TransactStatus.Pending,
-          error: undefined,
-        };
+        const rq = sliceState.crossChain.recoveryQuote;
+        if (rq.opId !== action.meta.arg.opId) {
+          rq.quote = undefined;
+        }
+        rq.opId = action.meta.arg.opId;
+        rq.status = TransactStatus.Pending;
+        rq.error = undefined;
+        rq.isStale = false;
       })
       .addCase(crossChainFetchRecoveryQuote.rejected, (sliceState, action) => {
         const rq = sliceState.crossChain.recoveryQuote;
@@ -336,7 +340,11 @@ const transactSlice = createSlice({
         if (rq.opId === action.meta.arg.opId) {
           rq.status = TransactStatus.Fulfilled;
           rq.quote = action.payload.quote;
+          rq.isStale = false;
         }
+      })
+      .addCase(crossChainMarkRecoveryQuoteStale, sliceState => {
+        sliceState.crossChain.recoveryQuote.isStale = true;
       })
       .addCase(crossChainClearRecoveryQuote, sliceState => {
         sliceState.crossChain.recoveryQuote = initialRecoveryQuoteState;

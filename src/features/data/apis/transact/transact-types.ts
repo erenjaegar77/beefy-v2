@@ -491,6 +491,17 @@ export function isCrossChainVaultDstWithdrawOption(
 ): option is CrossChainVaultDstWithdrawOption {
   return isCrossChainWithdrawOption(option) && option.destHandlerKind === 'vault';
 }
+export type CrossChainTokenOption = {
+  token: TokenEntity;
+  balanceUsd: BigNumber;
+};
+
+export type CrossChainChainOption = {
+  chainId: ChainEntity['id'];
+  chainName: string;
+  balanceUsd: BigNumber;
+  tokens: CrossChainTokenOption[];
+};
 
 //
 // Quotes
