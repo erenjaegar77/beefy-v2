@@ -658,4 +658,7 @@ export const selectCrossChainRecoveryQuoteOpId = (state: BeefyState) =>
 export const selectCrossChainRecoveryQuoteError = (state: BeefyState) =>
   state.ui.transact.crossChain.recoveryQuote.error;
 
+export const selectCrossChainRecoveryQuoteIsStale = (state: BeefyState) =>
+  state.ui.transact.crossChain.recoveryQuote.isStale;
+
 export const selectTransactSuccessClosed = (state: BeefyState) => state.ui.transact.successClosed;

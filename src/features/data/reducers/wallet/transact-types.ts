@@ -138,6 +138,7 @@ export type CrossChainRecoveryQuoteState = {
   quote: RecoveryQuote | undefined;
   status: TransactStatus;
   error: SerializedError | undefined;
+  isStale: boolean;
 };
 
 export type TransactCrossChain = {
