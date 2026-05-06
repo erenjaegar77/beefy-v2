@@ -394,6 +394,7 @@ export const crossChainRecoveryExecuteOrder = (
               dispatch(fetchCCTPDstTokensReturned({ destChainId, dstTxHash: hash }));
             } else {
               dispatch(crossChainOpStatusUpdate({ id: opId, status: 'dest-failed' }));
+              dispatch(crossChainClearRecoveryQuote());
             }
           })
           .catch(err => {
@@ -403,6 +404,7 @@ export const crossChainRecoveryExecuteOrder = (
       })
       .catch(() => {
         dispatch(crossChainOpStatusUpdate({ id: opId, status: 'dest-failed' }));
+        dispatch(crossChainClearRecoveryQuote());
       });
   });
 };
