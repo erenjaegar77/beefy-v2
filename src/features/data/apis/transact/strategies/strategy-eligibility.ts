@@ -2,9 +2,6 @@ import { isTokenEqual, type TokenEntity } from '../../../entities/token.ts';
 import type { ZapTransactHelpers } from './IStrategy.ts';
 import type { StrategySwapConfig } from './strategy-configs.ts';
 
-// Shared body for the LP-style canAcceptTokenAsDeposit/canEmitTokenAsWithdraw predicates.
-// Mirrors aggregatorTokenSupport's filter: identity on any pool token, or aggregator routes
-// between token and EVERY pool token
 async function canRouteTokenAcrossPool(
   helpers: ZapTransactHelpers,
   swapConfig: StrategySwapConfig | undefined,
