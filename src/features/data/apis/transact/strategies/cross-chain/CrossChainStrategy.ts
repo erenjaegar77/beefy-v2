@@ -360,7 +360,13 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       const sourceUSDC = getUSDCForChain(candidate.chainId, state);
       const srcVault = selectVaultById(state, candidate.vaultId);
       if (!srcVault || !('contractAddress' in srcVault)) continue;
+      if (!('depositTokenAddress' in srcVault)) continue;
       const shareToken = selectTokenByAddress(state, candidate.chainId, srcVault.contractAddress);
+      const srcDepositToken = selectTokenByAddress(
+        state,
+        candidate.chainId,
+        srcVault.depositTokenAddress
+      );
       const selectionId = createSelectionId(
         candidate.chainId,
         [shareToken],
@@ -379,7 +385,10 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
         // Hide the picker row when the user's src vault balance is zero —
         // otherwise we surface a row they cannot act on.
         selectionHideIfZeroBalance: true,
-        inputs: [shareToken],
+        // Input is the src vault's underlying (deposit token), not the share token —
+        // the slider/UI is denominated in the underlying and `SingleStrategy.fetchWithdrawQuote`
+        // (called via `VaultSourceHandler`) expects an underlying-denominated input.
+        inputs: [srcDepositToken],
         wantedOutputs: [depositToken],
         bridgeToken: sourceUSDC,
         destBridgeToken: destUSDC,

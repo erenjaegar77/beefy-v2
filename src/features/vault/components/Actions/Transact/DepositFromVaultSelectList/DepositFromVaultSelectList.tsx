@@ -33,9 +33,6 @@ import {
 } from '../common/CommonListStyles.tsx';
 import { listItemArrow, selectListScrollable } from '../common/CommonListStylesRaw.ts';
 
-// Vaults with USD value below this threshold are hidden entirely.
-const LOW_BALANCE_USD_THRESHOLD = 1;
-
 type VaultGroupId = 'retired' | 'vault' | 'pool' | 'clmVault' | 'clmPool';
 
 const GROUP_LABELS: Record<VaultGroupId, string> = {
@@ -72,17 +69,25 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
   const vaultById = useAppSelector((state: BeefyState) => state.entities.vaults.byId);
   const [search, setSearch] = useState('');
 
-  const groups = useMemo(() => {
+  const searchFiltered = useMemo(() => {
+    if (!search.length) return entries;
     const lowerSearch = search.toLowerCase();
-    const filtered = entries.filter(entry => {
-      if (entry.balanceUsd.lt(LOW_BALANCE_USD_THRESHOLD)) return false;
-      if (lowerSearch && !entry.searchString.includes(lowerSearch)) return false;
-      return true;
-    });
+    return entries.filter(entry =>
+      entry.tokens
+        .map(token => token.symbol)
+        .join(' ')
+        .toLowerCase()
+        .includes(lowerSearch)
+    );
+  }, [entries, search]);
 
-    const buckets = new Map<VaultGroupId, { entries: typeof filtered; totalUsd: BigNumber }>();
-    for (const entry of filtered) {
-      const vault = vaultById[entry.vaultId];
+  const groups = useMemo(() => {
+    const buckets = new Map<
+      VaultGroupId,
+      { entries: typeof searchFiltered; totalUsd: BigNumber }
+    >();
+    for (const entry of searchFiltered) {
+      const vault = vaultById[entry.vaultRefId!];
       if (!vault) continue;
       const groupId = categorizeVault(vault);
       const bucket = buckets.get(groupId);
@@ -94,7 +99,7 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
       }
     }
 
-    const ordered: Array<{ id: VaultGroupId; label: string; entries: typeof filtered }> = [];
+    const ordered: Array<{ id: VaultGroupId; label: string; entries: typeof searchFiltered }> = [];
     const retired = buckets.get('retired');
     if (retired) {
       ordered.push({ id: 'retired', label: GROUP_LABELS.retired, entries: retired.entries });
@@ -107,7 +112,7 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
       ordered.push({ id, label: GROUP_LABELS[id], entries: bucket.entries });
     }
     return ordered;
-  }, [entries, search, vaultById]);
+  }, [searchFiltered, vaultById]);
 
   const totalVisible = useMemo(
     () => groups.reduce((sum, group) => sum + group.entries.length, 0),
@@ -115,8 +120,8 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
   );
 
   const handleSelect = useCallback(
-    (vaultId: VaultEntity['id']) => {
-      dispatch(transactSelectDepositFromVault(vaultId));
+    (vaultId: VaultEntity['id'], selectionId: string) => {
+      dispatch(transactSelectDepositFromVault({ vaultId, selectionId }));
     },
     [dispatch]
   );
@@ -137,6 +142,7 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
                   <VaultListItem
                     key={entry.vaultId}
                     vaultId={entry.vaultId}
+                    selectionId={entry.id}
                     balance={entry.balance}
                     balanceUsd={entry.balanceUsd}
                     decimals={entry.decimals}
@@ -154,14 +160,16 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
 
 type VaultListItemProps = {
   vaultId: VaultEntity['id'];
+  selectionId: string;
   balance: BigNumber;
   balanceUsd: BigNumber;
   decimals: number;
-  onSelect: (vaultId: VaultEntity['id']) => void;
+  onSelect: (vaultId: VaultEntity['id'], selectionId: string) => void;
 };
 
 const VaultListItem = memo(function VaultListItem({
   vaultId,
+  selectionId,
   balance,
   balanceUsd,
   decimals,
@@ -169,7 +177,10 @@ const VaultListItem = memo(function VaultListItem({
 }: VaultListItemProps) {
   const vault = useAppSelector(state => selectVaultById(state, vaultId));
 
-  const handleClick = useCallback(() => onSelect(vaultId), [onSelect, vaultId]);
+  const handleClick = useCallback(
+    () => onSelect(vaultId, selectionId),
+    [onSelect, vaultId, selectionId]
+  );
 
   const balanceUsdFormatted = useMemo(() => {
     if (!balanceUsd || balanceUsd.isZero()) return null;

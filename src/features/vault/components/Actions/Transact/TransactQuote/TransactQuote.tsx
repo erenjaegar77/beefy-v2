@@ -26,7 +26,6 @@ import {
 } from '../../../../../data/apis/transact/transact-types.ts';
 import { isCowcentratedLikeVault } from '../../../../../data/entities/vault.ts';
 import {
-  // DepositSource,
   TransactMode,
   TransactStatus,
 } from '../../../../../data/reducers/wallet/transact-types.ts';
@@ -41,7 +40,6 @@ import {
   selectTransactSelectedChainId,
   selectTransactSelectedQuote,
   selectTransactSelectedSelectionId,
-  // selectTransactUserHasOtherDepositedVaults,
   selectTransactVaultId,
 } from '../../../../../data/selectors/transact.ts';
 import { selectVaultById } from '../../../../../data/selectors/vaults.ts';

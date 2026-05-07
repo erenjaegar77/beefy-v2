@@ -145,7 +145,9 @@ const transactSlice = createSlice({
         resetQuotes(sliceState);
       })
       .addCase(transactSelectDepositFromVault, (sliceState, action) => {
-        sliceState.depositFromVaultId = action.payload;
+        sliceState.depositFromVaultId = action.payload.vaultId;
+        sliceState.selectedSelectionId = action.payload.selectionId;
+        sliceState.forceSelection = false;
         sliceState.depositSource = DepositSource.Vault;
         sliceState.step = TransactStep.Form;
         clearInputs(sliceState);
