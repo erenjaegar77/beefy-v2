@@ -28,12 +28,15 @@ import {
 import {
   crossChainClearRecoveryQuote,
   crossChainFetchRecoveryQuote,
+  crossChainMarkRecoveryQuoteStale,
   crossChainOpDismiss,
   crossChainOpInitiated,
   crossChainOpStatusUpdate,
 } from '../../actions/wallet/cross-chain.ts';
 import {
   isCrossChainDepositOption,
+  isCrossChainVaultDstWithdrawOption,
+  isCrossChainVaultSrcDepositOption,
   isCrossChainWithdrawOption,
   type TransactOption,
   type TransactQuote,
@@ -85,6 +88,7 @@ const initialRecoveryQuoteState: CrossChainRecoveryQuoteState = {
   quote: undefined,
   status: TransactStatus.Idle,
   error: undefined,
+  isStale: false,
 };
 
 const initialTransactState: TransactState = {
@@ -193,7 +197,6 @@ const transactSlice = createSlice({
         if (sliceState.confirm.requestId === action.payload.requestId) {
           sliceState.confirm.status = TransactStatus.Fulfilled;
           sliceState.confirm.changes = action.payload.changes;
-          // replace quote
           delete sliceState.quotes.byQuoteId[action.payload.originalQuoteId];
           sliceState.quotes.byQuoteId[action.payload.newQuote.id] = action.payload.newQuote;
           sliceState.quotes.allQuoteIds = Object.keys(sliceState.quotes.byQuoteId);
@@ -337,12 +340,14 @@ const transactSlice = createSlice({
         );
       })
       .addCase(crossChainFetchRecoveryQuote.pending, (sliceState, action) => {
-        sliceState.crossChain.recoveryQuote = {
-          opId: action.meta.arg.opId,
-          quote: undefined,
-          status: TransactStatus.Pending,
-          error: undefined,
-        };
+        const rq = sliceState.crossChain.recoveryQuote;
+        if (rq.opId !== action.meta.arg.opId) {
+          rq.quote = undefined;
+        }
+        rq.opId = action.meta.arg.opId;
+        rq.status = TransactStatus.Pending;
+        rq.error = undefined;
+        rq.isStale = false;
       })
       .addCase(crossChainFetchRecoveryQuote.rejected, (sliceState, action) => {
         const rq = sliceState.crossChain.recoveryQuote;
@@ -357,7 +362,11 @@ const transactSlice = createSlice({
         if (rq.opId === action.meta.arg.opId) {
           rq.status = TransactStatus.Fulfilled;
           rq.quote = action.payload.quote;
+          rq.isStale = false;
         }
+      })
+      .addCase(crossChainMarkRecoveryQuoteStale, sliceState => {
+        sliceState.crossChain.recoveryQuote.isStale = true;
       })
       .addCase(crossChainClearRecoveryQuote, sliceState => {
         sliceState.crossChain.recoveryQuote = initialRecoveryQuoteState;
@@ -440,25 +449,27 @@ function addOptionsToState(sliceState: Draft<TransactState>, options: TransactOp
       continue;
     }
 
-    // Add optionId => option mapping
     sliceState.options.byOptionId[option.id] = option;
     sliceState.options.allOptionIds.push(option.id);
 
-    // Add selectionId -> optionId[] mapping
     if (!(option.selectionId in sliceState.options.bySelectionId)) {
       sliceState.options.bySelectionId[option.selectionId] = [option.id];
     } else {
       sliceState.options.bySelectionId[option.selectionId].push(option.id);
     }
 
-    // Add selectionId -> address[] mapping
     const existingSelection = sliceState.selections.bySelectionId[option.selectionId];
     if (!existingSelection) {
+      const vaultRef =
+        isCrossChainVaultSrcDepositOption(option) ? { vaultRefId: option.srcVaultId }
+        : isCrossChainVaultDstWithdrawOption(option) ? { vaultRefId: option.destVaultId }
+        : undefined;
       sliceState.selections.bySelectionId[option.selectionId] = {
         id: option.selectionId,
         tokens: option.mode === TransactMode.Deposit ? option.inputs : option.wantedOutputs,
         order: option.selectionOrder,
         hideIfZeroBalance: !!option.selectionHideIfZeroBalance,
+        ...vaultRef,
       };
 
       sliceState.selections.allSelectionIds.push(option.selectionId);
@@ -467,7 +478,6 @@ function addOptionsToState(sliceState: Draft<TransactState>, options: TransactOp
       existingSelection.hideIfZeroBalance = false;
     }
 
-    // Add chainId -> selectionId[] mapping
     // Cross-chain options are indexed by the chain the user interacts with:
     // deposits by sourceChainId, withdrawals by destChainId
     const chainKey =
