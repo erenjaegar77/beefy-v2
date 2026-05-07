@@ -16,6 +16,7 @@ import {
 import type { ChainEntity } from '../entities/chain.ts';
 import { isSingleGovVault, type VaultEntity } from '../entities/vault.ts';
 import {
+  DepositSource,
   TransactStatus,
   type PendingCrossChainOp,
   type TransactSelection,
@@ -64,8 +65,19 @@ export const selectTransactMode = (state: BeefyState) => state.ui.transact.mode;
 export const selectTransactSlippage = (state: BeefyState) => state.ui.transact.swapSlippage;
 
 export const selectTransactDepositSource = (state: BeefyState) => state.ui.transact.depositSource;
-export const selectTransactDepositFromVaultId = (state: BeefyState) =>
-  state.ui.transact.depositFromVaultId;
+/**
+ * Src vault id for the active "deposit from vault" flow, or `undefined` when not in
+ * vault-source mode / no selection. Derived from the selected `vaultRefId` selection
+ * — `depositFromVaultId` is no longer stored on state.
+ */
+export const selectTransactDepositFromVaultId = (
+  state: BeefyState
+): VaultEntity['id'] | undefined => {
+  if (state.ui.transact.depositSource !== DepositSource.Vault) return undefined;
+  const selectionId = state.ui.transact.selectedSelectionId;
+  if (!selectionId) return undefined;
+  return state.ui.transact.selections.bySelectionId[selectionId]?.vaultRefId;
+};
 
 export const selectTransactOptionsStatus = (state: BeefyState) => state.ui.transact.options.status;
 export const selectTransactOptionsError = (state: BeefyState) => state.ui.transact.options.error;

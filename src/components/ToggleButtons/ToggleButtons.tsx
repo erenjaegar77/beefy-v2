@@ -21,6 +21,7 @@ export type ToggleButtonsProps<
   untoggleValue?: TValue | TUntoggle;
   noPadding?: boolean;
   noBorder?: boolean;
+  disabled?: boolean;
 } & ButtonsVariantProps;
 
 export const ToggleButtons = memo(function ToggleButtons<
@@ -36,6 +37,7 @@ export const ToggleButtons = memo(function ToggleButtons<
   noBackground,
   noPadding = false,
   noBorder = false,
+  disabled = false,
 }: ToggleButtonsProps<TValue, TUntoggle>) {
   const canUntoggle = untoggleValue !== undefined;
   const handleClick = useCallback(
@@ -74,6 +76,7 @@ export const ToggleButtons = memo(function ToggleButtons<
             noPadding={noPadding}
             variant={buttonVariant}
             unselectable={!canUntoggle && active}
+            disabled={disabled}
           />
         );
       })}
@@ -164,12 +167,14 @@ export type ToggleButtonProps<TValue extends string = string> = {
   value: TValue;
   label: ReactNode;
   onClick: (value: TValue) => void;
+  disabled?: boolean;
 } & ButtonVariantProps;
 
 export const ToggleButton = memo(function ToggleButton<TValue extends string = string>({
   value,
   label,
   onClick,
+  disabled,
   ...rest
 }: ToggleButtonProps<TValue>) {
   const handleClick = useCallback(() => {
@@ -177,7 +182,7 @@ export const ToggleButton = memo(function ToggleButton<TValue extends string = s
   }, [value, onClick]);
 
   return (
-    <Button {...rest} onClick={handleClick}>
+    <Button {...rest} onClick={handleClick} disabled={disabled}>
       {label}
     </Button>
   );

@@ -8,8 +8,10 @@ import { transactSwitchDepositSource } from '../../../../../data/actions/transac
 import { DepositSource } from '../../../../../data/reducers/wallet/transact-types.ts';
 import {
   selectTransactDepositSource,
+  selectTransactExecuting,
   selectTransactUserHasOtherDepositedVaults,
 } from '../../../../../data/selectors/transact.ts';
+import { selectIsStepperStepping } from '../../../../../data/selectors/stepper.ts';
 import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
 
 export const DepositSourceToggle = memo(function DepositSourceToggle() {
@@ -17,6 +19,9 @@ export const DepositSourceToggle = memo(function DepositSourceToggle() {
   const dispatch = useAppDispatch();
   const source = useAppSelector(selectTransactDepositSource);
   const hasOtherDeposits = useAppSelector(selectTransactUserHasOtherDepositedVaults);
+  const isExecuting = useAppSelector(selectTransactExecuting);
+  const isStepping = useAppSelector(selectIsStepperStepping);
+  const isDisabled = isExecuting || isStepping;
 
   const handleChange = useCallback(
     (next: DepositSource) => {
@@ -54,6 +59,7 @@ export const DepositSourceToggle = memo(function DepositSourceToggle() {
       onChange={handleChange}
       variant="card"
       fullWidth={true}
+      disabled={isDisabled}
     />
   );
 });

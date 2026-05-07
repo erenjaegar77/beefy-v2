@@ -21,7 +21,6 @@ import {
   transactSetSelectedChainId,
   transactSetSlippage,
   transactSwitchDepositSource,
-  transactSelectDepositFromVault,
   transactSwitchMode,
   transactSwitchStep,
 } from '../../actions/transact.ts';
@@ -103,7 +102,6 @@ const initialTransactState: TransactState = {
   mode: TransactMode.Deposit,
   step: TransactStep.Form,
   depositSource: DepositSource.Wallet,
-  depositFromVaultId: undefined,
   selections: initialTransactTokens,
   forceSelection: false,
   options: initialTransactOptions,
@@ -130,25 +128,12 @@ const transactSlice = createSlice({
         sliceState.inputAmounts = [BIG_ZERO];
         sliceState.inputMaxes = [false];
         sliceState.depositSource = DepositSource.Wallet;
-        sliceState.depositFromVaultId = undefined;
       })
       .addCase(transactSwitchStep, (sliceState, action) => {
         sliceState.step = action.payload;
       })
       .addCase(transactSwitchDepositSource, (sliceState, action) => {
         sliceState.depositSource = action.payload;
-        sliceState.step = TransactStep.Form;
-        if (action.payload === DepositSource.Wallet) {
-          sliceState.depositFromVaultId = undefined;
-        }
-        clearInputs(sliceState);
-        resetQuotes(sliceState);
-      })
-      .addCase(transactSelectDepositFromVault, (sliceState, action) => {
-        sliceState.depositFromVaultId = action.payload.vaultId;
-        sliceState.selectedSelectionId = action.payload.selectionId;
-        sliceState.forceSelection = false;
-        sliceState.depositSource = DepositSource.Vault;
         sliceState.step = TransactStep.Form;
         clearInputs(sliceState);
         resetQuotes(sliceState);
@@ -163,6 +148,17 @@ const transactSlice = createSlice({
         sliceState.selectedSelectionId = action.payload.selectionId;
         sliceState.step = TransactStep.Form;
         sliceState.forceSelection = false;
+        // Vault-to-vault src selections drive `depositSource = Vault`; everything else
+        // is a wallet-source selection. When the source flips, drop any cached quote
+        // since it was built for the previous flow.
+        const newSource =
+          sliceState.selections.bySelectionId[action.payload.selectionId]?.vaultRefId ?
+            DepositSource.Vault
+          : DepositSource.Wallet;
+        if (sliceState.depositSource !== newSource) {
+          sliceState.depositSource = newSource;
+          resetQuotes(sliceState);
+        }
         if (action.payload.resetInput) {
           clearInputs(sliceState);
         }
@@ -398,7 +394,6 @@ function resetForm(sliceState: Draft<TransactState>) {
   sliceState.forceSelection = false;
   sliceState.successClosed = false;
   sliceState.depositSource = DepositSource.Wallet;
-  sliceState.depositFromVaultId = undefined;
 
   sliceState.options.status = TransactStatus.Idle;
   sliceState.options.error = undefined;

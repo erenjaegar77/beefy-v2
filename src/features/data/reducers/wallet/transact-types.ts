@@ -165,7 +165,6 @@ export type TransactState = {
   mode: TransactMode;
   step: TransactStep;
   depositSource: DepositSource;
-  depositFromVaultId: VaultEntity['id'] | undefined;
   forceSelection: boolean;
   selections: TransactSelections;
   options: TransactOptions;

@@ -11,7 +11,7 @@ import { VaultPlatformTag } from '../../../../../../components/VaultIdentity/com
 import ChevronRight from '../../../../../../images/icons/chevron-right.svg?react';
 import { formatLargeUsd, formatTokenDisplayCondensed } from '../../../../../../helpers/format.ts';
 import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
-import { transactSelectDepositFromVault } from '../../../../../data/actions/transact.ts';
+import { transactSelectSelection } from '../../../../../data/actions/transact.ts';
 import {
   isCowcentratedGovVault,
   isCowcentratedLikeVault,
@@ -120,8 +120,8 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
   );
 
   const handleSelect = useCallback(
-    (vaultId: VaultEntity['id'], selectionId: string) => {
-      dispatch(transactSelectDepositFromVault({ vaultId, selectionId }));
+    (selectionId: string) => {
+      dispatch(transactSelectSelection({ selectionId, resetInput: true }));
     },
     [dispatch]
   );
@@ -164,7 +164,7 @@ type VaultListItemProps = {
   balance: BigNumber;
   balanceUsd: BigNumber;
   decimals: number;
-  onSelect: (vaultId: VaultEntity['id'], selectionId: string) => void;
+  onSelect: (selectionId: string) => void;
 };
 
 const VaultListItem = memo(function VaultListItem({
@@ -177,10 +177,7 @@ const VaultListItem = memo(function VaultListItem({
 }: VaultListItemProps) {
   const vault = useAppSelector(state => selectVaultById(state, vaultId));
 
-  const handleClick = useCallback(
-    () => onSelect(vaultId, selectionId),
-    [onSelect, vaultId, selectionId]
-  );
+  const handleClick = useCallback(() => onSelect(selectionId), [onSelect, selectionId]);
 
   const balanceUsdFormatted = useMemo(() => {
     if (!balanceUsd || balanceUsd.isZero()) return null;

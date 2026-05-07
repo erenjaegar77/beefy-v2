@@ -91,10 +91,6 @@ export const transactSetSelectedChainId = createAction<ChainEntity['id']>(
 export const transactSwitchDepositSource = createAction<DepositSource>(
   'transact/switchDepositSource'
 );
-export const transactSelectDepositFromVault = createAction<{
-  vaultId: VaultEntity['id'];
-  selectionId: string;
-}>('transact/selectDepositFromVault');
 export const transactSetSlippage = createAction<{
   slippage: number;
 }>('transact/setSlippage');
