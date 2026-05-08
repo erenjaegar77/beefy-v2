@@ -89,7 +89,7 @@
     "createdAt": 1778076450,
     "platformId": "morpho",
     "curatorId": "steakhouse",
-    "assets": ["ethAUSD"],
+    "assets": ["AUSD"],
     "migrationIds": ["morpho"],
     "risks": {
       "complex": false,
