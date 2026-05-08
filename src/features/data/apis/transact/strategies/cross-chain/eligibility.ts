@@ -1,5 +1,6 @@
 import type BigNumber from 'bignumber.js';
 import { BIG_ZERO } from '../../../../../../helpers/big-number.ts';
+import { allFulfilled } from '../../../../../../helpers/promises.ts';
 import type { ChainEntity } from '../../../../entities/chain.ts';
 import type { TokenEntity } from '../../../../entities/token.ts';
 import type { VaultEntity } from '../../../../entities/vault.ts';
@@ -66,7 +67,7 @@ async function anyComposableStrategyAccepts(
   const composables = strategies.filter(isComposableStrategy);
   if (composables.length === 0) return false;
 
-  const verdicts = await Promise.all(
+  const verdicts = await allFulfilled(
     composables.map(s =>
       direction === 'deposit' ?
         s.canAcceptTokenAsDeposit(bridgeToken)

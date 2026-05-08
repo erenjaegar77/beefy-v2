@@ -1,3 +1,4 @@
+import { isFulfilledResult, isRejectedResult } from '../../../../../../helpers/promises.ts';
 import type { ChainEntity } from '../../../../entities/chain.ts';
 import type { VaultEntity } from '../../../../entities/vault.ts';
 import { selectUserDepositedVaultIds } from '../../../../selectors/balance.ts';
@@ -47,13 +48,21 @@ export async function enumerateSrcVaultCandidates(
     survivors.push({ vaultId, chainId: vault.chainId });
   }
 
-  const verdicts = await Promise.all(
+  const verdicts = await Promise.allSettled(
     survivors.map(({ vaultId, chainId }) =>
       vaultCanWithdrawToBridgeToken(vaultId, state, getUSDCForChain(chainId, state))
     )
   );
-
-  return survivors.filter((_, i) => verdicts[i]);
+  const rejected = verdicts.flatMap((v, i) =>
+    isRejectedResult(v) ? [{ vaultId: survivors[i].vaultId, reason: v.reason }] : []
+  );
+  if (rejected.length) {
+    console.warn(
+      `[cross-chain/enumerateSrc] ${rejected.length}/${survivors.length} rejected`,
+      rejected
+    );
+  }
+  return verdicts.flatMap((v, i) => (isFulfilledResult(v) && v.value ? [survivors[i]] : []));
 }
 
 /**
@@ -77,11 +86,19 @@ export async function enumerateDstVaultCandidates(
     }
   }
 
-  const verdicts = await Promise.all(
+  const verdicts = await Promise.allSettled(
     survivors.map(({ vaultId, chainId }) =>
       vaultAcceptsBridgeTokenDeposit(vaultId, state, getUSDCForChain(chainId, state))
     )
   );
-
-  return survivors.filter((_, i) => verdicts[i]);
+  const rejected = verdicts.flatMap((v, i) =>
+    isRejectedResult(v) ? [{ vaultId: survivors[i].vaultId, reason: v.reason }] : []
+  );
+  if (rejected.length) {
+    console.warn(
+      `[cross-chain/enumerateDst] ${rejected.length}/${survivors.length} rejected`,
+      rejected
+    );
+  }
+  return verdicts.flatMap((v, i) => (isFulfilledResult(v) && v.value ? [survivors[i]] : []));
 }
