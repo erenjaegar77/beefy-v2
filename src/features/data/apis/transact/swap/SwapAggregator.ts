@@ -21,6 +21,8 @@ import type {
 
 export class SwapAggregator implements ISwapAggregator {
   protected providersById: Record<string, ISwapProvider> = {};
+  // Per-state cache: dedupes fetchTokenSupport across v2v candidates that share (vault, chain, tokens, options).
+  private supportCache = new WeakMap<BeefyState, Map<string, Promise<TokenSupport>>>();
 
   constructor(protected providers: ISwapProvider[]) {
     this.providers.forEach(provider => {
@@ -75,43 +77,56 @@ export class SwapAggregator implements ISwapAggregator {
     state: BeefyState,
     options?: StrategySwapConfig
   ): Promise<TokenSupport> {
-    const allowedProviders = this.allowedProviders(options);
-    const tokensPerProvider = await Promise.all(
-      allowedProviders.map(provider =>
-        this.providerSupportedTokens(provider, vaultId, chainId, state, options)
-      )
-    );
+    let perState = this.supportCache.get(state);
+    if (!perState) {
+      perState = new Map();
+      this.supportCache.set(state, perState);
+    }
+    const key = supportCacheKey(wantedTokens, vaultId, chainId, options);
+    let cached = perState.get(key);
+    if (cached) return cached;
 
-    const supportPerWanted = wantedTokens.map(wantedToken =>
-      this.tokensSupportingFilter(
+    cached = (async () => {
+      const allowedProviders = this.allowedProviders(options);
+      const tokensPerProvider = await Promise.all(
+        allowedProviders.map(provider =>
+          this.providerSupportedTokens(provider, vaultId, chainId, state, options)
+        )
+      );
+
+      const supportPerWanted = wantedTokens.map(wantedToken =>
+        this.tokensSupportingFilter(
+          tokensPerProvider,
+          (providerTokens: TokenEntity[]) =>
+            providerTokens.some(providerToken => isTokenEqual(providerToken, wantedToken)),
+          state
+        )
+      );
+
+      // @dev any is same as wanted[0] if there is only 1 token to check
+      if (supportPerWanted.length === 1) {
+        return {
+          tokens: supportPerWanted,
+          any: supportPerWanted[0],
+        };
+      }
+
+      const supportAny = this.tokensSupportingFilter(
         tokensPerProvider,
         (providerTokens: TokenEntity[]) =>
-          providerTokens.some(providerToken => isTokenEqual(providerToken, wantedToken)),
+          wantedTokens.some(wantedToken =>
+            providerTokens.some(providerToken => isTokenEqual(providerToken, wantedToken))
+          ),
         state
-      )
-    );
+      );
 
-    // @dev any is same as wanted[0] if there is only 1 token to check
-    if (supportPerWanted.length === 1) {
       return {
         tokens: supportPerWanted,
-        any: supportPerWanted[0],
+        any: supportAny,
       };
-    }
-
-    const supportAny = this.tokensSupportingFilter(
-      tokensPerProvider,
-      (providerTokens: TokenEntity[]) =>
-        wantedTokens.some(wantedToken =>
-          providerTokens.some(providerToken => isTokenEqual(providerToken, wantedToken))
-        ),
-      state
-    );
-
-    return {
-      tokens: supportPerWanted,
-      any: supportAny,
-    };
+    })();
+    perState.set(key, cached);
+    return cached;
   }
 
   protected tokensSupportingFilter(
@@ -238,4 +253,20 @@ export class SwapAggregator implements ISwapAggregator {
     const result = await provider.fetchSwap(request, state);
     return result;
   }
+}
+
+function supportCacheKey(
+  wantedTokens: TokenEntity[],
+  vaultId: VaultEntity['id'] | undefined,
+  chainId: ChainEntity['id'],
+  options: StrategySwapConfig | undefined
+): string {
+  const tokens = wantedTokens
+    .map(t => t.address.toLowerCase())
+    .slice()
+    .sort()
+    .join(',');
+  const blockedProviders = (options?.blockProviders ?? []).slice().sort().join('|');
+  const blockedTokens = (options?.blockTokens ?? []).slice().sort().join('|');
+  return `${vaultId ?? ''}|${chainId}|${tokens}|${blockedProviders}|${blockedTokens}`;
 }

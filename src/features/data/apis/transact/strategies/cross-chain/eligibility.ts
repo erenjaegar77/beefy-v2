@@ -10,6 +10,7 @@ import type { BeefyState } from '../../../../store/types.ts';
 import { getTransactApi } from '../../../instances.ts';
 import { isChainSupported } from '../../cctp/CCTPProvider.ts';
 import { isComposableStrategy, isZapTransactHelpers } from '../IStrategy.ts';
+import type { ZapStrategyConfig } from '../strategy-configs.ts';
 
 export async function vaultAcceptsBridgeTokenDeposit(
   vaultId: VaultEntity['id'],
@@ -20,6 +21,8 @@ export async function vaultAcceptsBridgeTokenDeposit(
   if (!vault) return false;
   if (!isVaultActive(vault)) return false;
   if (!('depositTokenAddress' in vault)) return false;
+  // Plain CLMs are not v2v destinations: deposit goes through gov/vault-composer wrappers instead.
+  if (vault.type === 'cowcentrated') return false;
 
   if (vault.depositTokenAddress.toLowerCase() === bridgeToken.address.toLowerCase()) return true;
 
@@ -50,11 +53,16 @@ async function anyComposableStrategyAccepts(
   const vault = selectVaultById(state, vaultId);
   if (!vault?.zaps?.length) return false;
 
+  // Skip basic IZapStrategy zaps; isComposableStrategy would discard them post-load.
+  const eligibilityZap = (z: ZapStrategyConfig) =>
+    z.strategyId !== 'reward-pool-to-vault' && z.strategyId !== 'conic';
+  if (!vault.zaps.some(eligibilityZap)) return false;
+
   const api = await getTransactApi();
   const helpers = await api.getHelpersForVault(vaultId, () => state);
   if (!isZapTransactHelpers(helpers)) return false;
 
-  const strategies = await api.getZapStrategiesForVault(helpers);
+  const strategies = await api.getZapStrategiesForVault(helpers, eligibilityZap);
   const composables = strategies.filter(isComposableStrategy);
   if (composables.length === 0) return false;
 
