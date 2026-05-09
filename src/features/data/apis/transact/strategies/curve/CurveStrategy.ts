@@ -86,10 +86,6 @@ import type {
   ZapTransactHelpers,
 } from '../IStrategy.ts';
 import type { CurveStrategyConfig } from '../strategy-configs.ts';
-import {
-  canRouteTokenFromAllOfAsWithdraw,
-  canRouteTokenToAllOfAsDeposit,
-} from '../strategy-eligibility.ts';
 import { CurvePool } from './CurvePool.ts';
 import type { CurveMethod, CurveTokenOption } from './types.ts';
 
@@ -1067,21 +1063,31 @@ class CurveStrategyImpl implements IComposableStrategy<StrategyId> {
   }
 
   async canAcceptTokenAsDeposit(token: TokenEntity): Promise<boolean> {
-    return canRouteTokenToAllOfAsDeposit(
-      this.helpers,
-      this.options.swap,
-      this.possibleTokens.map(option => option.token),
-      token
-    );
+    return this.canRouteTokenAcrossPool(token);
   }
 
   async canEmitTokenAsWithdraw(token: TokenEntity): Promise<boolean> {
-    return canRouteTokenFromAllOfAsWithdraw(
-      this.helpers,
-      this.options.swap,
-      this.possibleTokens.map(option => option.token),
-      token
-    );
+    return this.canRouteTokenAcrossPool(token);
+  }
+
+  protected async canRouteTokenAcrossPool(token: TokenEntity): Promise<boolean> {
+    if (this.possibleTokens.some(o => isTokenEqual(o.token, token))) return true;
+
+    const { swapAggregator, getState } = this.helpers;
+    const state = getState();
+    for (const o of this.possibleTokens) {
+      if (isTokenNative(o.token)) continue;
+      const ok = await swapAggregator.canSwapTokenPair(
+        token,
+        o.token,
+        this.vault.id,
+        this.vault.chainId,
+        state,
+        this.options.swap
+      );
+      if (ok) return true;
+    }
+    return false;
   }
 
   protected async aggregatorTokenSupport() {

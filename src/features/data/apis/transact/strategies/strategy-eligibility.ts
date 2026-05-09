@@ -11,18 +11,13 @@ async function canRouteTokenAcrossPool(
   if (poolTokens.some(t => isTokenEqual(t, token))) return true;
 
   const { swapAggregator, vault, getState } = helpers;
-  const support = await swapAggregator.fetchTokenSupport(
-    poolTokens,
-    vault.id,
-    vault.chainId,
-    getState(),
-    swapConfig
+  const state = getState();
+  const results = await Promise.all(
+    poolTokens.map(pt =>
+      swapAggregator.canSwapTokenPair(token, pt, vault.id, vault.chainId, state, swapConfig)
+    )
   );
-
-  return poolTokens.every(
-    (pt, i) =>
-      isTokenEqual(token, pt) || support.tokens[i].some(supported => isTokenEqual(supported, token))
-  );
+  return results.every(Boolean);
 }
 
 export async function canRouteTokenToAllOfAsDeposit(

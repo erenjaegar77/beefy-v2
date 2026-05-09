@@ -1570,19 +1570,38 @@ class BalancerStrategyImpl implements IComposableStrategy<StrategyId> {
     return this.canRouteAcrossEitherEmissionPath(token);
   }
 
-  // Mirrors Balancer's two emission paths (`buildDepositOptionsForAll` +
-  // `buildDepositOptionsForSingle`); direction-symmetric.
   protected async canRouteAcrossEitherEmissionPath(token: TokenEntity): Promise<boolean> {
     if (this.singleTokenOptions.some(t => isTokenEqual(t, token))) return true;
 
+    const { swapAggregator, getState } = this.helpers;
+    const state = getState();
+
     if (this.allTokenOptions.length > 0) {
-      const allRoutable = await this.aggregatorTokensCanSwapToAllOf(this.allTokenOptions);
-      if (allRoutable.some(t => isTokenEqual(t, token))) return true;
+      const results = await Promise.all(
+        this.allTokenOptions.map(pt =>
+          swapAggregator.canSwapTokenPair(
+            token,
+            pt,
+            this.vault.id,
+            this.vault.chainId,
+            state,
+            this.options.swap
+          )
+        )
+      );
+      if (results.every(Boolean)) return true;
     }
 
-    if (this.singleTokenOptions.length > 0) {
-      const { inputTokens } = await this.aggregatorTokensCanSwapToTokens(this.singleTokenOptions);
-      if (inputTokens.some(t => isTokenEqual(t, token))) return true;
+    for (const pt of this.singleTokenOptions) {
+      const ok = await swapAggregator.canSwapTokenPair(
+        token,
+        pt,
+        this.vault.id,
+        this.vault.chainId,
+        state,
+        this.options.swap
+      );
+      if (ok) return true;
     }
 
     return false;
