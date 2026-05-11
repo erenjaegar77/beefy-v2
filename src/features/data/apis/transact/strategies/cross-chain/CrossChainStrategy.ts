@@ -69,13 +69,13 @@ import {
   crossChainZapExecuteOrder,
 } from '../../../../actions/wallet/cross-chain.ts';
 import { enumerateDstVaultCandidates, enumerateSrcVaultCandidates } from './enumeration.ts';
-import { buildDustOutputs, mergeOutputs } from './handlers/dust.ts';
+import { buildDustOutputs, mergeOutputs } from '../../handlers/dust.ts';
 import { buildBalanceCheckZapStep, findBridgeTokenMin } from './handlers/utils.ts';
 import { PassthroughDestHandler } from './handlers/PassthroughDestHandler.ts';
 import { SwapDestHandler } from './handlers/SwapDestHandler.ts';
 import { SwapSourceHandler } from './handlers/SwapSourceHandler.ts';
-import { VaultDestHandler } from './handlers/VaultDestHandler.ts';
-import { VaultSourceHandler } from './handlers/VaultSourceHandler.ts';
+import { VaultDestHandler } from '../../handlers/vault/VaultDestHandler.ts';
+import { VaultSourceHandler } from '../../handlers/vault/VaultSourceHandler.ts';
 import type {
   DestHandlerContext,
   DestHandlerQuote,
@@ -83,7 +83,7 @@ import type {
   ISourceHandler,
   SourceHandlerContext,
   SourceHandlerQuote,
-} from './handlers/types.ts';
+} from '../../handlers/types.ts';
 
 const strategyId = 'cross-chain';
 type StrategyId = typeof strategyId;
@@ -131,7 +131,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     return {
       helpers: this.helpers,
       sourceChainId: option.sourceChainId,
-      bridgeToken: option.bridgeToken,
+      outputToken: option.bridgeToken,
       slippage: selectTransactSlippage(this.helpers.getState()),
       pageVaultId: this.helpers.vault.id,
       resolveHelpersForVault: vaultId => this.resolveHelpersForVault(vaultId),
@@ -146,7 +146,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
   private makeDestContext(args: {
     helpers: ChainTransactHelpers;
     destChainId: ChainEntity['id'];
-    destBridgeToken: TokenEntity;
+    inputToken: TokenEntity;
   }): DestHandlerContext {
     return {
       ...args,
@@ -259,7 +259,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     // completes the dst leg via `fetchRecoveryStep`.
     const fallbackPayload: ZapPayload = {
       recipient: userAddress,
-      outputs: [{ token: destCtx.destBridgeToken.address, minOutputAmount: '0' }],
+      outputs: [{ token: destCtx.inputToken.address, minOutputAmount: '0' }],
       relay: NO_RELAY,
       route: [],
     };
@@ -278,7 +278,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       ),
       // Passthrough → bridge token IS the user's chosen output; nothing to recover.
       isTwoStep: destHandler.kind !== 'passthrough',
-      expectedTokens: [destCtx.destBridgeToken],
+      expectedTokens: [destCtx.inputToken],
     };
   }
 
@@ -407,7 +407,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const destCtx = this.makeDestContext({
       helpers: this.helpers,
       destChainId: option.destChainId,
-      destBridgeToken: option.destBridgeToken,
+      inputToken: option.destBridgeToken,
     });
     const srcHandler = this.makeSourceHandler(option);
     const destHandler = this.makeDestHandler(option);
@@ -416,15 +416,15 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
 
     // CCTP bridge — slip only when src produced the bridge token via swap/withdraw.
     const bridgeUsdcAmount =
-      srcHandlerQuote.slippageAppliesToBridge ?
-        slipBy(srcHandlerQuote.bridgeTokenOut, srcCtx.slippage, srcCtx.bridgeToken.decimals)
-      : srcHandlerQuote.bridgeTokenOut;
+      srcHandlerQuote.slippageAppliesToOutput ?
+        slipBy(srcHandlerQuote.outputAmount, srcCtx.slippage, srcCtx.outputToken.decimals)
+      : srcHandlerQuote.outputAmount;
     const bridgeQuote = fetchBridgeQuote(
       srcCtx.sourceChainId,
       destCtx.destChainId,
       bridgeUsdcAmount,
-      srcCtx.bridgeToken as TokenErc20,
-      destCtx.destBridgeToken as TokenErc20
+      srcCtx.outputToken as TokenErc20,
+      destCtx.inputToken as TokenErc20
     );
 
     const sourceSteps: ZapQuoteStep[] = [
@@ -434,8 +434,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
         bridgeId: 'cctp',
         fromChainId: srcCtx.sourceChainId,
         toChainId: destCtx.destChainId,
-        fromToken: srcCtx.bridgeToken,
-        toToken: destCtx.destBridgeToken,
+        fromToken: srcCtx.outputToken,
+        toToken: destCtx.inputToken,
         fromAmount: bridgeQuote.fromAmount,
         toAmount: bridgeQuote.toAmount,
         timeEstimate: bridgeQuote.timeEstimate,
@@ -446,10 +446,10 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
 
     // Slippage buffer — excess bridge token arrives on dst as an `unused` step.
     const destSlippageReturn = bridgeSlippageReturned(
-      srcHandlerQuote.bridgeTokenOut,
+      srcHandlerQuote.outputAmount,
       bridgeUsdcAmount,
       bridgeQuote,
-      destCtx.destBridgeToken
+      destCtx.inputToken
     );
     const destSteps: ZapQuoteStep[] =
       destSlippageReturn ?
@@ -530,7 +530,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const destCtx = this.makeDestContext({
       helpers: this.helpers,
       destChainId: quote.option.destChainId,
-      destBridgeToken: quote.option.destBridgeToken,
+      inputToken: quote.option.destBridgeToken,
     });
     const srcHandler = this.makeSourceHandler(quote.option);
     const destHandler = this.makeDestHandler(quote.option);
@@ -859,7 +859,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const destCtx = this.makeDestContext({
       helpers: destChainHelpers,
       destChainId: recovery.destChainId,
-      destBridgeToken,
+      inputToken: destBridgeToken,
     });
     const handler = this.makeRecoveryHandler(recovery, destChainHelpers);
     const quoteVaultId =
@@ -868,7 +868,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const handlerQuote = await handler.fetchQuote(bridgedAmount, destCtx);
     const state = destCtx.helpers.getState();
     const inputs: InputTokenAmount[] = [
-      { token: destCtx.destBridgeToken, amount: bridgedAmount, max: false },
+      { token: destCtx.inputToken, amount: bridgedAmount, max: false },
     ];
     return {
       id: createQuoteId(`recovery-${destCtx.destChainId}-${quoteVaultId}`),
@@ -902,7 +902,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
     const destCtx = this.makeDestContext({
       helpers: destChainHelpers,
       destChainId: recovery.destChainId,
-      destBridgeToken,
+      inputToken: destBridgeToken,
     });
     const handler = this.makeRecoveryHandler(recovery, destChainHelpers);
     const attributedVaultId =
@@ -919,8 +919,8 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       order: {
         inputs: [
           {
-            token: destCtx.destBridgeToken.address,
-            amount: toWeiString(bridgedAmount, destCtx.destBridgeToken.decimals),
+            token: destCtx.inputToken.address,
+            amount: toWeiString(bridgedAmount, destCtx.inputToken.decimals),
           },
         ],
         outputs,
