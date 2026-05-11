@@ -1,22 +1,22 @@
-import { BIG_ZERO, fromWei, toWei } from '../../../../../../../helpers/big-number.ts';
-import { isTokenEqual, type TokenErc20 } from '../../../../../entities/token.ts';
-import type { VaultEntity } from '../../../../../entities/vault.ts';
-import { selectVaultPricePerFullShare } from '../../../../../selectors/vaults.ts';
-import { getTransactApi } from '../../../../instances.ts';
+import { BIG_ZERO, fromWei, toWei } from '../../../../../../helpers/big-number.ts';
+import { isTokenEqual, type TokenErc20 } from '../../../../entities/token.ts';
+import type { VaultEntity } from '../../../../entities/vault.ts';
+import { selectVaultPricePerFullShare } from '../../../../selectors/vaults.ts';
+import { getTransactApi } from '../../../instances.ts';
 import {
   isZapQuote,
   type InputTokenAmount,
   type WithdrawOption,
   type ZapWithdrawQuote,
-} from '../../../transact-types.ts';
-import { isComposableStrategy, type IStrategy } from '../../IStrategy.ts';
-import { collectIntermediateTokens } from './dust.ts';
+} from '../../transact-types.ts';
+import { isComposableStrategy, type IStrategy } from '../../strategies/IStrategy.ts';
+import { collectIntermediateTokens } from '../dust.ts';
 import type {
   ISourceHandler,
   SourceHandlerContext,
   SourceHandlerQuote,
   SourceHandlerSteps,
-} from './types.ts';
+} from '../types.ts';
 
 type StrategyMatch = { strategy: IStrategy; option: WithdrawOption };
 
@@ -26,8 +26,8 @@ type VaultSourceState = {
 };
 
 /**
- * Vault source handler: withdraw vault shares to bridge token on the src chain.
- * `slippageAppliesToBridge` is hard-coded true — vault withdraws always slip.
+ * Vault source handler: withdraw vault shares into the handler's `outputToken`.
+ * `slippageAppliesToOutput` is hard-coded true — vault withdraws always slip.
  */
 export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
   readonly kind = 'vault' as const;
@@ -41,13 +41,13 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
     const srcHelpers = await ctx.resolveHelpersForVault(this.srcVaultId);
     const strategies = await (await getTransactApi()).getZapStrategiesForVault(srcHelpers);
 
-    const match = await VaultSourceHandler.findStrategyForBridgeTokenWithdraw(
+    const match = await VaultSourceHandler.findStrategyForOutputWithdraw(
       strategies,
-      ctx.bridgeToken
+      ctx.outputToken
     );
     if (!match) {
       throw new Error(
-        `[cross-chain/vault-source] No composable vault strategy can withdraw to bridge token on chain ${ctx.sourceChainId} for vault ${this.srcVaultId}`
+        `[vault-source] No composable vault strategy can withdraw to output token on chain ${ctx.sourceChainId} for vault ${this.srcVaultId}`
       );
     }
 
@@ -70,19 +70,19 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
     const underlyingQuote = await match.strategy.fetchWithdrawQuote([adaptedInput], match.option);
     if (!isZapQuote(underlyingQuote)) {
       throw new Error(
-        `[cross-chain/vault-source] Composable strategy '${match.strategy.id}' returned a non-zap withdraw quote`
+        `[vault-source] Composable strategy '${match.strategy.id}' returned a non-zap withdraw quote`
       );
     }
 
-    const bridgeTokenOutput = underlyingQuote.outputs.find(
-      o => o.token.address.toLowerCase() === ctx.bridgeToken.address.toLowerCase()
+    const outputTokenAmount = underlyingQuote.outputs.find(
+      o => o.token.address.toLowerCase() === ctx.outputToken.address.toLowerCase()
     );
-    if (!bridgeTokenOutput || bridgeTokenOutput.amount.lte(BIG_ZERO)) {
-      throw new Error('Withdrawal did not produce bridge token');
+    if (!outputTokenAmount || outputTokenAmount.amount.lte(BIG_ZERO)) {
+      throw new Error('Withdrawal did not produce output token');
     }
 
     const dustTokens = collectIntermediateTokens({
-      bridgeToken: ctx.bridgeToken,
+      anchorToken: ctx.outputToken,
       inputs: [input],
       picks: {
         outputs: underlyingQuote.outputs,
@@ -94,11 +94,11 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
 
     return {
       sourceSteps: [...underlyingQuote.steps],
-      bridgeTokenOut: bridgeTokenOutput.amount,
+      outputAmount: outputTokenAmount.amount,
       allowances: underlyingQuote.allowances,
       returned: underlyingQuote.returned,
       dustTokens,
-      slippageAppliesToBridge: true,
+      slippageAppliesToOutput: true,
       state: { underlyingQuote },
     };
   }
@@ -114,7 +114,7 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
     const strategy = strategies.find(s => s.id === underlyingQuote.strategyId);
     if (!strategy || !isComposableStrategy(strategy)) {
       throw new Error(
-        `[cross-chain/vault-source] Source withdraw strategy '${underlyingQuote.strategyId}' on chain ${ctx.sourceChainId} is not composable`
+        `[vault-source] Source withdraw strategy '${underlyingQuote.strategyId}' on chain ${ctx.sourceChainId} is not composable`
       );
     }
 
@@ -127,26 +127,26 @@ export class VaultSourceHandler implements ISourceHandler<VaultSourceState> {
     };
   }
 
-  /** Find a composable src strategy whose withdraw produces the bridge token; identity case is handled by SingleStrategy's identity option. */
-  private static async findStrategyForBridgeTokenWithdraw(
+  /** Find a composable src strategy whose withdraw produces the output token; identity case is handled by SingleStrategy's identity option. */
+  private static async findStrategyForOutputWithdraw(
     strategies: IStrategy[],
-    sourceBridgeToken: TokenErc20 | { address: string }
+    outputToken: TokenErc20 | { address: string }
   ): Promise<StrategyMatch | undefined> {
     for (const strategy of strategies) {
       if (!isComposableStrategy(strategy)) continue;
       try {
         const options = await strategy.fetchWithdrawOptions();
-        const bridgeTokenOption = options.find(
+        const matched = options.find(
           o =>
             o.wantedOutputs.length === 1 &&
-            o.wantedOutputs[0].address.toLowerCase() === sourceBridgeToken.address.toLowerCase()
+            o.wantedOutputs[0].address.toLowerCase() === outputToken.address.toLowerCase()
         );
-        if (bridgeTokenOption) {
-          return { strategy, option: bridgeTokenOption };
+        if (matched) {
+          return { strategy, option: matched };
         }
       } catch (err) {
         console.warn(
-          `[cross-chain] findStrategyForBridgeTokenWithdraw: strategy '${strategy.id}' failed`,
+          `[vault-source] findStrategyForOutputWithdraw: strategy '${strategy.id}' failed`,
           err
         );
       }
