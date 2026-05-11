@@ -1,5 +1,54 @@
 [
   {
+    "id": "stakedao-pmusd-ireet",
+    "name": "pmUSD/iREET",
+    "type": "standard",
+    "token": "iREETpmUSD",
+    "tokenAddress": "0x57129759d0E23116c1e7402dbC084E53d2e209a2",
+    "tokenDecimals": 18,
+    "tokenProviderId": "curve",
+    "earnContractAddress": "0xA26984cAF7cEfdD30613B1bb58e2Ee656e67167D",
+    "earnedToken": "mooStakeDao-pmUSD-iREET",
+    "earnedTokenAddress": "0xA26984cAF7cEfdD30613B1bb58e2Ee656e67167D",
+    "oracle": "lps",
+    "oracleId": "curve-pmusd-ireet",
+    "status": "active",
+    "createdAt": 1778477745,
+    "platformId": "stakedao",
+    "assets": ["pmUSD", "iREET"],
+    "migrationIds": ["ethereum-convex", "ethereum-curve"],
+    "risks": {
+      "complex": false,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": false,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "multi-lp",
+    "addLiquidityUrl": "https://www.curve.finance/dex/ethereum/pools/factory-twocrypto-349/deposit",
+    "removeLiquidityUrl": "https://www.curve.finance/dex/ethereum/pools/factory-twocrypto-349/withdraw",
+    "network": "ethereum",
+    "zaps": [
+      {
+        "strategyId": "curve",
+        "poolAddress": "0x57129759d0E23116c1e7402dbC084E53d2e209a2",
+        "methods": [
+          {
+            "type": "fixed-deposit-uint256",
+            "target": "0x57129759d0E23116c1e7402dbC084E53d2e209a2",
+            "coins": [
+              "0xC0c17dD08263C16f6b64E772fB9B723Bf1344DdF",
+              "0xe6a60d2886b11256C24C128210159133096e5CcF"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "morpho-v2-ethereum-steakhouse-prime-instant-pyusd",
     "name": "PYUSD (Steakhouse, Prime Instant V2)",
     "type": "standard",
