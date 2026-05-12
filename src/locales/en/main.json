@@ -913,7 +913,6 @@
   "TokenBridge-native": "Native",
   "TokenBridge-Tooltip-native": "Token is native to {{chain}}",
   "TokenBridge-Tooltip-bridge": "Token is bridged to {{chain}} via <website>{{bridge}}</website>",
-  "MarketMaker-Managed": "Funds being managed by a Market Maker",
   "Rewards-Title": "CLM Incentives",
   "Rewards-Description": "This position is receiving rewards through Merkl in addition to trading fees. These rewards are distributed several times per day and are claimed with all other available rewards from Merkl.",
   "Rewards-Claim": "Claim All",
