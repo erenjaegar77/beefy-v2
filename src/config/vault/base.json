@@ -12,7 +12,7 @@
     "oracle": "tokens",
     "oracleId": "USDC",
     "status": "active",
-    "createdAt": 1777979001,
+    "createdAt": 1778575765,
     "platformId": "morpho",
     "curatorId": "clearstar",
     "assets": ["USDC"],
@@ -37,43 +37,6 @@
     ]
   },
   {
-    "id": "morpho-v2-base-yearn-og-weth",
-    "name": "WETH (Yearn, OG V2)",
-    "type": "standard",
-    "token": "WETH",
-    "tokenAddress": "0x4200000000000000000000000000000000000006",
-    "tokenDecimals": 18,
-    "earnContractAddress": "0xFCaF61Be9eF740a4C4622403D1aC753F9925a9B1",
-    "earnedToken": "mooMorphoV2BaseYearnOGWETH",
-    "earnedTokenAddress": "0xFCaF61Be9eF740a4C4622403D1aC753F9925a9B1",
-    "oracle": "tokens",
-    "oracleId": "WETH",
-    "status": "active",
-    "createdAt": 1777977819,
-    "platformId": "morpho",
-    "curatorId": "yearn",
-    "assets": ["WETH"],
-    "migrationIds": ["morpho"],
-    "risks": {
-      "complex": false,
-      "curated": true,
-      "notAudited": false,
-      "notBattleTested": false,
-      "notCorrelated": false,
-      "notTimelocked": false,
-      "notVerified": false,
-      "synthAsset": false
-    },
-    "strategyTypeId": "single",
-    "underlyingPlatformUrl": "https://app.morpho.org/base/vault/0x2EfD54529329AD364B8Df988CE3BAb5Ff256ab3E/yearn-og-weth-v2",
-    "network": "base",
-    "zaps": [
-      {
-        "strategyId": "single"
-      }
-    ]
-  },
-  {
     "id": "morpho-v2-base-steakhouse-prime-weth",
     "name": "WETH (Steakhouse, Prime V2)",
     "type": "standard",
@@ -86,7 +49,7 @@
     "oracle": "tokens",
     "oracleId": "WETH",
     "status": "active",
-    "createdAt": 1777977601,
+    "createdAt": 1778575765,
     "platformId": "morpho",
     "curatorId": "steakhouse",
     "assets": ["WETH"],
@@ -123,7 +86,7 @@
     "oracle": "tokens",
     "oracleId": "WETH",
     "status": "active",
-    "createdAt": 1777977107,
+    "createdAt": 1778575765,
     "platformId": "morpho",
     "curatorId": "gauntlet",
     "assets": ["WETH"],
@@ -144,6 +107,124 @@
     "zaps": [
       {
         "strategyId": "single"
+      }
+    ]
+  },
+  {
+    "id": "pancake-cow-base-sol-cbbtc-vault",
+    "name": "SOL-cbBTC",
+    "type": "standard",
+    "token": "SOL-cbBTC",
+    "tokenAddress": "0x914C252c38281c06F370b8553Fc4CdC2A36cad68",
+    "tokenDecimals": 18,
+    "tokenProviderId": "pancakeswap",
+    "earnContractAddress": "0xd47f71d0802342d87Aaf3471D83DDe6b31de4499",
+    "earnedToken": "mooCowPancakeBaseSOL-cbBTC",
+    "earnedTokenAddress": "0xd47f71d0802342d87Aaf3471D83DDe6b31de4499",
+    "oracle": "lps",
+    "oracleId": "pancake-cow-base-sol-cbbtc",
+    "status": "active",
+    "createdAt": 1778019338,
+    "platformId": "pancakeswap",
+    "assets": ["SOL", "cbBTC"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "vault-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "pancake-cow-base-sol-cbbtc-rp",
+    "name": "SOL-cbBTC Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowPancakeBaseSOL-cbBTC",
+    "tokenAddress": "0x914C252c38281c06F370b8553Fc4CdC2A36cad68",
+    "tokenDecimals": 18,
+    "tokenProviderId": "pancakeswap",
+    "earnContractAddress": "0xdD1174b8ffCB2f4A4F9556f4456C6b978dE2a7c6",
+    "earnedToken": "rCowPancakeBaseSOL-cbBTC",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": [],
+    "oracle": "lps",
+    "oracleId": "pancake-cow-base-sol-cbbtc",
+    "status": "active",
+    "createdAt": 1778019337,
+    "platformId": "pancakeswap",
+    "assets": ["SOL", "cbBTC"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "pancake-cow-base-sol-cbbtc",
+    "name": "SOL-cbBTC",
+    "type": "cowcentrated",
+    "token": "SOL-cbBTC pancakeswap",
+    "tokenAddress": "0x415c88A05B75d1a65822d899f4A78b4C0D7CbefD",
+    "tokenDecimals": 18,
+    "tokenProviderId": "pancakeswap",
+    "depositTokenAddresses": [
+      "0x311935Cd80B76769bF2ecC9D8Ab7635b2139cf82",
+      "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+    ],
+    "earnContractAddress": "0x914C252c38281c06F370b8553Fc4CdC2A36cad68",
+    "earnedToken": "cowPancakeBaseSOL-cbBTC",
+    "earnedTokenAddress": "0x914C252c38281c06F370b8553Fc4CdC2A36cad68",
+    "oracle": "lps",
+    "oracleId": "pancake-cow-base-sol-cbbtc",
+    "status": "active",
+    "createdAt": 1778019337,
+    "platformId": "beefy",
+    "feeTier": "0.01",
+    "assets": ["SOL", "cbBTC"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
       }
     ]
   },
