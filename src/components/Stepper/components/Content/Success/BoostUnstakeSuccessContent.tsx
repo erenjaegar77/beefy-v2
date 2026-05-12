@@ -6,8 +6,7 @@ import {
 } from '../../../../../features/data/selectors/stepper.ts';
 import { useAppSelector } from '../../../../../features/data/store/hooks.ts';
 import { BIG_ZERO } from '../../../../../helpers/big-number.ts';
-import { formatTokenDisplayCondensed } from '../../../../../helpers/format.ts';
-import { ListJoin } from '../../../../ListJoin.tsx';
+import { formatTokenAmountsList } from '../common/formatTokenAmountsList.tsx';
 import { SuccessContentDisplay } from './SuccessContentDisplay.tsx';
 import type { SuccessContentProps } from './types.ts';
 
@@ -21,16 +20,7 @@ export const BoostUnstakeSuccessContent = memo(function BoostUnstakeSuccessConte
   const claimedTokenAmounts = useAppSelector(selectBoostClaimed);
   const claimed = useMemo(() => {
     if (claimedTokenAmounts.length) {
-      return (
-        <ListJoin
-          items={claimedTokenAmounts.map(
-            item =>
-              `${formatTokenDisplayCondensed(item.amount, item.token.decimals)} ${
-                item.token.symbol
-              }`
-          )}
-        />
-      );
+      return formatTokenAmountsList(claimedTokenAmounts);
     }
     return undefined;
   }, [claimedTokenAmounts]);
