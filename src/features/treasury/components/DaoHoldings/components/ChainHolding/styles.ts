@@ -18,17 +18,8 @@ export const styles = {
       padding: '16px 24px',
     },
   }),
-  marketMakerAnnotation: css.raw({
-    textStyle: 'body.sm',
-    position: 'relative',
-    bottom: '0.5em',
-  }),
   icon: css.raw({
     height: '32px',
-  }),
-  mmNameContainer: css.raw({
-    display: 'flex',
-    alignItems: 'center',
   }),
   nameContainer: css.raw({
     display: 'flex',
@@ -52,8 +43,5 @@ export const styles = {
     // panda seems to have token replacement bug here, so using css variables
     backgroundImage:
       'linear-gradient(90deg, var(--colors-color-palette-header-primary) 0%, var(--colors-color-palette-header-secondary, var(--colors-color-palette-header-primary)) 100%)',
-  }),
-  'headerMM-system9': css.raw({
-    backgroundColor: 'treasuryHeaderSystem9',
   }),
 };
