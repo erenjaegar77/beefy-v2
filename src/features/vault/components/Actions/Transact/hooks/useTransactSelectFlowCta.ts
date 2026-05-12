@@ -1,17 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { transactSwitchStep } from '../../../../../data/actions/transact.ts';
-import {
-  DepositSource,
-  TransactMode,
-  TransactStep,
-} from '../../../../../data/reducers/wallet/transact-types.ts';
+import { TransactStep } from '../../../../../data/reducers/wallet/transact-types.ts';
 import {
   selectTransactDepositFromVaultId,
-  selectTransactDepositSource,
   selectTransactForceSelection,
-  selectTransactMode,
-  selectTransactUserHasOtherDepositedVaults,
+  selectTransactIsDepositFromVault,
   selectTransactVaultHasCrossChainZap,
 } from '../../../../../data/selectors/transact.ts';
 import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
@@ -29,12 +23,8 @@ export function useTransactSelectFlowCta() {
   const dispatch = useAppDispatch();
   const forceSelection = useAppSelector(selectTransactForceSelection);
   const hasCrossChainZap = useAppSelector(selectTransactVaultHasCrossChainZap);
-  const mode = useAppSelector(selectTransactMode);
-  const depositSource = useAppSelector(selectTransactDepositSource);
-  const hasOtherDeposits = useAppSelector(selectTransactUserHasOtherDepositedVaults);
   const fromVaultId = useAppSelector(selectTransactDepositFromVaultId);
-  const isDepositFromVault =
-    mode === TransactMode.Deposit && hasOtherDeposits && depositSource === DepositSource.Vault;
+  const isDepositFromVault = useAppSelector(selectTransactIsDepositFromVault);
   const needsVaultPick = isDepositFromVault && !fromVaultId;
   const isSelecting = needsVaultPick || (!isDepositFromVault && forceSelection);
 

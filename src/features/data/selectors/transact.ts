@@ -17,6 +17,7 @@ import type { ChainEntity } from '../entities/chain.ts';
 import { isSingleGovVault, type VaultEntity } from '../entities/vault.ts';
 import {
   DepositSource,
+  TransactMode,
   TransactStatus,
   type PendingCrossChainOp,
   type TransactSelection,
@@ -65,11 +66,7 @@ export const selectTransactMode = (state: BeefyState) => state.ui.transact.mode;
 export const selectTransactSlippage = (state: BeefyState) => state.ui.transact.swapSlippage;
 
 export const selectTransactDepositSource = (state: BeefyState) => state.ui.transact.depositSource;
-/**
- * Src vault id for the active "deposit from vault" flow, or `undefined` when not in
- * vault-source mode / no selection. Derived from the selected `vaultRefId` selection
- * — `depositFromVaultId` is no longer stored on state.
- */
+
 export const selectTransactDepositFromVaultId = (
   state: BeefyState
 ): VaultEntity['id'] | undefined => {
@@ -349,11 +346,8 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
 };
 
 export type DepositFromVaultEntry = TransactSelection & {
-  /** Share-token balance (incl. displaced/boosted shares). */
   balance: BigNumber;
-  /** USD value of the share balance — used for sorting + the USD column. */
   balanceUsd: BigNumber;
-  /** Share-token decimals (for formatting the balance row). */
   decimals: number;
   vaultId: VaultEntity['id'];
 };
@@ -402,8 +396,20 @@ export const selectTransactDepositFromVaultEntries = (
  * Driven by the same `vaultRefId` selections as `selectTransactDepositFromVaultEntries`,
  * so eligibility (chain support, src-strategy resolvability, dust threshold) stays in sync.
  */
-export const selectTransactUserHasOtherDepositedVaults = (state: BeefyState): boolean =>
-  selectTransactDepositFromVaultEntries(state).length > 0;
+export const selectTransactUserHasOtherDepositedVaults = createSelector(
+  selectTransactDepositFromVaultEntries,
+  entries => entries.length > 0
+);
+
+/**
+ * True when the form is in deposit-from-vault mode: deposit mode, user has eligible
+ * v2v src vaults, and the source toggle is set to Vault. Centralises the triple-check
+ * that downstream components were repeating.
+ */
+export const selectTransactIsDepositFromVault = (state: BeefyState): boolean =>
+  state.ui.transact.mode === TransactMode.Deposit &&
+  state.ui.transact.depositSource === DepositSource.Vault &&
+  selectTransactUserHasOtherDepositedVaults(state);
 
 export const selectTransactOptionById = createSelector(
   (_state: BeefyState, optionId: string) => optionId,

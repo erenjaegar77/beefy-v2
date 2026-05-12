@@ -17,10 +17,7 @@ import {
   type TransactQuote,
 } from '../../../../../data/apis/transact/transact-types.ts';
 import { StepContent } from '../../../../../data/reducers/wallet/stepper-types.ts';
-import {
-  DepositSource,
-  TransactStatus,
-} from '../../../../../data/reducers/wallet/transact-types.ts';
+import { TransactStatus } from '../../../../../data/reducers/wallet/transact-types.ts';
 import {
   selectIsStepperRecoveryExecution,
   selectIsStepperStepping,
@@ -30,14 +27,13 @@ import {
   selectRecoveryOpForCurrentVault,
   selectTransactConfirmNeededWithChanges,
   selectTransactDepositFromVaultId,
-  selectTransactDepositSource,
   selectTransactExecuting,
   selectTransactForceSelection,
+  selectTransactIsDepositFromVault,
   selectTransactQuoteStatus,
   selectTransactSelectedChainId,
   selectTransactSelectedQuoteOrUndefined,
   selectTransactSuccessClosed,
-  selectTransactUserHasOtherDepositedVaults,
   selectTransactVaultHasCrossChainZap,
   selectTransactVaultId,
 } from '../../../../../data/selectors/transact.ts';
@@ -59,13 +55,12 @@ const useStyles = legacyMakeStyles(styles);
 
 /** In deposit-from-vault mode, CTA should switch the wallet to the source vault's chain. */
 function useFromVaultChainId() {
-  const depositSource = useAppSelector(selectTransactDepositSource);
-  const hasOtherDeposits = useAppSelector(selectTransactUserHasOtherDepositedVaults);
+  const isDepositFromVault = useAppSelector(selectTransactIsDepositFromVault);
   const fromVaultId = useAppSelector(selectTransactDepositFromVaultId);
   const fromVault = useAppSelector(state =>
     fromVaultId ? selectVaultById(state, fromVaultId) : undefined
   );
-  if (!hasOtherDeposits || depositSource !== DepositSource.Vault || !fromVault) {
+  if (!isDepositFromVault || !fromVault) {
     return undefined;
   }
   return fromVault.chainId;

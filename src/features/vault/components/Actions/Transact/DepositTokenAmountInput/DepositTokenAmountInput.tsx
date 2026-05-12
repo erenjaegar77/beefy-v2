@@ -4,7 +4,6 @@ import { memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.ts';
 import { transactSetInputAmount } from '../../../../../data/actions/transact.ts';
 import type { TokenEntity } from '../../../../../data/entities/token.ts';
-import { DepositSource, TransactMode } from '../../../../../data/reducers/wallet/transact-types.ts';
 import {
   selectUserBalanceOfToken,
   selectUserVaultBalanceInDepositToken,
@@ -12,10 +11,8 @@ import {
 import { selectTokenPriceByTokenOracleId } from '../../../../../data/selectors/tokens.ts';
 import {
   selectTransactDepositFromVaultId,
-  selectTransactDepositSource,
   selectTransactInputIndexAmount,
-  selectTransactOptionsMode,
-  selectTransactUserHasOtherDepositedVaults,
+  selectTransactIsDepositFromVault,
 } from '../../../../../data/selectors/transact.ts';
 import type { AmountInputProps } from '../AmountInput/AmountInput.tsx';
 import { AmountInputWithSlider } from '../AmountInputWithSlider/AmountInputWithSlider.tsx';
@@ -34,15 +31,9 @@ export const DepositTokenAmountInput = memo(function DepositTokenAmountInput({
   css: cssProp,
 }: DepositTokenAmountInputProps) {
   const dispatch = useAppDispatch();
-  const mode = useAppSelector(selectTransactOptionsMode);
-  const depositSource = useAppSelector(selectTransactDepositSource);
-  const hasOtherDeposits = useAppSelector(selectTransactUserHasOtherDepositedVaults);
   const fromVaultId = useAppSelector(selectTransactDepositFromVaultId);
-  const isDepositFromVault =
-    mode === TransactMode.Deposit &&
-    hasOtherDeposits &&
-    depositSource === DepositSource.Vault &&
-    index === 0;
+  const isFromVaultMode = useAppSelector(selectTransactIsDepositFromVault);
+  const isDepositFromVault = isFromVaultMode && index === 0;
   const fromVaultBalance = useAppSelector(state =>
     fromVaultId ? selectUserVaultBalanceInDepositToken(state, fromVaultId) : BIG_ZERO
   );

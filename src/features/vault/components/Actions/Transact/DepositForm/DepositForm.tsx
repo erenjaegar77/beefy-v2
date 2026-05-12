@@ -11,10 +11,7 @@ import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.
 import { transactSetInputAmount } from '../../../../../data/actions/transact.ts';
 import type { TokenEntity } from '../../../../../data/entities/token.ts';
 import { isVaultActive } from '../../../../../data/entities/vault.ts';
-import {
-  DepositSource,
-  TransactStatus,
-} from '../../../../../data/reducers/wallet/transact-types.ts';
+import { TransactStatus } from '../../../../../data/reducers/wallet/transact-types.ts';
 import {
   selectUserBalanceOfToken,
   selectUserVaultBalanceInDepositToken,
@@ -22,12 +19,10 @@ import {
 import { selectTokenByAddress } from '../../../../../data/selectors/tokens.ts';
 import {
   selectTransactDepositFromVaultId,
-  selectTransactDepositSource,
   selectTransactForceSelection,
   selectTransactOptionsError,
   selectTransactOptionsStatus,
   selectTransactSelected,
-  selectTransactUserHasOtherDepositedVaults,
   selectTransactVaultHasCrossChainZap,
   selectTransactVaultId,
 } from '../../../../../data/selectors/transact.ts';
@@ -160,21 +155,18 @@ const DepositFormInputs = memo(function DepositFormInputs() {
   const multipleInputs = selection.tokens.length > 1;
   const forceSelection = useAppSelector(selectTransactForceSelection);
   const hasCrossChainZap = useAppSelector(selectTransactVaultHasCrossChainZap);
-  const hasOtherDeposits = useAppSelector(selectTransactUserHasOtherDepositedVaults);
-  const source = useAppSelector(selectTransactDepositSource);
-  const isFromVault = hasOtherDeposits && source === DepositSource.Vault;
   const availableLabel = t('Transact-Available');
   const { ctaLabel: firstSelectLabel } = useTransactSelectFlowCta();
   const fromVaultId = useAppSelector(selectTransactDepositFromVaultId);
 
-  if (isFromVault) {
+  if (fromVaultId) {
     return (
       <DepositFormInput
         index={0}
         token={selection.tokens[0]}
         availableLabel={availableLabel}
         selectLabel={t('Transact-DepositFromVault-Label')}
-        tokenAvailable={fromVaultId ? <VaultBalance index={0} /> : undefined}
+        tokenAvailable={<VaultBalance index={0} />}
       />
     );
   }

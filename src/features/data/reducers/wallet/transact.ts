@@ -135,6 +135,8 @@ const transactSlice = createSlice({
       .addCase(transactSwitchDepositSource, (sliceState, action) => {
         sliceState.depositSource = action.payload;
         sliceState.step = TransactStep.Form;
+        sliceState.selectedSelectionId = first(sliceState.selections.allSelectionIds);
+        sliceState.forceSelection = true;
         clearInputs(sliceState);
         resetQuotes(sliceState);
       })
@@ -148,17 +150,6 @@ const transactSlice = createSlice({
         sliceState.selectedSelectionId = action.payload.selectionId;
         sliceState.step = TransactStep.Form;
         sliceState.forceSelection = false;
-        // Vault-to-vault src selections drive `depositSource = Vault`; everything else
-        // is a wallet-source selection. When the source flips, drop any cached quote
-        // since it was built for the previous flow.
-        const newSource =
-          sliceState.selections.bySelectionId[action.payload.selectionId]?.vaultRefId ?
-            DepositSource.Vault
-          : DepositSource.Wallet;
-        if (sliceState.depositSource !== newSource) {
-          sliceState.depositSource = newSource;
-          resetQuotes(sliceState);
-        }
         if (action.payload.resetInput) {
           clearInputs(sliceState);
         }

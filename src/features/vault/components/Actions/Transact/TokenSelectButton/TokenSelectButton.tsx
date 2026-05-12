@@ -14,19 +14,14 @@ import { useAppDispatch, useAppSelector } from '../../../../../data/store/hooks.
 import ExpandMore from '../../../../../../images/icons/mui/ExpandMore.svg?react';
 import { transactSwitchStep } from '../../../../../data/actions/transact.ts';
 import type { TokenEntity } from '../../../../../data/entities/token.ts';
-import {
-  DepositSource,
-  TransactMode,
-  TransactStep,
-} from '../../../../../data/reducers/wallet/transact-types.ts';
+import { TransactMode, TransactStep } from '../../../../../data/reducers/wallet/transact-types.ts';
 import {
   selectTransactDepositFromVaultId,
-  selectTransactDepositSource,
   selectTransactForceSelection,
+  selectTransactIsDepositFromVault,
   selectTransactNumTokens,
   selectTransactOptionsMode,
   selectTransactSelected,
-  selectTransactUserHasOtherDepositedVaults,
   selectTransactVaultHasCrossChainZap,
   selectTransactVaultId,
 } from '../../../../../data/selectors/transact.ts';
@@ -56,13 +51,8 @@ export const TokenSelectButton = memo(function TokenSelectButton({
   const hasCrossChainZap = useAppSelector(selectTransactVaultHasCrossChainZap);
   const canSwitchToTokenSelect = index === 0 && numTokenOptions > 1;
   const { openSelectStep } = useTransactSelectFlowCta();
-  const depositSource = useAppSelector(selectTransactDepositSource);
-  const hasOtherDeposits = useAppSelector(selectTransactUserHasOtherDepositedVaults);
-  const isDepositFromVault =
-    mode === TransactMode.Deposit &&
-    hasOtherDeposits &&
-    depositSource === DepositSource.Vault &&
-    index === 0;
+  const isFromVaultMode = useAppSelector(selectTransactIsDepositFromVault);
+  const isDepositFromVault = isFromVaultMode && index === 0;
 
   const tokenSymbol = useMemo(() => {
     return (

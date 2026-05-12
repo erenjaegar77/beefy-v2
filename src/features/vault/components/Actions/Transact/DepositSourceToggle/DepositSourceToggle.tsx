@@ -25,11 +25,9 @@ export const DepositSourceToggle = memo(function DepositSourceToggle() {
 
   const handleChange = useCallback(
     (next: DepositSource) => {
-      if (next !== source) {
-        dispatch(transactSwitchDepositSource(next));
-      }
+      dispatch(transactSwitchDepositSource(next));
     },
-    [dispatch, source]
+    [dispatch]
   );
 
   const options = useMemo<Array<ToggleButtonItem<DepositSource>>>(

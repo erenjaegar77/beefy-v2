@@ -379,9 +379,6 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
         // Hide the picker row when the user's src vault balance is zero —
         // otherwise we surface a row they cannot act on.
         selectionHideIfZeroBalance: true,
-        // Input is the src vault's underlying (deposit token), not the share token —
-        // the slider/UI is denominated in the underlying and `SingleStrategy.fetchWithdrawQuote`
-        // (called via `VaultSourceHandler`) expects an underlying-denominated input.
         inputs: [shareToken],
         wantedOutputs: [depositToken],
         bridgeToken: sourceUSDC,
