@@ -1,16 +1,11 @@
+import { styled } from '@repo/styles/jsx';
 import { memo, type ReactNode } from 'react';
 import type { VaultEntity } from '../../../../../features/data/entities/vault.ts';
 import { ShareButton } from '../../../../../features/vault/components/ShareButton/ShareButton.tsx';
 import { Title } from '../../Title/Title.tsx';
 import { TransactionLink } from '../../TransactionLink/TransactionLink.tsx';
 import { CloseAndResetButton } from '../common/CloseButton.tsx';
-import {
-  Buttons,
-  Content,
-  Message,
-  MessageHighlight,
-  RememberContainer,
-} from '../common/Common.tsx';
+import { Buttons, Content, Message, MessageHighlight } from '../common/Common.tsx';
 
 export type SuccessContentDisplayProps = {
   title: string;
@@ -54,4 +49,10 @@ export const SuccessContentDisplay = memo(function SuccessContentDisplay({
       </Buttons>
     </>
   );
+});
+
+const RememberContainer = styled('div', {
+  base: {
+    marginTop: '16px',
+  },
 });

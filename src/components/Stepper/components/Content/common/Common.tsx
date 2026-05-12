@@ -1,5 +1,4 @@
 import { styled } from '@repo/styles/jsx';
-import { ExternalLink } from '../../../../Links/ExternalLink.tsx';
 
 export const Content = styled('div', {
   base: {
@@ -42,42 +41,6 @@ export const MessageHighlight = styled('div', {
   },
 });
 
-export const FriendlyMessage = styled('div', {
-  base: {
-    textStyle: 'body.medium',
-  },
-});
-
-export const ErrorMessageBox = styled('div', {
-  base: {
-    '--colors-scrollbar-thumb': 'colors.stepperErrorBackground',
-    width: '100%',
-    maxHeight: 'min(calc(80vw), 300px)',
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-    fontFamily: 'monospace',
-    backgroundColor: 'stepperErrorBackground',
-    padding: '4px',
-    borderRadius: '8px',
-    lineHeight: '1.1',
-  },
-});
-
-export const ErrorIcon = styled('img', {
-  base: {
-    height: '20px',
-    marginRight: '8px',
-  },
-});
-
-export const RememberContainer = styled('div', {
-  base: {
-    marginTop: '16px',
-  },
-});
-
 export const Buttons = styled('div', {
   base: {
     display: 'grid',
@@ -98,12 +61,5 @@ export const Buttons = styled('div', {
         gridTemplateColumns: '1fr auto',
       },
     },
-  },
-});
-
-export const TrackingLink = styled(ExternalLink, {
-  base: {
-    textDecoration: 'none',
-    color: 'green.80-40',
   },
 });
