@@ -352,13 +352,7 @@ export type DepositFromVaultEntry = TransactSelection & {
   vaultId: VaultEntity['id'];
 };
 
-/**
- * Mirror of `selectTransactDepositTokensForChainIdWithBalances`'s `vaultRefId` branch,
- * but global (cross chains) — used by the "deposit from vault" picker. Returns one
- * row per src-vault selection registered by `CrossChainStrategy`, each carrying the
- * share-token balance + USD value, sorted by USD desc. Entries with a USD value
- * below the dust threshold are filtered out.
- */
+// Global (cross-chain) src-vault entries from CrossChainStrategy selections, dust-filtered.
 export const selectTransactDepositFromVaultEntries = (
   state: BeefyState
 ): DepositFromVaultEntry[] => {
@@ -391,21 +385,11 @@ export const selectTransactDepositFromVaultEntries = (
   return entries.sort((a, b) => compareBigNumber(b.balanceUsd, a.balanceUsd));
 };
 
-/**
- * True when the user holds a position in at least one vault eligible as a v2v src.
- * Driven by the same `vaultRefId` selections as `selectTransactDepositFromVaultEntries`,
- * so eligibility (chain support, src-strategy resolvability, dust threshold) stays in sync.
- */
 export const selectTransactUserHasOtherDepositedVaults = createSelector(
   selectTransactDepositFromVaultEntries,
   entries => entries.length > 0
 );
 
-/**
- * True when the form is in deposit-from-vault mode: deposit mode, user has eligible
- * v2v src vaults, and the source toggle is set to Vault. Centralises the triple-check
- * that downstream components were repeating.
- */
 export const selectTransactIsDepositFromVault = (state: BeefyState): boolean =>
   state.ui.transact.mode === TransactMode.Deposit &&
   state.ui.transact.depositSource === DepositSource.Vault &&
