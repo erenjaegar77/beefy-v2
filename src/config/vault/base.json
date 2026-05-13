@@ -1,5 +1,205 @@
 [
   {
+    "id": "aerodrome-cow-base-lfi-usdc-vault",
+    "name": "LFI-USDC",
+    "type": "standard",
+    "token": "LFI-USDC",
+    "tokenAddress": "0x3E7f8CCC696aCEf18dCBD07Fa6739caEE19dFc21",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "earnContractAddress": "0x3e5BBfEDC570112440b4abB61Cba7909824B2d58",
+    "earnedToken": "mooCowAerodromeLFI-USDC",
+    "earnedTokenAddress": "0x3e5BBfEDC570112440b4abB61Cba7909824B2d58",
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-lfi-usdc",
+    "status": "active",
+    "createdAt": 1778668337,
+    "platformId": "aerodrome",
+    "assets": ["LFI", "USDC"],
+    "risks": {
+      "updatedAt": 1778668336,
+      "complex": true,
+      "curated": false,
+      "notAudited": true,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": true,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "vault-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "aerodrome-cow-base-lfi-usdc-rp",
+    "name": "LFI-USDC Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowAerodromeLFI-USDC",
+    "tokenAddress": "0x3E7f8CCC696aCEf18dCBD07Fa6739caEE19dFc21",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "earnContractAddress": "0x3dc45932476d46793ea29B8D2033657944775C94",
+    "earnedToken": "rCowAerodromeLFI-USDC",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": ["0x940181a94A35A4569E4529A3CDfB74e38FD98631"],
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-lfi-usdc",
+    "status": "active",
+    "createdAt": 1778668336,
+    "platformId": "aerodrome",
+    "assets": ["LFI", "USDC"],
+    "risks": {
+      "updatedAt": 1778668336,
+      "complex": true,
+      "curated": false,
+      "notAudited": true,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": true,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "aerodrome-cow-base-lfi-usdc",
+    "name": "LFI-USDC",
+    "type": "cowcentrated",
+    "token": "LFI-USDC aerodrome",
+    "tokenAddress": "0x8343C68279587498526114e6385F0a87f248E0D9",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "depositTokenAddresses": [
+      "0x3722264aB15a1dfCe5a5af89e6547F7949A8ABA3",
+      "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    ],
+    "earnContractAddress": "0x3E7f8CCC696aCEf18dCBD07Fa6739caEE19dFc21",
+    "earnedToken": "cowAerodromeLFI-USDC",
+    "earnedTokenAddress": "0x3E7f8CCC696aCEf18dCBD07Fa6739caEE19dFc21",
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-lfi-usdc",
+    "status": "active",
+    "createdAt": 1778668336,
+    "platformId": "beefy",
+    "feeTier": "1",
+    "assets": ["LFI", "USDC"],
+    "risks": {
+      "updatedAt": 1778668336,
+      "complex": true,
+      "curated": false,
+      "notAudited": true,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": true,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
+      }
+    ]
+  },
+  {
+    "id": "uniswap-cow-base-lfi-weth-rp",
+    "name": "LFI-WETH Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowUniswapBaseLFI-WETH",
+    "tokenAddress": "0x351fD1C42e44209B4dc7709DDBdEE4b6fE19f9d1",
+    "tokenDecimals": 18,
+    "tokenProviderId": "uniswap",
+    "earnContractAddress": "0x704d5Df3FfC88Cb2Bd66E77a7aac960E2D737754",
+    "earnedToken": "rCowUniswapBaseLFI-WETH",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": [],
+    "oracle": "lps",
+    "oracleId": "uniswap-cow-base-lfi-weth",
+    "status": "active",
+    "createdAt": 1778667194,
+    "platformId": "uniswap",
+    "assets": ["LFI", "WETH"],
+    "risks": {
+      "updatedAt": 1778667194,
+      "complex": true,
+      "curated": false,
+      "notAudited": true,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": true,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      }
+    ]
+  },
+  {
+    "id": "uniswap-cow-base-lfi-weth",
+    "name": "LFI-WETH",
+    "type": "cowcentrated",
+    "token": "LFI-WETH uniswap",
+    "tokenAddress": "0x588f68b9fA04366F33f8Ce095C13F0cebaB9406a",
+    "tokenDecimals": 18,
+    "tokenProviderId": "uniswap",
+    "depositTokenAddresses": [
+      "0x3722264aB15a1dfCe5a5af89e6547F7949A8ABA3",
+      "0x4200000000000000000000000000000000000006"
+    ],
+    "earnContractAddress": "0x351fD1C42e44209B4dc7709DDBdEE4b6fE19f9d1",
+    "earnedToken": "cowUniswapBaseLFI-WETH",
+    "earnedTokenAddress": "0x351fD1C42e44209B4dc7709DDBdEE4b6fE19f9d1",
+    "oracle": "lps",
+    "oracleId": "uniswap-cow-base-lfi-weth",
+    "status": "active",
+    "createdAt": 1778667194,
+    "platformId": "beefy",
+    "feeTier": "1",
+    "assets": ["LFI", "WETH"],
+    "risks": {
+      "updatedAt": 1778667194,
+      "complex": true,
+      "curated": false,
+      "notAudited": true,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": true,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
+      }
+    ]
+  },
+  {
     "id": "morpho-v2-base-clearstar-reactor-usdc",
     "name": "USDC (Clearstar, Reactor V2)",
     "type": "standard",
