@@ -17603,9 +17603,10 @@
     "earnedTokenAddress": "0x5f2ca2433275d10e796C73915c2C522f12689332",
     "oracle": "lps",
     "oracleId": "balancerv3-base-wabasgho-wabasusdc",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1745253197,
-    "pausedAt": 1776628953,
+    "retireReason": "rewards",
+    "retiredAt": 1778660578,
     "platformId": "aura",
     "assets": ["waBasGHO", "waBasUSDC"],
     "risks": {
