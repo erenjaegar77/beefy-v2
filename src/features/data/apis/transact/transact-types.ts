@@ -518,6 +518,47 @@ export function isCrossChainVaultDstWithdrawOption(
 ): option is CrossChainVaultDstWithdrawOption {
   return isCrossChainWithdrawOption(option) && option.destHandlerKind === 'vault';
 }
+
+export function isVaultToVaultSingleTokenDepositOption(
+  option: TransactOption
+): option is VaultToVaultSingleTokenDepositOption {
+  return (
+    option.strategyId === 'vault-to-vault-single-token' && option.mode === TransactMode.Deposit
+  );
+}
+
+export function isVaultToVaultSingleTokenWithdrawOption(
+  option: TransactOption
+): option is VaultToVaultSingleTokenWithdrawOption {
+  return (
+    option.strategyId === 'vault-to-vault-single-token' && option.mode === TransactMode.Withdraw
+  );
+}
+
+export type VaultSourceDepositOption =
+  | CrossChainVaultSrcDepositOption
+  | VaultToVaultSingleTokenDepositOption;
+
+export type VaultDestWithdrawOption =
+  | CrossChainVaultDstWithdrawOption
+  | VaultToVaultSingleTokenWithdrawOption;
+
+export function isVaultSourceDepositOption(
+  option: TransactOption
+): option is VaultSourceDepositOption {
+  return (
+    isCrossChainVaultSrcDepositOption(option) || isVaultToVaultSingleTokenDepositOption(option)
+  );
+}
+
+export function isVaultDestWithdrawOption(
+  option: TransactOption
+): option is VaultDestWithdrawOption {
+  return (
+    isCrossChainVaultDstWithdrawOption(option) || isVaultToVaultSingleTokenWithdrawOption(option)
+  );
+}
+
 export type CrossChainTokenOption = {
   token: TokenEntity;
   balanceUsd: BigNumber;

@@ -87,7 +87,7 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
       { entries: typeof searchFiltered; totalUsd: BigNumber }
     >();
     for (const entry of searchFiltered) {
-      const vault = vaultById[entry.vaultRefId!];
+      const vault = vaultById[entry.vaultId];
       if (!vault) continue;
       const groupId = categorizeVault(vault);
       const bucket = buckets.get(groupId);
