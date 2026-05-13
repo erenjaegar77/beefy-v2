@@ -78,10 +78,7 @@ import type {
   ZapTransactHelpers,
 } from '../IStrategy.ts';
 import type { SingleStrategyConfig } from '../strategy-configs.ts';
-import {
-  canRouteTokenFromAllOfAsWithdraw,
-  canRouteTokenToAllOfAsDeposit,
-} from '../strategy-eligibility.ts';
+import { canRouteToAllOf } from '../strategy-eligibility.ts';
 
 type ZapHelpers = {
   chain: ChainEntity;
@@ -607,22 +604,12 @@ class SingleStrategyImpl implements IComposableStrategy<StrategyId> {
 
   async canAcceptTokenAsDeposit(token: TokenEntity): Promise<boolean> {
     if (this.isDepositDisabled()) return false;
-    return canRouteTokenToAllOfAsDeposit(
-      this.helpers,
-      this.options.swap,
-      [this.vaultType.depositToken],
-      token
-    );
+    return canRouteToAllOf(this.helpers, this.options.swap, [this.vaultType.depositToken], token);
   }
 
   async canEmitTokenAsWithdraw(token: TokenEntity): Promise<boolean> {
     if (this.isWithdrawDisabled()) return false;
-    return canRouteTokenFromAllOfAsWithdraw(
-      this.helpers,
-      this.options.swap,
-      [this.vaultType.depositToken],
-      token
-    );
+    return canRouteToAllOf(this.helpers, this.options.swap, [this.vaultType.depositToken], token);
   }
 
   async fetchWithdrawUserlessZapBreakdown(

@@ -86,6 +86,7 @@ import type {
   ZapTransactHelpers,
 } from '../IStrategy.ts';
 import type { CurveStrategyConfig } from '../strategy-configs.ts';
+import { canRouteToAnyOf } from '../strategy-eligibility.ts';
 import { CurvePool } from './CurvePool.ts';
 import type { CurveMethod, CurveTokenOption } from './types.ts';
 
@@ -1071,23 +1072,9 @@ class CurveStrategyImpl implements IComposableStrategy<StrategyId> {
   }
 
   protected async canRouteTokenAcrossPool(token: TokenEntity): Promise<boolean> {
-    if (this.possibleTokens.some(o => isTokenEqual(o.token, token))) return true;
-
-    const { swapAggregator, getState } = this.helpers;
-    const state = getState();
-    for (const o of this.possibleTokens) {
-      if (isTokenNative(o.token)) continue;
-      const ok = await swapAggregator.canSwapTokenPair(
-        token,
-        o.token,
-        this.vault.id,
-        this.vault.chainId,
-        state,
-        this.options.swap
-      );
-      if (ok) return true;
-    }
-    return false;
+    // Skip natives — not swap-reachable
+    const poolTokens = this.possibleTokens.map(o => o.token).filter(t => !isTokenNative(t));
+    return canRouteToAnyOf(this.helpers, this.options.swap, poolTokens, token);
   }
 
   protected async aggregatorTokenSupport() {

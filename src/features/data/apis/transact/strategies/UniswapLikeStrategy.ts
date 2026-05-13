@@ -88,6 +88,7 @@ import type {
   ZapTransactHelpers,
 } from './IStrategy.ts';
 import type { UniswapLikeStrategyConfig } from './strategy-configs.ts';
+import { canRouteToAllOf } from './strategy-eligibility.ts';
 
 type ZapHelpers = {
   chain: ChainEntity;
@@ -182,22 +183,7 @@ export abstract class UniswapLikeStrategy<
     const tokensWithNativeWrapped = includeWrappedAndNative(this.tokens, this.wnative, this.native);
     if (tokensWithNativeWrapped.some(t => isTokenEqual(t, token))) return true;
     if (isTokenEqual(token, this.vaultType.depositToken)) return false;
-
-    const { swapAggregator, getState } = this.helpers;
-    const state = getState();
-    const results = await Promise.all(
-      this.lpTokens.map(lpToken =>
-        swapAggregator.canSwapTokenPair(
-          token,
-          lpToken,
-          this.vault.id,
-          this.vault.chainId,
-          state,
-          this.options.swap
-        )
-      )
-    );
-    return results.every(Boolean);
+    return canRouteToAllOf(this.helpers, this.options.swap, this.lpTokens, token);
   }
 
   async aggregatorTokenSupport() {
