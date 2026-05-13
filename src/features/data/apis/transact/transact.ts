@@ -631,9 +631,9 @@ export class TransactApi implements ITransactApi {
       throw new Error(`Strategy "${strategyId}" requires zap contract`);
     }
 
-    // Cross-chain strategy is not in vault.zaps — instantiate inline
-    if (strategyId === 'cross-chain') {
-      return await this.buildZapStrategy({ strategyId: 'cross-chain' }, helpers);
+    // Synthetic strategies that aren't stored in vault.zaps — instantiate inline
+    if (strategyId === 'cross-chain' || strategyId === 'vault-to-vault-single-token') {
+      return await this.buildZapStrategy({ strategyId }, helpers);
     }
 
     if (!vault.zaps) {
