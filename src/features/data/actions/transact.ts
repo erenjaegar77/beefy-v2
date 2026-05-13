@@ -137,15 +137,16 @@ export const transactFetchOptions = createAppAsyncThunk<
       const tokens = getUniqueTokensForOptions(options, state);
       const tokensByChain = groupBy(tokens, token => token.chainId);
       await Promise.all(
-        Object.values(tokensByChain).map(tokens =>
-          dispatch(
+        Object.values(tokensByChain).map(tokens => {
+          const chainId = tokens[0].chainId;
+          return dispatch(
             fetchBalanceAction({
-              chainId: tokens[0].chainId,
+              chainId,
               tokens: tokens,
-              vaults: tokens[0].chainId === vault.chainId ? [vault] : [],
+              vaults: chainId === vault.chainId ? [vault] : [],
             })
-          )
-        )
+          );
+        })
       );
     }
 

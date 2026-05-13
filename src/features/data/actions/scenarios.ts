@@ -13,8 +13,10 @@ import { fetchBridges } from './bridges.ts';
 import { fetchChainConfigs } from './chains.ts';
 import { fetchAllContractDataByChainAction } from './contract-data.ts';
 import { fetchCurators } from './curators.ts';
+import { fetchFees } from './fees.ts';
 import { fetchPartnersConfig } from './partners.ts';
 import { fetchPlatforms } from './platforms.ts';
+import { initPoints } from './points.ts';
 import { fetchAllPricesAction } from './prices.ts';
 import { initPromos } from './promos.ts';
 import { fetchOffChainCampaignsAction } from './rewards.ts';
@@ -84,6 +86,8 @@ export async function initAppData(dispatch: BeefyDispatchFn, getState: BeefyStat
 
     dispatch(fetchAvgApyAction());
 
+    dispatch(initPoints());
+
     // Zap (we need the data to know if zap is available for each vault)
     dispatch(fetchZapConfigsAction());
     dispatch(fetchZapSwapAggregatorsAction());
@@ -108,6 +112,8 @@ export async function initAppData(dispatch: BeefyDispatchFn, getState: BeefyStat
   const addressBookPromise = dispatch(fetchAllAddressBookAction());
   // we need the chain list to handle the vault list
   await vaultsPromise;
+  // fees post-processing copies CLM fees to CLM Pools, which needs vaults loaded
+  dispatch(fetchFees());
   await promosPromise;
   await addressBookPromise;
 

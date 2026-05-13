@@ -16,7 +16,7 @@ import {
   selectTransactVaultId,
 } from '../../../../../data/selectors/transact.ts';
 import { selectVaultById } from '../../../../../data/selectors/vaults.ts';
-import { selectIsWalletConnected } from '../../../../../data/selectors/wallet.ts';
+import { selectIsWalletKnown } from '../../../../../data/selectors/wallet.ts';
 import type { ListItemProps } from './components/ListItem/ListItem.tsx';
 import { ListItem } from './components/ListItem/ListItem.tsx';
 import { ExternalLink } from '../../../../../../components/Links/ExternalLink.tsx';
@@ -49,7 +49,7 @@ export const DepositTokenSelectList = memo(function DepositTokenSelectList({
   const transactChainId = useAppSelector(selectTransactSelectedChainId);
   const selectedChain = transactChainId ?? vault.chainId;
   const [search, setSearch] = useState('');
-  const isWalletConnected = useAppSelector(selectIsWalletConnected);
+  const isWalletKnown = useAppSelector(selectIsWalletKnown);
   const optionsForChain = useAppSelector(state =>
     selectTransactDepositTokensForChainIdWithBalances(state, selectedChain, vaultId)
   );
@@ -71,7 +71,7 @@ export const DepositTokenSelectList = memo(function DepositTokenSelectList({
     const other: SelectionRow[] = [];
     const dust: SelectionRow[] = [];
     let dustSum = BIG_ZERO;
-    const showDustSection = isWalletConnected && !search.length;
+    const showDustSection = isWalletKnown && !search.length;
 
     for (const option of searchFiltered) {
       if (option.vaultRefId) continue;
@@ -84,7 +84,7 @@ export const DepositTokenSelectList = memo(function DepositTokenSelectList({
       } else if (showDustSection && isDustUsd) {
         dust.push(option);
         dustSum = dustSum.plus(option.balanceValue);
-      } else if (hasBalance || !isWalletConnected || search.length > 0) {
+      } else if (hasBalance || !isWalletKnown || search.length > 0) {
         // With search, dust section is hidden — show $0 / dust-amount tokens in the main list
         other.push(option);
       }
@@ -114,7 +114,7 @@ export const DepositTokenSelectList = memo(function DepositTokenSelectList({
       dustOptions: onlyDust ? [] : dustSorted,
       dustTotalUsd: dustSum,
     };
-  }, [searchFiltered, isWalletConnected, search]);
+  }, [searchFiltered, isWalletKnown, search]);
 
   const handleTokenSelect = useCallback<ListItemProps['onSelect']>(
     tokenId => {
@@ -141,8 +141,8 @@ export const DepositTokenSelectList = memo(function DepositTokenSelectList({
                 key={option.id}
                 selectionId={option.id}
                 tokens={option.tokens}
-                balance={isWalletConnected ? option.balance : undefined}
-                balanceValue={isWalletConnected ? option.balanceValue : undefined}
+                balance={isWalletKnown ? option.balance : undefined}
+                balanceValue={isWalletKnown ? option.balanceValue : undefined}
                 decimals={option.decimals}
                 tag={option.tag}
                 chainId={selectedChain}

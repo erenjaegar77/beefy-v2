@@ -271,6 +271,7 @@ const config = buildConfig(
           blueJewel: { value: '#495086', description: 'bg hover for some buttons' },
           bridgeQuoteSelectorScrollThumb: { value: '#373b60' },
           chainIconUnselectedBackground: { value: '#2e324c' },
+          pointsSurface: { value: '#19191A', description: 'points banner dark surface' },
           changeNegative: { value: '#e84525' },
           changePositive: { value: '#509658' },
           contentBackgroundLight: { value: '#2d3153', description: 'contentLight' },
@@ -332,7 +333,6 @@ const config = buildConfig(
           transactDebuggerItemAltBackground: { value: '#222222' },
           transactErrorBackground: { value: '#da59327c' },
           transactWarningBackground: { value: '#d198477c' },
-          treasuryHeaderSystem9: { value: '#f3f3c87f' },
           vaultClmPoolBackground: { value: '#252c63', description: 'vaults clm + vaults clmPool' },
           vaultClmVaultBackground: { value: '#1e2a48', description: 'vaults clmVault' },
           vaultGovBackground: { value: '#322460', description: 'vaults gov' },
@@ -519,6 +519,7 @@ const config = buildConfig(
             dark: { value: '{colors.white.70}' },
             black: { value: '{colors.darkBlue.90}' },
             boosted: { value: '{colors.gold.30}' },
+            points: { value: '{colors.green.40}' },
             warning: { value: '{colors.orange.40}' },
             disabled: { value: '{colors.darkBlue.90-56a}' },
             underline: { value: '{colors.white.70-64a}' },
@@ -535,6 +536,7 @@ const config = buildConfig(
               light: { value: '{colors.contentBackgroundLight}' },
               gray: { value: '{colors.text.dark}' },
               darkest: { value: '{colors.darkBlue.90}' },
+              points: { value: '{colors.pointsSurface}' },
             },
             vaults: {
               standard: { value: '{colors.blackMarket}' },
@@ -785,6 +787,10 @@ const config = buildConfig(
           to: {
             transform: 'rotate(360deg)',
           },
+        },
+        addressInputCaretBlink: {
+          '0%, 50%': { backgroundSize: '2px 12px' },
+          '50.01%, 100%': { backgroundSize: '0 12px' },
         },
         highlight: {
           to: {
