@@ -106,6 +106,7 @@ import type {
   ZapTransactHelpers,
 } from '../IStrategy.ts';
 import type { BalancerStrategyConfig } from '../strategy-configs.ts';
+import { canRouteToAllOf, canRouteToAnyOf } from '../strategy-eligibility.ts';
 
 type ZapHelpers = {
   slippage: number;
@@ -1572,39 +1573,13 @@ class BalancerStrategyImpl implements IComposableStrategy<StrategyId> {
 
   protected async canRouteAcrossEitherEmissionPath(token: TokenEntity): Promise<boolean> {
     if (this.singleTokenOptions.some(t => isTokenEqual(t, token))) return true;
-
-    const { swapAggregator, getState } = this.helpers;
-    const state = getState();
-
-    if (this.allTokenOptions.length > 0) {
-      const results = await Promise.all(
-        this.allTokenOptions.map(pt =>
-          swapAggregator.canSwapTokenPair(
-            token,
-            pt,
-            this.vault.id,
-            this.vault.chainId,
-            state,
-            this.options.swap
-          )
-        )
-      );
-      if (results.every(Boolean)) return true;
+    if (
+      this.allTokenOptions.length > 0 &&
+      (await canRouteToAllOf(this.helpers, this.options.swap, this.allTokenOptions, token))
+    ) {
+      return true;
     }
-
-    for (const pt of this.singleTokenOptions) {
-      const ok = await swapAggregator.canSwapTokenPair(
-        token,
-        pt,
-        this.vault.id,
-        this.vault.chainId,
-        state,
-        this.options.swap
-      );
-      if (ok) return true;
-    }
-
-    return false;
+    return canRouteToAnyOf(this.helpers, this.options.swap, this.singleTokenOptions, token);
   }
 
   protected async aggregatorTokensCanSwapToAllOf(allTokens: TokenEntity[]): Promise<TokenEntity[]> {

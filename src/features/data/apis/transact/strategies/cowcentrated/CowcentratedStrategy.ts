@@ -75,10 +75,7 @@ import type {
   ZapTransactHelpers,
 } from '../IStrategy.ts';
 import type { CowcentratedStrategyConfig } from '../strategy-configs.ts';
-import {
-  canRouteTokenFromAllOfAsWithdraw,
-  canRouteTokenToAllOfAsDeposit,
-} from '../strategy-eligibility.ts';
+import { canRouteToAllOf } from '../strategy-eligibility.ts';
 
 type ZapHelpers = {
   chain: ChainEntity;
@@ -424,21 +421,11 @@ class CowcentratedStrategyImpl implements IComposableStrategy<StrategyId> {
   }
 
   async canAcceptTokenAsDeposit(token: TokenEntity): Promise<boolean> {
-    return canRouteTokenToAllOfAsDeposit(
-      this.helpers,
-      this.options.swap,
-      this.vaultType.depositTokens,
-      token
-    );
+    return canRouteToAllOf(this.helpers, this.options.swap, this.vaultType.depositTokens, token);
   }
 
   async canEmitTokenAsWithdraw(token: TokenEntity): Promise<boolean> {
-    return canRouteTokenFromAllOfAsWithdraw(
-      this.helpers,
-      this.options.swap,
-      this.vaultType.depositTokens,
-      token
-    );
+    return canRouteToAllOf(this.helpers, this.options.swap, this.vaultType.depositTokens, token);
   }
 
   async fetchWithdrawUserlessZapBreakdown(
