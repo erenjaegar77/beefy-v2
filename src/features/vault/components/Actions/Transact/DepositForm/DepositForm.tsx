@@ -23,7 +23,6 @@ import {
   selectTransactOptionsError,
   selectTransactOptionsStatus,
   selectTransactSelected,
-  selectTransactVaultHasCrossChainZap,
   selectTransactVaultId,
 } from '../../../../../data/selectors/transact.ts';
 import { selectVaultById } from '../../../../../data/selectors/vaults.ts';
@@ -150,35 +149,15 @@ const DepositForm = memo(function DepositForm() {
 });
 
 const DepositFormInputs = memo(function DepositFormInputs() {
-  const { t } = useTranslation();
   const selection = useAppSelector(selectTransactSelected);
   const multipleInputs = selection.tokens.length > 1;
   const forceSelection = useAppSelector(selectTransactForceSelection);
-  const hasCrossChainZap = useAppSelector(selectTransactVaultHasCrossChainZap);
-  const availableLabel = t('Transact-Available');
   const { ctaLabel: firstSelectLabel } = useTransactSelectFlowCta();
   const fromVaultId = useAppSelector(selectTransactDepositFromVaultId);
 
-  if (fromVaultId) {
-    return (
-      <DepositFormInput
-        index={0}
-        token={selection.tokens[0]}
-        availableLabel={availableLabel}
-        selectLabel={t('Transact-DepositFromVault-Label')}
-        tokenAvailable={<VaultBalance index={0} />}
-      />
-    );
-  }
-
   if (forceSelection) {
     return (
-      <DepositFormInput
-        index={0}
-        token={selection.tokens[0]}
-        availableLabel={availableLabel}
-        selectLabel={hasCrossChainZap ? t('Transact-SelectChain') : t('Transact-SelectToken')}
-      />
+      <DepositFormInput index={0} token={selection.tokens[0]} selectLabel={firstSelectLabel} />
     );
   }
 
@@ -187,9 +166,10 @@ const DepositFormInputs = memo(function DepositFormInputs() {
       key={index}
       index={index}
       token={token}
-      availableLabel={availableLabel}
       selectLabel={!multipleInputs && index === 0 ? firstSelectLabel : token.symbol}
-      tokenAvailable={<TokenInWallet token={token} index={index} />}
+      tokenAvailable={
+        fromVaultId ? <VaultBalance index={0} /> : <TokenInWallet token={token} index={index} />
+      }
     />
   ));
 });
@@ -198,7 +178,6 @@ type DepositFormInputProps = {
   token: TokenEntity;
   index: number;
   selectLabel: string;
-  availableLabel: string;
   tokenAvailable?: ReactNode;
 };
 
@@ -206,9 +185,9 @@ const DepositFormInput = memo(function DepositFormInput({
   index,
   token,
   selectLabel,
-  availableLabel,
   tokenAvailable,
 }: DepositFormInputProps) {
+  const { t } = useTranslation();
   const classes = useStyles();
 
   return (
@@ -217,7 +196,8 @@ const DepositFormInput = memo(function DepositFormInput({
         <div className={classes.selectLabel}>{selectLabel}</div>
         {tokenAvailable ?
           <div className={classes.availableLabel}>
-            {availableLabel} <span className={classes.availableLabelAmount}>{tokenAvailable}</span>
+            {t('Transact-Available')}{' '}
+            <span className={classes.availableLabelAmount}>{tokenAvailable}</span>
           </div>
         : null}
       </div>

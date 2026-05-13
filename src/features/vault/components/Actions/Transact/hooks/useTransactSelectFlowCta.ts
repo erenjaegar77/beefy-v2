@@ -34,7 +34,7 @@ export function useTransactSelectFlowCta() {
     }
     if (isDepositFromVault) {
       // Vault picked: placeholder Select amount (no quote fetched in vault-mode)
-      return t('Transact-SelectAmount');
+      return t('Transact-DepositFromVault-Label');
     }
     if (hasCrossChainZap && forceSelection) {
       return t('Transact-SelectChain');
