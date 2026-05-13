@@ -1,5 +1,79 @@
 [
   {
+    "id": "morpho-v2-monad-august-usdc-v2",
+    "name": "USDC (August v2)",
+    "type": "standard",
+    "token": "USDC",
+    "tokenAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+    "tokenDecimals": 6,
+    "earnContractAddress": "0xA3d999114BCE3d9771703f06C490e77EE83E589a",
+    "earnedToken": "mooMorphoV2MonadAugustUSDCV2",
+    "earnedTokenAddress": "0xA3d999114BCE3d9771703f06C490e77EE83E589a",
+    "oracle": "tokens",
+    "oracleId": "USDC",
+    "status": "active",
+    "createdAt": 1777942008,
+    "platformId": "morpho",
+    "curatorId": "august-digital",
+    "assets": ["USDC"],
+    "migrationIds": ["morpho"],
+    "risks": {
+      "complex": false,
+      "curated": true,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": false,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "single",
+    "underlyingPlatformUrl": "https://app.morpho.org/monad/vault/0x80017bF0f793EBbE9679Cd61ff0e395B62CAbB59/august-usdc-v2",
+    "network": "monad",
+    "zaps": [
+      {
+        "strategyId": "single"
+      }
+    ]
+  },
+  {
+    "id": "morpho-v2-monad-hyperithm-apex-cbbtc",
+    "name": "cbBTC (Hyperithm, Apex V2)",
+    "type": "standard",
+    "token": "cbBTC",
+    "tokenAddress": "0xd18B7EC58Cdf4876f6AFebd3Ed1730e4Ce10414b",
+    "tokenDecimals": 8,
+    "earnContractAddress": "0x3793B8E2AF54984762880c7051721b139c2305D9",
+    "earnedToken": "mooMorphoV2MonadHyperithmApexcbBTC",
+    "earnedTokenAddress": "0x3793B8E2AF54984762880c7051721b139c2305D9",
+    "oracle": "tokens",
+    "oracleId": "cbBTC",
+    "status": "active",
+    "createdAt": 1777392942,
+    "platformId": "morpho",
+    "curatorId": "hyperithm",
+    "assets": ["cbBTC"],
+    "migrationIds": ["morpho"],
+    "risks": {
+      "complex": false,
+      "curated": true,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": false,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "single",
+    "underlyingPlatformUrl": "https://app.morpho.org/monad/vault/0xe09A93786275546690247d70f1767cF0b69e8Ea0/hyperithm-cbbtc-apex",
+    "network": "monad",
+    "zaps": [
+      {
+        "strategyId": "single"
+      }
+    ]
+  },
+  {
     "id": "curve-monad-cbbtc",
     "name": "cbBTC/WBTC/LBTC",
     "type": "standard",
@@ -281,7 +355,7 @@
   },
   {
     "id": "morpho-monad-steakhouse-prime-weth",
-    "name": "WETH (Steakhouse, Prime WETH)",
+    "name": "WETH (Steakhouse, Prime V2)",
     "type": "standard",
     "token": "WETH",
     "tokenAddress": "0xEE8c0E9f1BFFb4Eb878d8f15f368A02a35481242",
@@ -318,7 +392,7 @@
   },
   {
     "id": "morpho-monad-steakhouse-high-yield-usdt",
-    "name": "USDT0 (Steakhouse, High Yield USDT)",
+    "name": "USDT0 (Steakhouse, High Yield V2)",
     "type": "standard",
     "token": "USDT0",
     "tokenAddress": "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
@@ -355,7 +429,7 @@
   },
   {
     "id": "morpho-monad-steakhouse-high-yield-usd1",
-    "name": "USD1 (Steakhouse, High Yield USD1)",
+    "name": "USD1 (Steakhouse, High Yield V2)",
     "type": "standard",
     "token": "USD1",
     "tokenAddress": "0x111111d2bf19e43C34263401e0CAd979eD1cdb61",
@@ -658,7 +732,7 @@
   },
   {
     "id": "morpho-monad-hyperithm-usdc",
-    "name": "USDC (Hyperithm, Degen)",
+    "name": "USDC (Hyperithm, Apex V2)",
     "type": "standard",
     "token": "USDC",
     "tokenAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
@@ -685,7 +759,7 @@
       "synthAsset": false
     },
     "strategyTypeId": "single",
-    "underlyingPlatformUrl": "https://app.morpho.org/monad/vault/0x78999cc96d2Ba0341588C60CcB0E91c6C33CF371/hyperithm-usdc-degen",
+    "underlyingPlatformUrl": "https://app.morpho.org/monad/vault/0x78999cc96d2Ba0341588C60CcB0E91c6C33CF371/hyperithm-usdc-apex",
     "network": "monad",
     "zaps": [
       {
@@ -2397,7 +2471,7 @@
   },
   {
     "id": "morpho-monad-steakhouse-usdc",
-    "name": "USDC (Steakhouse, High Yield USDC)",
+    "name": "USDC (Steakhouse, High Yield V2)",
     "type": "standard",
     "token": "USDC",
     "tokenAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
@@ -2435,7 +2509,7 @@
   },
   {
     "id": "morpho-monad-steakhouse-ausd",
-    "name": "AUSD (Steakhouse, High Yield AUSD)",
+    "name": "AUSD (Steakhouse, High Yield V2)",
     "type": "standard",
     "token": "AUSD",
     "tokenAddress": "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a",
