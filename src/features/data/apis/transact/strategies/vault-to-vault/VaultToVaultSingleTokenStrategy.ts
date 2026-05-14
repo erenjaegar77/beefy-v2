@@ -161,6 +161,7 @@ class VaultToVaultSingleTokenStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   async fetchWithdrawOptions(): Promise<VaultToVaultSingleTokenWithdrawOption[]> {
+    if (true) return []; // --- withdrawals are disabled for the time being
     const { vault, getState } = this.helpers;
     const state = getState();
     const routingTokens = getRoutingTokensForChain(vault.chainId, state);
