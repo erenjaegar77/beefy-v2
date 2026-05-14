@@ -681,7 +681,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       })
     );
 
-    if (VAULT_TO_VAULT_ENABLED) {
+    if (VAULT_TO_VAULT_ENABLED && false) {
       const v2vOptions = await this.enumerateVaultDstWithdrawOptions();
       options.push(...v2vOptions);
     }
