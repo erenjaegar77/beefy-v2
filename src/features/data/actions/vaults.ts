@@ -331,6 +331,7 @@ function getCowcentratedBases(configs: VaultConfig[]) {
         },
         depositTokenAddresses: config.depositTokenAddresses,
         feeTier: config.feeTier,
+        tickSpacing: config.tickSpacing,
         poolAddress: config.tokenAddress,
         risks: risksWithUpdatedAt(risks, config.createdAt),
       };
