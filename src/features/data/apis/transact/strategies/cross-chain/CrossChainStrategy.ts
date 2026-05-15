@@ -688,6 +688,7 @@ class CrossChainStrategyImpl implements IZapStrategy<StrategyId> {
       })
     );
 
+    // eslint-disable-next-line no-constant-condition
     if (VAULT_TO_VAULT_ENABLED && false) {
       const v2vOptions = await this.enumerateVaultDstWithdrawOptions();
       options.push(...v2vOptions);
