@@ -1,7 +1,7 @@
 import type { Namespace, TFunction } from 'react-i18next';
 import type { Step } from '../../../../reducers/wallet/stepper-types.ts';
 import { TransactMode } from '../../../../reducers/wallet/transact-types.ts';
-import type { VaultEntity } from '../../../../entities/vault.ts';
+import { isVaultWithReceipt, type VaultEntity } from '../../../../entities/vault.ts';
 import { selectTokenByAddress } from '../../../../selectors/tokens.ts';
 import { selectTransactSlippage } from '../../../../selectors/transact.ts';
 import { selectVaultById } from '../../../../selectors/vaults.ts';
@@ -15,7 +15,11 @@ import {
   createSelectionId,
   onlyOneInput,
 } from '../../helpers/options.ts';
-import { calculatePriceImpact, highestFeeOrZero } from '../../helpers/quotes.ts';
+import {
+  calculatePriceImpact,
+  convertVaultShareToDepositTokenAmount,
+  highestFeeOrZero,
+} from '../../helpers/quotes.ts';
 import { NO_RELAY } from '../../helpers/zap.ts';
 import { buildDustOutputs, mergeOutputs } from '../../handlers/dust.ts';
 import { VaultSourceHandler } from '../../handlers/vault/VaultSourceHandler.ts';
@@ -161,13 +165,14 @@ class VaultToVaultSingleTokenStrategyImpl implements IZapStrategy<StrategyId> {
   }
 
   async fetchWithdrawOptions(): Promise<VaultToVaultSingleTokenWithdrawOption[]> {
-    if (true) return []; // --- withdrawals are disabled for the time being
+    // if (true) return []; // --- withdrawals are disabled for the time being
     const { vault, getState } = this.helpers;
     const state = getState();
     const routingTokens = getRoutingTokensForChain(vault.chainId, state);
     if (!routingTokens.length) return [];
+    if (!isVaultWithReceipt(vault)) return [];
 
-    const depositToken = selectTokenByAddress(state, vault.chainId, vault.depositTokenAddress);
+    const shareToken = selectTokenByAddress(state, vault.chainId, vault.receiptTokenAddress);
     const results: VaultToVaultSingleTokenWithdrawOption[] = [];
 
     for (const routingToken of routingTokens) {
@@ -193,7 +198,7 @@ class VaultToVaultSingleTokenStrategyImpl implements IZapStrategy<StrategyId> {
           chainId: vault.chainId,
           selectionId,
           selectionOrder: SelectionOrder.VaultToVault,
-          inputs: [depositToken],
+          inputs: [shareToken],
           wantedOutputs: [destShareToken],
           srcVaultId: vault.id,
           destVaultId: candidate.vaultId,
@@ -233,13 +238,19 @@ class VaultToVaultSingleTokenStrategyImpl implements IZapStrategy<StrategyId> {
     const destSteps = destHandlerQuote.destSteps;
     const returned = mergeTokenAmounts(srcHandlerQuote.returned, destHandlerQuote.returned);
 
+    const inputForPricing = convertVaultShareToDepositTokenAmount(
+      state,
+      option.srcVaultId,
+      input.amount
+    );
+
     return {
       sourceSteps,
       destSteps,
       outputs: destHandlerQuote.outputs,
       returned,
       allowances: srcHandlerQuote.allowances,
-      priceImpact: calculatePriceImpact([input], destHandlerQuote.outputs, returned, state),
+      priceImpact: calculatePriceImpact([inputForPricing], destHandlerQuote.outputs, returned, state),
       fee: highestFeeOrZero([...sourceSteps, ...destSteps]),
       srcHandlerQuote,
       destHandlerQuote,

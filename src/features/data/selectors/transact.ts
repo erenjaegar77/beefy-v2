@@ -33,6 +33,7 @@ import {
   selectPastBoostIdsWithUserBalance,
   selectUserBalanceOfToken,
   selectUserVaultBalanceInDepositToken,
+  selectUserVaultBalanceInShareToken,
   selectUserVaultBalanceInShareTokenIncludingDisplaced,
   selectUserVaultBalanceInUsdIncludingDisplaced,
   selectUserVaultBalanceNotInActiveBoostInShareToken,
@@ -50,6 +51,7 @@ import {
   selectConnectedUserHasStellaSwapRewardsForVault,
 } from './user-rewards.ts';
 import { selectVaultById } from './vaults.ts';
+import { convertVaultShareToDepositTokenAmount } from '../apis/transact/helpers/quotes.ts';
 import { selectWalletAddressIfKnown } from './wallet.ts';
 import { selectChainById } from './chains.ts';
 import {
@@ -166,14 +168,27 @@ export const selectTransactSelected = createSelector(
   (selectionId, bySelectionId) => bySelectionId[selectionId] || undefined
 );
 
+/** True when the active selection's withdraw is sourced from the page vault (option declares its shareToken as input). */
+export const selectTransactIsActiveSelectionVaultSourceWithdraw = (
+  state: BeefyState
+): boolean => {
+  const selectionId = state.ui.transact.selectedSelectionId;
+  if (!selectionId) return false;
+  const options = selectTransactOptionsForSelectionId(state, selectionId);
+  if (options.length === 0) return false;
+  return options.every(
+    o => o.strategyId === 'cross-chain' || o.strategyId === 'vault-to-vault-single-token'
+  );
+};
+
 export const selectTransactDepositInputAmountExceedsBalance = (state: BeefyState) => {
   const selection = selectTransactSelected(state);
   const inputAmounts = selectTransactInputAmounts(state);
-  // Vault-to-vault src deposit: input is denominated in the src vault's deposit token,
-  // so compare against the user's balance *in the src vault*, not their wallet balance.
+  // Vault-to-vault src deposit: input is denominated in the src vault's share token (share-math),
+  // so compare against the user's share-token balance in the src vault.
   const vaultRefId = selectVaultRefIdForSelection(state, selection.id);
   if (vaultRefId) {
-    const userBalance = selectUserVaultBalanceInDepositToken(state, vaultRefId);
+    const userBalance = selectUserVaultBalanceInShareToken(state, vaultRefId);
     return (inputAmounts[0] || BIG_ZERO).gt(userBalance);
   }
   const userBalances = selection.tokens.map(token =>
@@ -186,7 +201,13 @@ export const selectTransactDepositInputAmountExceedsBalance = (state: BeefyState
 
 export const selectTransactWithdrawInputAmountExceedsBalance = (state: BeefyState) => {
   const vaultId = selectTransactVaultId(state);
-  const userBalance = selectUserVaultBalanceInDepositToken(state, vaultId);
+  const isVaultSourceWithdraw = selectTransactIsActiveSelectionVaultSourceWithdraw(state);
+  // Vault-source withdraw (cross-chain or same-chain v2v) dispatches in share-math.
+  // Composer-path withdraws still dispatch in deposit-token math.
+  const userBalance =
+    isVaultSourceWithdraw ?
+      selectUserVaultBalanceInShareToken(state, vaultId)
+    : selectUserVaultBalanceInDepositToken(state, vaultId);
   const value = selectTransactInputIndexAmount(state, 0);
 
   return value.gt(userBalance);
@@ -493,11 +514,21 @@ export function selectTransactCrossChainPreflight(state: BeefyState): boolean {
   const slippageDivisor = 1 - slippage - CROSS_CHAIN_PREFLIGHT_SAFETY_BUFFER;
   if (slippageDivisor <= 0) return true;
 
-  const inputUsd = BigNumber.sum(
-    ...option.inputs.map((token, i) =>
-      selectTokenAmountValue(state, { token, amount: inputAmounts[i] || BIG_ZERO })
-    )
-  );
+  const inputUsd =
+    option.srcHandlerKind === 'vault' ?
+      selectTokenAmountValue(
+        state,
+        convertVaultShareToDepositTokenAmount(
+          state,
+          option.srcVaultId,
+          inputAmounts[0] || BIG_ZERO
+        )
+      )
+    : BigNumber.sum(
+        ...option.inputs.map((token, i) =>
+          selectTokenAmountValue(state, { token, amount: inputAmounts[i] || BIG_ZERO })
+        )
+      );
 
   const usdcPriceUsd = selectTokenPriceByAddress(
     state,
