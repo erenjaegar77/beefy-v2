@@ -16,7 +16,7 @@ export const SelectListContainer = styled('div', {
   variants: {
     tall: {
       true: {
-        // total form height is 626px, need to rest 56px from the header to match height in the lists
+        // total form height is 626px, need to subtract 56px from the header to match height in the lists
         height: '570px',
       },
     },
