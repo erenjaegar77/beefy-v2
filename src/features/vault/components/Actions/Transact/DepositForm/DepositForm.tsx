@@ -31,6 +31,7 @@ import { Actions } from '../Actions/Actions.tsx';
 import { CrossChainBelowFeeNotice } from '../CrossChainBelowFeeNotice/CrossChainBelowFeeNotice.tsx';
 import { DepositActions } from '../DepositActions/DepositActions.tsx';
 import { DepositBuyLinks } from '../DepositBuyLinks/DepositBuyLinks.tsx';
+import { DepositFromVaultDisplacedNotice } from '../DepositFromVaultDisplacedNotice/DepositFromVaultDisplacedNotice.tsx';
 import { DepositSourceToggle } from '../DepositSourceToggle/DepositSourceToggle.tsx';
 import { DepositTokenAmountInput } from '../DepositTokenAmountInput/DepositTokenAmountInput.tsx';
 import { FormFooter } from '../FormFooter/FormFooter.tsx';
@@ -135,6 +136,7 @@ const DepositForm = memo(function DepositForm() {
     <>
       <div className={classes.inputs}>
         <DepositSourceToggle />
+        <DepositFromVaultDisplacedNotice />
         <DepositFormInputs />
       </div>
       <DepositBuyLinks css={styles.links} />

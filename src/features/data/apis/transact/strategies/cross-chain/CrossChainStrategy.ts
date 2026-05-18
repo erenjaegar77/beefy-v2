@@ -89,7 +89,7 @@ const strategyId = 'cross-chain';
 type StrategyId = typeof strategyId;
 
 /** Phased rollout: vault-to-vault paths dark until picker UX ships. */
-const VAULT_TO_VAULT_ENABLED: boolean = false;
+const VAULT_TO_VAULT_ENABLED: boolean = true;
 
 type CrossChainQuoteBody = {
   bridgeQuote: CCTPBridgeQuote;

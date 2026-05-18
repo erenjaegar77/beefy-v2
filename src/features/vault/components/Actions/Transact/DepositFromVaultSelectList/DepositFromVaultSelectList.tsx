@@ -1,7 +1,7 @@
 import { css, type CssStyles, cx } from '@repo/styles/css';
 import { styled } from '@repo/styles/jsx';
 import type BigNumber from 'bignumber.js';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { Fragment, memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChainIcon } from '../../../../../../components/ChainIcon/ChainIcon.tsx';
 import { SearchInput } from '../../../../../../components/Form/Input/SearchInput.tsx';
@@ -19,9 +19,11 @@ import {
   isVaultRetired,
   type VaultEntity,
 } from '../../../../../data/entities/vault.ts';
+import { selectVaultMatchesText } from '../../../../../data/selectors/filtered-vaults.ts';
 import { selectTransactDepositFromVaultEntries } from '../../../../../data/selectors/transact.ts';
 import { selectVaultById } from '../../../../../data/selectors/vaults.ts';
 import type { BeefyState } from '../../../../../data/store/types.ts';
+import { simplifySearchText } from '../../../../../../helpers/string.ts';
 import {
   ListItemBalanceAmount,
   ListItemBalanceUsd,
@@ -73,17 +75,15 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
   const vaultById = useAppSelector((state: BeefyState) => state.entities.vaults.byId);
   const [search, setSearch] = useState('');
 
-  const searchFiltered = useMemo(() => {
-    if (!search.length) return entries;
-    const lowerSearch = search.toLowerCase();
-    return entries.filter(entry =>
-      entry.tokens
-        .map(token => token.symbol)
-        .join(' ')
-        .toLowerCase()
-        .includes(lowerSearch)
-    );
-  }, [entries, search]);
+  const searchFiltered = useAppSelector((state: BeefyState) => {
+    const searchText = simplifySearchText(search);
+    if (searchText.length === 0) return entries;
+    return entries.filter(entry => {
+      const vault = vaultById[entry.vaultRefId!];
+      if (!vault) return false;
+      return selectVaultMatchesText(state, vault, searchText);
+    });
+  });
 
   const groups = useMemo(() => {
     const buckets = new Map<
@@ -143,15 +143,17 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
               <Group key={group.id}>
                 <GroupHeader variant={group.id}>{group.label}</GroupHeader>
                 {group.entries.map(entry => (
-                  <VaultListItem
-                    key={entry.vaultId}
-                    vaultId={entry.vaultId}
-                    selectionId={entry.id}
-                    balance={entry.balance}
-                    balanceUsd={entry.balanceUsd}
-                    decimals={entry.decimals}
-                    onSelect={handleSelect}
-                  />
+                  <Fragment key={entry.id}>
+                    <VaultListItem
+                      key={entry.vaultId}
+                      vaultId={entry.vaultId}
+                      selectionId={entry.id}
+                      balance={entry.balance}
+                      balanceUsd={entry.balanceUsd}
+                      decimals={entry.decimals}
+                      onSelect={handleSelect}
+                    />
+                  </Fragment>
                 ))}
               </Group>
             ))
