@@ -79,7 +79,7 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
     const searchText = simplifySearchText(search);
     if (searchText.length === 0) return entries;
     return entries.filter(entry => {
-      const vault = vaultById[entry.vaultRefId!];
+      const vault = vaultById[entry.vaultId];
       if (!vault) return false;
       return selectVaultMatchesText(state, vault, searchText);
     });
