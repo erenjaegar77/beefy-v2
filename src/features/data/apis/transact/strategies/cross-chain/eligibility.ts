@@ -9,7 +9,7 @@ import { selectUserVaultBalanceInShareTokenIncludingDisplaced } from '../../../.
 import { selectVaultById } from '../../../../selectors/vaults.ts';
 import type { BeefyState } from '../../../../store/types.ts';
 import { getTransactApi } from '../../../instances.ts';
-import { isChainSupported } from '../../cctp/CCTPProvider.ts';
+import { getSupportedChainIds, isChainSupported } from '../../cctp/CCTPProvider.ts';
 import { isComposableStrategy, isZapTransactHelpers } from '../IStrategy.ts';
 import type { ZapStrategyConfig } from '../strategy-configs.ts';
 
@@ -96,4 +96,15 @@ export function isCrossChainHopEligible(
 ): boolean {
   if (pageChainId === otherChainId) return false;
   return isChainSupported(otherChainId);
+}
+
+// Chains whose user-balance state must be loaded before v2v deposit enumeration can produce a complete list:
+// destination chain (same-chain v2v), plus all CCTP chains only when destination is CCTP-eligible (cross-chain v2v).
+export function getV2VRelevantChainsFor(
+  state: BeefyState,
+  vaultId: VaultEntity['id']
+): ChainEntity['id'][] {
+  const vault = selectVaultById(state, vaultId);
+  if (!vault) return [];
+  return isChainSupported(vault.chainId) ? getSupportedChainIds() : [vault.chainId];
 }
