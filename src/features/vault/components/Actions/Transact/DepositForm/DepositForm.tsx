@@ -37,6 +37,7 @@ import { FormFooter } from '../FormFooter/FormFooter.tsx';
 import { TransactQuote } from '../TransactQuote/TransactQuote.tsx';
 import { useTransactSelectFlowCta } from '../hooks/useTransactSelectFlowCta.ts';
 import { styles } from './styles.ts';
+import { DepositFromVaultDisplacedNotice } from '../DepositFromVaultDisplacedNotice/DepositFromVaultDisplacedNotice.tsx';
 
 const useStyles = legacyMakeStyles(styles);
 
@@ -145,6 +146,7 @@ const DepositForm = memo(function DepositForm() {
       <CrossChainBelowFeeNotice css={styles.quote} />
       <TransactQuote title={t('Transact-YouDeposit')} css={styles.quote} />
       <Actions>
+        <DepositFromVaultDisplacedNotice />
         <DepositActions />
       </Actions>
       <FormFooter />
