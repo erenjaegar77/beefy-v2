@@ -5,6 +5,10 @@ import { BIG_ONE, BIG_ZERO } from '../../../helpers/big-number.ts';
 import { getUnixNow } from '../../../helpers/date.ts';
 import { entries, keys } from '../../../helpers/object.ts';
 import type { BoostReward } from '../apis/balance/balance-types.ts';
+import {
+  isVaultDestWithdrawOption,
+  isVaultSourceDepositOption,
+} from '../apis/transact/transact-types.ts';
 import type { ChainEntity } from '../entities/chain.ts';
 import type { BoostPromoEntity } from '../entities/promo.ts';
 import type { TokenEntity, TokenLpBreakdown } from '../entities/token.ts';
@@ -938,7 +942,7 @@ export const selectDepositOptionTokensBalanceByChainId = (
   return selectionIds.reduce((acc, selectionId) => {
     const selection = state.ui.transact.selections.bySelectionId[selectionId];
     if (!selection) return acc;
-    if (selection.vaultRefId) return acc;
+    if (isVaultSourceSelection(state, selectionId)) return acc;
     return selection.tokens.reduce((sum, token) => {
       const balance = selectUserBalanceOfToken(state, token.chainId, token.address, walletAddress);
       const price = selectTokenPriceByAddress(state, token.chainId, token.address);
@@ -946,3 +950,11 @@ export const selectDepositOptionTokensBalanceByChainId = (
     }, acc);
   }, BIG_ZERO);
 };
+
+function isVaultSourceSelection(state: BeefyState, selectionId: string): boolean {
+  const optionIds = state.ui.transact.options.bySelectionId[selectionId];
+  if (!optionIds?.length) return false;
+  const option = state.ui.transact.options.byOptionId[optionIds[0]];
+  if (!option) return false;
+  return isVaultSourceDepositOption(option) || isVaultDestWithdrawOption(option);
+}
