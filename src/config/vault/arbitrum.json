@@ -1009,9 +1009,8 @@
     "earnedTokenAddress": "0x03F1aA37749D1226B2F147e00f8e219d1179C9c5",
     "oracle": "lps",
     "oracleId": "balancerv3-arbitrum-waarbweth-reth",
-    "status": "paused",
+    "status": "active",
     "createdAt": 1756747503,
-    "pausedAt": 1776628953,
     "platformId": "aura",
     "assets": ["waArbWETH", "rETH"],
     "risks": {
@@ -1109,9 +1108,8 @@
     "earnedTokenAddress": "0x1C49B46D878fcabA86EcDaC5436d86cdcd85a62B",
     "oracle": "lps",
     "oracleId": "balancerv3-arbitrum-waarbweth-waarbwsteth",
-    "status": "paused",
+    "status": "active",
     "createdAt": 1745365759,
-    "pausedAt": 1776628953,
     "platformId": "aura",
     "assets": ["waArbWETH", "waArbwstETH"],
     "risks": {
