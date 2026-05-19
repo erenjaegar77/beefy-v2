@@ -50,7 +50,6 @@ export const DepositFromVaultDisplacedNotice = memo(function DepositFromVaultDis
         values={{ vaultName: vault.names.list }}
         components={{
           VaultLink: <InternalLink to={`/vault/${fromVaultId}`} />,
-          UnstakeLink: <InternalLink to={`/vault/${fromVaultId}`} />,
         }}
       />
     </AlertWarning>

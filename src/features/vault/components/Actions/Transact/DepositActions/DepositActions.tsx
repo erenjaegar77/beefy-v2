@@ -50,6 +50,7 @@ import { styles } from './styles.ts';
 import { getExecutionChainId } from '../../../../../../helpers/transactUtils.ts';
 import { stepperReset } from '../../../../../data/actions/wallet/stepper.ts';
 import { useTransactSelectFlowCta } from '../hooks/useTransactSelectFlowCta.ts';
+import { DepositFromVaultDisplacedNotice } from '../DepositFromVaultDisplacedNotice/DepositFromVaultDisplacedNotice.tsx';
 
 const useStyles = legacyMakeStyles(styles);
 
@@ -203,6 +204,7 @@ const ActionDeposit = memo(function ActionDeposit({ option, quote }: ActionDepos
       {option.chainId === 'emerald' ?
         <EmeraldGasNotice />
       : null}
+      <DepositFromVaultDisplacedNotice />
       <GlpDepositNotice vaultId={option.vaultId} onChange={setIsDisabledByGlpLock} />
       <PriceImpactNotice
         quote={quote}
@@ -212,6 +214,7 @@ const ActionDeposit = memo(function ActionDeposit({ option, quote }: ActionDepos
       <MaxNativeNotice quote={quote} onChange={setIsDisabledByMaxNative} />
       <ConfirmNotice onChange={setIsDisabledByConfirm} />
       <NotEnoughNotice mode="deposit" onChange={setIsDisabledByNotEnoughInput} />
+
       <div className={classes.feesContainer}>
         <ActionConnectSwitch chainId={executionChainId}>
           <AnimatedButton
