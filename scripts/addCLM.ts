@@ -242,7 +242,7 @@ async function generateVault() {
     network: chain,
     type: 'cowcentrated' as const,
     feeTier: '1',
-    ...(vault.tickSpacing !== undefined && { tickSpacing: vault.tickSpacing }),
+    tickSpacing: vault.tickSpacing,
     zaps: [
       {
         strategyId: 'cowcentrated' as const,
