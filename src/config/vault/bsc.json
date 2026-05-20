@@ -56,7 +56,8 @@
     "status": "active",
     "createdAt": 1779206004,
     "platformId": "beefy",
-    "feeTier": "0.03",
+    "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["ZEST", "USDT"],
     "risks": {
       "complex": true,
