@@ -15,7 +15,7 @@
     "oracle": "lps",
     "oracleId": "projectx-cow-hyperevm-kntq-whype",
     "status": "active",
-    "createdAt": 1773262250,
+    "createdAt": 1779302896,
     "platformId": "projectx",
     "assets": ["KNTQ", "WHYPE"],
     "risks": {
@@ -54,7 +54,7 @@
     "oracle": "lps",
     "oracleId": "projectx-cow-hyperevm-kntq-whype",
     "status": "active",
-    "createdAt": 1773262250,
+    "createdAt": 1779302895,
     "platformId": "beefy",
     "feeTier": "1",
     "assets": ["KNTQ", "WHYPE"],
@@ -92,7 +92,7 @@
     "oracle": "lps",
     "oracleId": "projectx-cow-hyperevm-whype-xaut0",
     "status": "active",
-    "createdAt": 1773262250,
+    "createdAt": 1779302894,
     "platformId": "projectx",
     "assets": ["WHYPE", "XAUt0"],
     "risks": {
@@ -131,87 +131,10 @@
     "oracle": "lps",
     "oracleId": "projectx-cow-hyperevm-whype-xaut0",
     "status": "active",
-    "createdAt": 1773262250,
+    "createdAt": 1779302893,
     "platformId": "beefy",
     "feeTier": "0.3",
     "assets": ["WHYPE", "XAUt0"],
-    "risks": {
-      "complex": true,
-      "curated": false,
-      "notAudited": false,
-      "notBattleTested": false,
-      "notCorrelated": true,
-      "notTimelocked": false,
-      "notVerified": false,
-      "synthAsset": false
-    },
-    "strategyTypeId": "compounds",
-    "network": "hyperevm",
-    "zaps": [
-      {
-        "strategyId": "cowcentrated"
-      }
-    ]
-  },
-  {
-    "id": "projectx-cow-hyperevm-usdt0-xaut0-rp",
-    "name": "USD₮0-XAUt0 Reward Pool",
-    "type": "gov",
-    "version": 2,
-    "token": "cowProjectXHyperevmUSDT0-XAUt0",
-    "tokenAddress": "0xc5c313f55EE1B9353b96564854830A45748F8C2a",
-    "tokenDecimals": 18,
-    "tokenProviderId": "projectx",
-    "earnContractAddress": "0x11c4111eD377769b571075774D82F1e868047FEA",
-    "earnedToken": "rCowProjectXHyperevmUSDT0-XAUt0",
-    "earnedTokenDecimals": 18,
-    "earnedTokenAddresses": [],
-    "oracle": "lps",
-    "oracleId": "projectx-cow-hyperevm-usdt0-xaut0",
-    "status": "active",
-    "createdAt": 1773262250,
-    "platformId": "projectx",
-    "assets": ["USDT0", "XAUt0"],
-    "risks": {
-      "complex": true,
-      "curated": false,
-      "notAudited": false,
-      "notBattleTested": false,
-      "notCorrelated": true,
-      "notTimelocked": false,
-      "notVerified": false,
-      "synthAsset": false
-    },
-    "strategyTypeId": "compounds",
-    "network": "hyperevm",
-    "zaps": [
-      {
-        "strategyId": "gov-composer"
-      }
-    ]
-  },
-  {
-    "id": "projectx-cow-hyperevm-usdt0-xaut0",
-    "name": "USD₮0-XAUt0",
-    "type": "cowcentrated",
-    "token": "USD₮0-XAUt0 projectx",
-    "tokenAddress": "0xc096DA06e8fa70386deDbc5D4D6B2a453B9106F5",
-    "tokenDecimals": 18,
-    "tokenProviderId": "projectx",
-    "depositTokenAddresses": [
-      "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-      "0xf4D9235269a96aaDaFc9aDAe454a0618eBE37949"
-    ],
-    "earnContractAddress": "0xc5c313f55EE1B9353b96564854830A45748F8C2a",
-    "earnedToken": "cowProjectXHyperevmUSDT0-XAUt0",
-    "earnedTokenAddress": "0xc5c313f55EE1B9353b96564854830A45748F8C2a",
-    "oracle": "lps",
-    "oracleId": "projectx-cow-hyperevm-usdt0-xaut0",
-    "status": "active",
-    "createdAt": 1773262250,
-    "platformId": "beefy",
-    "feeTier": "0.05",
-    "assets": ["USDT0", "XAUt0"],
     "risks": {
       "complex": true,
       "curated": false,
