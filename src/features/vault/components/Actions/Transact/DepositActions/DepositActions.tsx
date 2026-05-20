@@ -212,7 +212,6 @@ const ActionDeposit = memo(function ActionDeposit({ option, quote }: ActionDepos
       <MaxNativeNotice quote={quote} onChange={setIsDisabledByMaxNative} />
       <ConfirmNotice onChange={setIsDisabledByConfirm} />
       <NotEnoughNotice mode="deposit" onChange={setIsDisabledByNotEnoughInput} />
-
       <div className={classes.feesContainer}>
         <ActionConnectSwitch chainId={executionChainId}>
           <AnimatedButton

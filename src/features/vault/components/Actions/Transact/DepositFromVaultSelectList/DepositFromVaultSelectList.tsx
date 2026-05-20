@@ -1,7 +1,7 @@
 import { css, type CssStyles, cx } from '@repo/styles/css';
 import { styled } from '@repo/styles/jsx';
 import type BigNumber from 'bignumber.js';
-import { Fragment, memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChainIcon } from '../../../../../../components/ChainIcon/ChainIcon.tsx';
 import { SearchInput } from '../../../../../../components/Form/Input/SearchInput.tsx';
@@ -143,17 +143,15 @@ export const DepositFromVaultSelectList = memo(function DepositFromVaultSelectLi
               <Group key={group.id}>
                 <GroupHeader variant={group.id}>{group.label}</GroupHeader>
                 {group.entries.map(entry => (
-                  <Fragment key={entry.id}>
-                    <VaultListItem
-                      key={entry.vaultId}
-                      vaultId={entry.vaultId}
-                      selectionId={entry.id}
-                      balance={entry.balance}
-                      balanceUsd={entry.balanceUsd}
-                      decimals={entry.decimals}
-                      onSelect={handleSelect}
-                    />
-                  </Fragment>
+                  <VaultListItem
+                    key={entry.vaultId}
+                    vaultId={entry.vaultId}
+                    selectionId={entry.id}
+                    balance={entry.balance}
+                    balanceUsd={entry.balanceUsd}
+                    decimals={entry.decimals}
+                    onSelect={handleSelect}
+                  />
                 ))}
               </Group>
             ))
@@ -201,13 +199,13 @@ const VaultListItem = memo(function VaultListItem({
           </ChainBadge>
         </IconWrapper>
         <VaultNameAndTags>
-          <VaultRowName>{vault.names.list}</VaultRowName>
+          <VaultRowName className="vault-row-name">{vault.names.list}</VaultRowName>
           <VaultPlatformTag vaultId={vaultId} css={platformTagOverride} />
         </VaultNameAndTags>
       </VaultLeft>
       <ListItemRightSide css={rightSideOverride}>
         <BalanceColumn>
-          <ListItemBalanceAmount>
+          <ListItemBalanceAmount className="vault-row-balance">
             {formatTokenDisplayCondensed(balance, decimals, 8)}
           </ListItemBalanceAmount>
           {balanceUsdFormatted != null ?
@@ -288,6 +286,12 @@ const VaultRowButton = styled('button', {
       '& .list-item-arrow': {
         color: 'text.middle',
       },
+      '& .vault-row-name': {
+        color: 'text.light',
+      },
+      '& .vault-row-balance': {
+        color: 'text.light',
+      },
     },
   },
 });
@@ -314,15 +318,11 @@ const VaultNameAndTags = styled('div', {
 
 const VaultRowName = styled('span', {
   base: {
-    textStyle: 'body',
+    textStyle: 'body.medium',
     color: 'text.dark',
-    fontWeight: 'normal',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    _hover: {
-      color: 'text.light',
-    },
   },
 });
 
