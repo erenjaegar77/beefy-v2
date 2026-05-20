@@ -629,7 +629,7 @@
     "earnedTokenAddress": "0xf1aA4012dC6f30F85110Bc9cC3887e0bc2b14ba7",
     "oracle": "lps",
     "oracleId": "balancerv3-gnosis-wagwsteth-waggno",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1739196922,
     "platformId": "aura",
     "assets": ["wagwstETH", "wagGNO"],
@@ -646,7 +646,9 @@
     },
     "strategyTypeId": "lp",
     "addLiquidityUrl": "https://balancer.fi/pools/gnosis/v3/0x272d6be442e30d7c87390edeb9b96f1e84cecd8d/add-liquidity",
-    "network": "gnosis"
+    "network": "gnosis",
+    "retireReason": "rewards",
+    "retiredAt": 1779171054
   },
   {
     "id": "balancerv3-gnosis-wagwsteth-wageth",
@@ -661,7 +663,7 @@
     "earnedTokenAddress": "0xC283f7Cb08E68465A07d1D1F0002A01Dfde72d2E",
     "oracle": "lps",
     "oracleId": "balancerv3-gnosis-wagwsteth-wageth",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1739195708,
     "platformId": "aura",
     "assets": ["wagwstETH", "wagETH"],
@@ -678,7 +680,9 @@
     },
     "strategyTypeId": "lp",
     "addLiquidityUrl": "https://balancer.fi/pools/gnosis/v3/0x6e6bb18449fCF15B79EFa2CfA70ACF7593088029/add-liquidity",
-    "network": "gnosis"
+    "network": "gnosis",
+    "retireReason": "rewards",
+    "retiredAt": 1779171054
   },
   {
     "id": "aura-gyro-gnosis-weth-reth",
@@ -740,7 +744,7 @@
     "earnedTokenAddress": "0x50583F8DCE18D4180f074bE7332b4734968246EC",
     "oracle": "lps",
     "oracleId": "aura-gyro-gnosis-weth-wsteth",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1722694393,
     "platformId": "aura",
     "assets": ["wstETH", "WETH"],
@@ -770,7 +774,9 @@
           "0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6"
         ]
       }
-    ]
+    ],
+    "retireReason": "rewards",
+    "retiredAt": 1779171054
   },
   {
     "id": "aura-gnosis-usdc.e-usdt-sdai",
@@ -933,7 +939,7 @@
     "earnedTokenAddress": "0xF49dE23DF72c886946eEF19D1B751B3D997EF668",
     "oracle": "lps",
     "oracleId": "aura-gnosis-wsteth-cow",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1699446018,
     "platformId": "aura",
     "assets": ["wstETH", "COW"],
@@ -963,7 +969,9 @@
           "0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6"
         ]
       }
-    ]
+    ],
+    "retireReason": "rewards",
+    "retiredAt": 1779171054
   },
   {
     "id": "aura-gnosis-wsteth-sdai",
@@ -978,7 +986,7 @@
     "earnedTokenAddress": "0x21c4d71882364b395209C07A7710a9251c285d73",
     "oracle": "lps",
     "oracleId": "aura-gnosis-wsteth-sdai",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1699446018,
     "platformId": "aura",
     "assets": ["wstETH", "sDAI"],
@@ -1008,7 +1016,9 @@
           "0xaf204776c7245bF4147c2612BF6e5972Ee483701"
         ]
       }
-    ]
+    ],
+    "retireReason": "rewards",
+    "retiredAt": 1779171054
   },
   {
     "id": "aura-gnosis-sdai-usdt-usdc",
@@ -1157,7 +1167,7 @@
     "earnedTokenAddress": "0xD40da4e7EC845eA7940b09122Ff34306d78c4C03",
     "oracle": "lps",
     "oracleId": "aura-gnosis-wsteth-bal-aura",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1698264180,
     "platformId": "aura",
     "assets": ["wstETH", "BAL", "AURA"],
@@ -1188,7 +1198,9 @@
           "0x7eF541E2a22058048904fE5744f9c7E4C57AF717"
         ]
       }
-    ]
+    ],
+    "retireReason": "rewards",
+    "retiredAt": 1779171054
   },
   {
     "id": "aura-gnosis-wsteth-gno",
