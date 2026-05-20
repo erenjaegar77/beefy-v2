@@ -57,6 +57,7 @@
     "createdAt": 1779100673,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["MOR", "WETH"],
     "risks": {
       "complex": true,

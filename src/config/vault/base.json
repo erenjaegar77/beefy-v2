@@ -57,6 +57,7 @@
     "createdAt": 1779100659,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["MOR", "WETH"],
     "risks": {
       "complex": true,
@@ -175,6 +176,7 @@
     "createdAt": 1778773997,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 200,
     "assets": ["USDC", "OPG"],
     "risks": {
       "complex": true,
@@ -293,6 +295,7 @@
     "createdAt": 1778773953,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 200,
     "assets": ["AERO", "cbBTC"],
     "risks": {
       "complex": true,
@@ -413,6 +416,7 @@
     "createdAt": 1778740767,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["LFI", "USDC"],
     "risks": {
       "updatedAt": 1778740767,
@@ -492,6 +496,7 @@
     "createdAt": 1778740767,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["LFI", "WETH"],
     "risks": {
       "updatedAt": 1778740767,
@@ -1198,6 +1203,7 @@
     "createdAt": 1778782029,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["AORA", "USDC"],
     "risks": {
       "complex": true,

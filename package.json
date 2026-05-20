@@ -30,7 +30,6 @@
     "addBalancerZap": "vite-node ./scripts/addBalancerZap.ts",
     "addBeraSwapZap": "vite-node ./scripts/addBeraSwapZap.ts",
     "checkVaultTokenDecimals": "vite-node ./scripts/checkVaultTokenDecimals.ts",
-    "addTickSpacing": "vite-node ./scripts/addTickSpacing.ts",
     "checkZapAddresses": "vite-node ./scripts/checkZapAddresses.ts",
     "makeExcludeConfig": "vite-node ./scripts/makeExcludeConfig.ts",
     "updatePlatforms": "vite-node ./scripts/updatePlatforms.ts",
