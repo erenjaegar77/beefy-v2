@@ -1,5 +1,28 @@
 [
   {
+    "id": "apyx",
+    "docs": "https://docs.apyx.fi/apyx-overview/apyx-pips-points-program",
+    "points": [
+      {
+        "id": "apyx-points",
+        "name": "Apyx Pips"
+      }
+    ],
+    "eligibility": [
+      {
+        "type": "vault-whitelist"
+      }
+    ],
+    "accounting": [
+      {
+        "id": "apyx-points",
+        "role": "Distribution of rewards",
+        "type": "claim-rewards",
+        "url": "https://app.apyx.fi/rewards"
+      }
+    ]
+  },
+  {
     "id": "spark",
     "docs": "https://docs.spark.fi/points/",
     "points": [
@@ -648,5 +671,26 @@
         "url": "https://app.re.xyz/points"
       }
     ]
+  },
+  {
+    "id": "megaeth-terminal",
+    "docs": "https://megaeth.com",
+    "points": [
+      {
+        "id": "megaeth-terminal",
+        "name": "MegaETH Points"
+      }
+    ],
+    "eligibility": [
+      {
+        "type": "vault-whitelist"
+      }
+    ],
+    "banner": {
+      "by": "MegaETH Terminal",
+      "description": "Earn points on MegaETH Terminal for interacting with ecosystem-aligned apps and assets. Terminal is the surface area for gamified ecosystem discovery on MegaETH where user activities are tracked and rewarded. Eligible Beefy vaults are included within the Terminal points program, subject to hidden usage criteria.",
+      "learn": "https://megaeth.com",
+      "chainIcon": "megaeth"
+    }
   }
 ]

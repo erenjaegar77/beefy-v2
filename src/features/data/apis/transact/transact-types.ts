@@ -11,10 +11,17 @@ import type {
 } from '../../entities/zap.ts';
 import type { Step } from '../../reducers/wallet/stepper-types.ts';
 import { TransactMode } from '../../reducers/wallet/transact-types.ts';
+import type { CrossChainRecoveryParams } from '../../reducers/wallet/transact-types.ts';
 import type { BeefyStateFn } from '../../store/types.ts';
 import type { CurveTokenOption } from './strategies/curve/types.ts';
 import type { ZapStrategyId } from './strategies/strategy-configs.ts';
+import type { ChainTransactHelpers, IStrategy, TransactHelpers } from './strategies/IStrategy.ts';
 import type { QuoteResponse } from './swap/ISwapProvider.ts';
+import type { CCTPBridgeQuote } from './cctp/types.ts';
+import type {
+  DestHandlerQuote,
+  SourceHandlerQuote,
+} from './strategies/cross-chain/handlers/types.ts';
 
 export type TokenAmount<T extends TokenEntity = TokenEntity> = {
   amount: BigNumber;
@@ -72,6 +79,8 @@ export enum SelectionOrder {
   TokenOfPool,
   /** Any other token not in the LP */
   Other,
+  /** Cross-chain tokens (higher latency, shown after same-chain options) */
+  CrossChain,
 }
 
 type BaseOption = {
@@ -143,6 +152,14 @@ export type Erc4626VaultWithdrawOption = BaseWithdrawOption & {
 export type CowcentratedZapDepositOption = ZapBaseDepositOption & {
   strategyId: 'cowcentrated';
   vaultType: 'cowcentrated';
+  swapVia: 'aggregator';
+};
+
+export type CowcentratedDualZapDepositOption = ZapBaseDepositOption & {
+  strategyId: 'cowcentrated-dual';
+  vaultType: 'cowcentrated';
+  depositToken: TokenEntity;
+  lpTokens: TokenEntity[];
   swapVia: 'aggregator';
 };
 
@@ -295,6 +312,7 @@ export type GovComposerDepositOption = ZapBaseDepositOption & {
   strategyId: 'gov-composer';
   underlyingOption:
     | CowcentratedZapDepositOption
+    | CowcentratedDualZapDepositOption
     | SingleDepositOption
     | CowcentratedVaultDepositOption;
 };
@@ -311,6 +329,7 @@ export type VaultComposerDepositOption = ZapBaseDepositOption & {
   strategyId: 'vault-composer';
   underlyingOption:
     | CowcentratedZapDepositOption
+    | CowcentratedDualZapDepositOption
     | SingleDepositOption
     | CowcentratedVaultDepositOption;
 };
@@ -331,6 +350,71 @@ export type RewardPoolToVaultWithdrawOption = ZapBaseWithdrawOption & {
   strategyId: 'reward-pool-to-vault';
 };
 
+/** Discriminates source-side behavior for a cross-chain deposit. */
+export type CrossChainSrcHandlerKind = 'swap' | 'vault';
+/** Discriminates destination-side behavior for a cross-chain withdraw. */
+export type CrossChainDestHandlerKind = 'passthrough' | 'swap' | 'vault';
+
+/** Common shape for cross-chain deposit options; variants discriminate on `srcHandlerKind`. */
+type CrossChainDepositOptionBase = ZapBaseDepositOption & {
+  strategyId: 'cross-chain';
+  sourceChainId: ChainEntity['id'];
+  destChainId: ChainEntity['id'];
+  bridgeToken: TokenEntity;
+  destBridgeToken: TokenEntity;
+  destHandlerKind: 'vault';
+  destVaultId: VaultEntity['id'];
+};
+
+/** Swap-src deposit: a user token is swapped to USDC on the src chain. */
+export type CrossChainSwapSrcDepositOption = CrossChainDepositOptionBase & {
+  srcHandlerKind: 'swap';
+};
+
+/** Vault-src deposit: shares of `srcVaultId` are withdrawn to USDC on the src chain. */
+export type CrossChainVaultSrcDepositOption = CrossChainDepositOptionBase & {
+  srcHandlerKind: 'vault';
+  srcVaultId: VaultEntity['id'];
+};
+
+/** Deposit option spanning two chains: user provides input on sourceChainId, receives vault tokens on destChainId */
+export type CrossChainDepositOption =
+  | CrossChainSwapSrcDepositOption
+  | CrossChainVaultSrcDepositOption;
+
+/** Common shape for cross-chain withdraw options; variants discriminate on `destHandlerKind`. */
+type CrossChainWithdrawOptionBase = ZapBaseWithdrawOption & {
+  strategyId: 'cross-chain';
+  sourceChainId: ChainEntity['id'];
+  destChainId: ChainEntity['id'];
+  bridgeToken: TokenEntity;
+  destBridgeToken: TokenEntity;
+  srcHandlerKind: 'vault';
+  srcVaultId: VaultEntity['id'];
+};
+
+/** Passthrough-dst withdraw: USDC is minted directly to the user on the dst chain. */
+export type CrossChainPassthroughDstWithdrawOption = CrossChainWithdrawOptionBase & {
+  destHandlerKind: 'passthrough';
+};
+
+/** Swap-dst withdraw: USDC is swapped to a target token on the dst chain. */
+export type CrossChainSwapDstWithdrawOption = CrossChainWithdrawOptionBase & {
+  destHandlerKind: 'swap';
+};
+
+/** Vault-dst withdraw: USDC is deposited into `destVaultId` on the dst chain. */
+export type CrossChainVaultDstWithdrawOption = CrossChainWithdrawOptionBase & {
+  destHandlerKind: 'vault';
+  destVaultId: VaultEntity['id'];
+};
+
+/** Withdrawal option delivering tokens on a different chain than the vault */
+export type CrossChainWithdrawOption =
+  | CrossChainPassthroughDstWithdrawOption
+  | CrossChainSwapDstWithdrawOption
+  | CrossChainVaultDstWithdrawOption;
+
 export type DepositOption =
   | StandardVaultDepositOption
   | GovVaultDepositOption
@@ -342,11 +426,13 @@ export type DepositOption =
   | SingleDepositOption
   | CurveDepositOption
   | CowcentratedZapDepositOption
+  | CowcentratedDualZapDepositOption
   | ConicDepositOption
   | GovComposerDepositOption
   | VaultComposerDepositOption
   | RewardPoolToVaultDepositOption
-  | BalancerDepositOption;
+  | BalancerDepositOption
+  | CrossChainDepositOption;
 
 export type WithdrawOption =
   | StandardVaultWithdrawOption
@@ -363,7 +449,8 @@ export type WithdrawOption =
   | GovComposerWithdrawOption
   | VaultComposerWithdrawOption
   | RewardPoolToVaultWithdrawOption
-  | BalancerWithdrawOption;
+  | BalancerWithdrawOption
+  | CrossChainWithdrawOption;
 
 export type TransactOption = DepositOption | WithdrawOption;
 
@@ -374,6 +461,47 @@ export function isDepositOption(option: TransactOption): option is DepositOption
 export function isWithdrawOption(option: TransactOption): option is WithdrawOption {
   return option.mode === TransactMode.Withdraw;
 }
+
+export function isCrossChainDepositOption(
+  option: TransactOption
+): option is CrossChainDepositOption {
+  return option.strategyId === 'cross-chain' && option.mode === TransactMode.Deposit;
+}
+
+export function isCrossChainWithdrawOption(
+  option: TransactOption
+): option is CrossChainWithdrawOption {
+  return option.strategyId === 'cross-chain' && option.mode === TransactMode.Withdraw;
+}
+
+export function isCrossChainOption(
+  option: TransactOption
+): option is CrossChainDepositOption | CrossChainWithdrawOption {
+  return option.strategyId === 'cross-chain';
+}
+
+export function isCrossChainVaultSrcDepositOption(
+  option: TransactOption
+): option is CrossChainVaultSrcDepositOption {
+  return isCrossChainDepositOption(option) && option.srcHandlerKind === 'vault';
+}
+
+export function isCrossChainVaultDstWithdrawOption(
+  option: TransactOption
+): option is CrossChainVaultDstWithdrawOption {
+  return isCrossChainWithdrawOption(option) && option.destHandlerKind === 'vault';
+}
+export type CrossChainTokenOption = {
+  token: TokenEntity;
+  balanceUsd: BigNumber;
+};
+
+export type CrossChainChainOption = {
+  chainId: ChainEntity['id'];
+  chainName: string;
+  balanceUsd: BigNumber;
+  tokens: CrossChainTokenOption[];
+};
 
 //
 // Quotes
@@ -443,6 +571,18 @@ export type ZapQuoteStepUnstake = {
   outputs: TokenAmount[];
 };
 
+export type ZapQuoteStepBridge = {
+  type: 'bridge';
+  bridgeId: 'cctp';
+  fromChainId: ChainEntity['id'];
+  toChainId: ChainEntity['id'];
+  fromToken: TokenEntity;
+  toToken: TokenEntity;
+  fromAmount: BigNumber;
+  toAmount: BigNumber;
+  timeEstimate: number;
+};
+
 export type ZapQuoteStep =
   | ZapQuoteStepWithdraw
   | ZapQuoteStepSwap
@@ -451,7 +591,8 @@ export type ZapQuoteStep =
   | ZapQuoteStepSplit
   | ZapQuoteStepUnused
   | ZapQuoteStepStake
-  | ZapQuoteStepUnstake;
+  | ZapQuoteStepUnstake
+  | ZapQuoteStepBridge;
 
 export function isZapQuoteStepSwap(step: ZapQuoteStep): step is ZapQuoteStepSwap {
   return step.type === 'swap';
@@ -481,6 +622,10 @@ export function isZapQuoteStepUnstake(step: ZapQuoteStep): step is ZapQuoteStepU
   return step.type === 'unstake';
 }
 
+export function isZapQuoteStepBridge(step: ZapQuoteStep): step is ZapQuoteStepBridge {
+  return step.type === 'bridge';
+}
+
 export function isZapQuoteStepSwapPool(step: ZapQuoteStepSwap): step is ZapQuoteStepSwapPool {
   return step.via === 'pool';
 }
@@ -505,6 +650,23 @@ type BaseQuote<T extends TransactOption> = {
 type BaseZapQuote<T extends TransactOption> = BaseQuote<T> & {
   fee: ZapFee;
   steps: ZapQuoteStep[];
+};
+
+/** Quote for recovery of the destination portion of a cross-chain zap. */
+export type RecoveryQuote = {
+  id: string;
+  inputs: InputTokenAmount[];
+  outputs: TokenAmount[];
+  returned: TokenAmount[];
+  steps: ZapQuoteStep[];
+  priceImpact: number;
+  fee: ZapFee;
+  allowances: AllowanceTokenAmount[];
+  /**
+   * Captured at quote time, reused at step time so fetchZapSteps runs against the same route.
+   * NOT serializable (BigNumber etc.) — do not persist or structuredClone.
+   */
+  destHandlerQuote: DestHandlerQuote;
 };
 
 export type StandardVaultDepositQuote = BaseQuote<StandardVaultDepositOption> & {
@@ -536,20 +698,37 @@ export type CowcentratedZapDepositQuote = BaseZapQuote<CowcentratedZapDepositOpt
   lpQuotes: (QuoteResponse | undefined)[];
 };
 
+export type CowcentratedDualZapDepositQuote = BaseZapQuote<CowcentratedDualZapDepositOption> & {
+  vaultType: 'cowcentrated';
+  isCalm: boolean;
+  used: TokenAmount[];
+  unused: TokenAmount[];
+  position: TokenAmount[];
+  lpQuotes: (QuoteResponse | undefined)[];
+};
+
 export type GovComposerZapDepositQuote = BaseZapQuote<GovComposerDepositOption> & {
   vaultType: 'gov';
-  underlyingQuote: CowcentratedZapDepositQuote | SingleDepositQuote | CowcentratedVaultDepositQuote;
+  underlyingQuote:
+    | CowcentratedZapDepositQuote
+    | CowcentratedDualZapDepositQuote
+    | SingleDepositQuote
+    | CowcentratedVaultDepositQuote;
   subStrategy: 'strategy' | 'vault';
 };
 
 export type VaultComposerZapDepositQuote = BaseZapQuote<VaultComposerDepositOption> & {
   vaultType: 'standard';
-  underlyingQuote: CowcentratedZapDepositQuote | SingleDepositQuote | CowcentratedVaultDepositQuote;
+  underlyingQuote:
+    | CowcentratedZapDepositQuote
+    | CowcentratedDualZapDepositQuote
+    | SingleDepositQuote
+    | CowcentratedVaultDepositQuote;
   subStrategy: 'strategy' | 'vault';
 };
 
 export type SingleDepositQuote = BaseZapQuote<SingleDepositOption> & {
-  swapQuote: QuoteResponse;
+  swapQuote?: QuoteResponse;
 };
 
 export type UniswapLikePoolDepositQuote<T extends UniswapLikeDepositOption<AmmEntityUniswapLike>> =
@@ -578,11 +757,6 @@ export type CurveDepositQuote = BaseZapQuote<CurveDepositOption> & {
   viaToken: CurveTokenOption;
 };
 
-// export type BalancerSwapDepositQuote = BaseZapQuote<BalancerSwapDepositOption> & {
-//   via: 'aggregator' | 'direct';
-//   viaToken: BalancerTokenOption;
-// };
-
 export type BalancerDepositQuote = BaseZapQuote<BalancerDepositOption>;
 
 export type GammaDepositQuote = BaseZapQuote<GammaDepositOption> & {
@@ -592,6 +766,17 @@ export type GammaDepositQuote = BaseZapQuote<GammaDepositOption> & {
 export type RewardPoolToVaultDepositQuote = BaseZapQuote<RewardPoolToVaultDepositOption>;
 
 export type ConicDepositQuote = BaseZapQuote<ConicDepositOption>;
+
+/** Quote for a cross-chain deposit: source swap → bridge → dest swap + deposit */
+export type CrossChainDepositQuote = BaseZapQuote<CrossChainDepositOption> & {
+  srcHandlerKind: CrossChainSrcHandlerKind;
+  destHandlerKind: 'vault';
+  sourceSteps: ZapQuoteStep[];
+  destSteps: ZapQuoteStep[];
+  bridgeQuote: CCTPBridgeQuote;
+  srcHandlerQuote: SourceHandlerQuote;
+  destHandlerQuote: DestHandlerQuote;
+};
 
 export type VaultDepositQuote =
   | StandardVaultDepositQuote
@@ -607,10 +792,12 @@ export type ZapDepositQuote =
   | GammaDepositQuote
   | ConicDepositQuote
   | CowcentratedZapDepositQuote
+  | CowcentratedDualZapDepositQuote
   | GovComposerZapDepositQuote
   | VaultComposerZapDepositQuote
   | RewardPoolToVaultDepositQuote
-  | BalancerDepositQuote;
+  | BalancerDepositQuote
+  | CrossChainDepositQuote;
 
 export type DepositQuote = VaultDepositQuote | ZapDepositQuote;
 
@@ -714,6 +901,17 @@ export type VaultComposerZapWithdrawQuote = BaseZapQuote<VaultComposerWithdrawOp
   subStrategy: 'strategy' | 'vault';
 };
 
+/** Quote for a cross-chain withdrawal: vault withdraw → swap to USDC → bridge → optional dest swap */
+export type CrossChainWithdrawQuote = BaseZapQuote<CrossChainWithdrawOption> & {
+  srcHandlerKind: 'vault';
+  destHandlerKind: CrossChainDestHandlerKind;
+  sourceSteps: ZapQuoteStep[];
+  destSteps: ZapQuoteStep[];
+  bridgeQuote: CCTPBridgeQuote;
+  srcHandlerQuote: SourceHandlerQuote;
+  destHandlerQuote: DestHandlerQuote;
+};
+
 export type ZapWithdrawQuote =
   | SingleWithdrawQuote
   | UniswapV2WithdrawQuote
@@ -724,13 +922,32 @@ export type ZapWithdrawQuote =
   | CowcentratedZapWithdrawQuote
   | GovComposerZapWithdrawQuote
   | VaultComposerZapWithdrawQuote
-  | BalancerWithdrawQuote;
+  | BalancerWithdrawQuote
+  | CrossChainWithdrawQuote;
 
 export type WithdrawQuote = VaultWithdrawQuote | ZapWithdrawQuote;
 
 export type ZapQuote = ZapDepositQuote | ZapWithdrawQuote;
 
 export type TransactQuote = DepositQuote | WithdrawQuote;
+
+export function isCrossChainDepositQuote(quote: TransactQuote): quote is CrossChainDepositQuote {
+  return quote.strategyId === 'cross-chain' && quote.option.mode === TransactMode.Deposit;
+}
+
+export function isCrossChainWithdrawQuote(quote: TransactQuote): quote is CrossChainWithdrawQuote {
+  return quote.strategyId === 'cross-chain' && quote.option.mode === TransactMode.Withdraw;
+}
+
+export function isCrossChainQuote(
+  quote: TransactQuote
+): quote is CrossChainDepositQuote | CrossChainWithdrawQuote {
+  return quote.strategyId === 'cross-chain';
+}
+
+export function isAsyncQuote(quote: TransactQuote): boolean {
+  return 'async' in quote.option && quote.option.async === true;
+}
 
 export type ZapStrategyIdToDepositOption<T extends ZapStrategyId> = Extract<
   DepositOption,
@@ -777,18 +994,21 @@ export function isCowcentratedVaultDepositQuote(
 
 export function isCowcentratedZapDepositQuote(
   quote: TransactQuote
-): quote is CowcentratedVaultDepositQuote {
+): quote is CowcentratedZapDepositQuote | CowcentratedDualZapDepositQuote {
   return (
     isDepositQuote(quote) &&
     isZapQuote(quote) &&
-    quote.strategyId === 'cowcentrated' &&
+    (quote.strategyId === 'cowcentrated' || quote.strategyId === 'cowcentrated-dual') &&
     quote.vaultType === 'cowcentrated'
   );
 }
 
 export function isCowcentratedDepositQuote(
   quote: TransactQuote
-): quote is CowcentratedVaultDepositQuote | CowcentratedZapDepositQuote {
+): quote is
+  | CowcentratedVaultDepositQuote
+  | CowcentratedZapDepositQuote
+  | CowcentratedDualZapDepositQuote {
   return (
     isCowcentratedVaultDepositQuote(quote) ||
     isCowcentratedZapDepositQuote(quote) ||
@@ -936,4 +1156,29 @@ export interface ITransactApi {
   ): Promise<Step>;
 
   fetchVaultHasZap(vaultId: VaultEntity['id'], getState: BeefyStateFn): Promise<boolean>;
+
+  getHelpersForChain(
+    chainId: ChainEntity['id'],
+    getState: BeefyStateFn
+  ): Promise<ChainTransactHelpers>;
+
+  getHelpersForVault(vaultId: VaultEntity['id'], getState: BeefyStateFn): Promise<TransactHelpers>;
+
+  getZapStrategiesForVault(helpers: TransactHelpers): Promise<IStrategy[]>;
+
+  fetchRecoveryQuote(
+    recovery: CrossChainRecoveryParams,
+    actualBridgedAmount: BigNumber,
+    getState: BeefyStateFn,
+    pageVaultId: VaultEntity['id']
+  ): Promise<RecoveryQuote>;
+
+  fetchRecoveryStep(
+    recovery: CrossChainRecoveryParams,
+    quote: RecoveryQuote,
+    opId: string,
+    getState: BeefyStateFn,
+    t: TFunction<Namespace>,
+    pageVaultId: VaultEntity['id']
+  ): Promise<Step>;
 }

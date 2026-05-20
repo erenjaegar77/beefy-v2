@@ -5,12 +5,14 @@ import { AlertError } from '../../../../../../components/Alerts/Alerts.tsx';
 import { BIG_ZERO } from '../../../../../../helpers/big-number.ts';
 import { useAppSelector } from '../../../../../data/store/hooks.ts';
 import { isCowcentratedDepositQuote } from '../../../../../data/apis/transact/transact-types.ts';
+import { StepContent } from '../../../../../data/reducers/wallet/stepper-types.ts';
+import { selectStepperStepContent } from '../../../../../data/selectors/stepper.ts';
 import {
   selectTransactDepositInputAmountExceedsBalance,
   selectTransactSelectedQuote,
   selectTransactWithdrawInputAmountExceedsBalance,
 } from '../../../../../data/selectors/transact.ts';
-import { selectIsWalletConnected } from '../../../../../data/selectors/wallet.ts';
+import { selectIsWalletKnown } from '../../../../../data/selectors/wallet.ts';
 
 export type NotEnoughProps = {
   onChange: (shouldDisable: boolean) => void;
@@ -23,7 +25,7 @@ export const NotEnoughNotice = memo(function NotEnoughNotice({
   mode,
 }: NotEnoughProps) {
   const { t } = useTranslation();
-  const isWalletConnected = useAppSelector(selectIsWalletConnected);
+  const isWalletKnown = useAppSelector(selectIsWalletKnown);
   const inputAmountExceedsBalance = useAppSelector(
     mode === 'deposit' ?
       selectTransactDepositInputAmountExceedsBalance
@@ -34,12 +36,15 @@ export const NotEnoughNotice = memo(function NotEnoughNotice({
     quote &&
     isCowcentratedDepositQuote(quote) &&
     quote.outputs.every(output => output.amount.lte(BIG_ZERO));
+  const stepContent = useAppSelector(selectStepperStepContent);
+  const isBridging =
+    stepContent === StepContent.BridgingTx || stepContent === StepContent.SuccessTx;
 
   useEffect(() => {
-    onChange(inputAmountExceedsBalance);
-  }, [inputAmountExceedsBalance, onChange]);
+    onChange(isBridging ? false : inputAmountExceedsBalance);
+  }, [inputAmountExceedsBalance, isBridging, onChange]);
 
-  if (!inputAmountExceedsBalance || !isWalletConnected || isInvalidCowcentratedDeposit) {
+  if (!inputAmountExceedsBalance || !isWalletKnown || isInvalidCowcentratedDeposit || isBridging) {
     return null;
   }
 

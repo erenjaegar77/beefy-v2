@@ -34,9 +34,18 @@ export interface ISwapAggregator {
    */
   fetchTokenSupport(
     tokens: TokenEntity[],
-    vaultId: VaultEntity['id'],
+    vaultId: VaultEntity['id'] | undefined,
     chainId: ChainEntity['id'],
     state: BeefyState,
     options?: StrategySwapConfig
   ): Promise<TokenSupport>;
+
+  canSwapTokenPair(
+    fromToken: TokenEntity,
+    toToken: TokenEntity,
+    vaultId: VaultEntity['id'] | undefined,
+    chainId: ChainEntity['id'],
+    state: BeefyState,
+    options?: StrategySwapConfig
+  ): Promise<boolean>;
 }

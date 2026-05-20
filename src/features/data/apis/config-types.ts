@@ -286,18 +286,18 @@ export interface ZapConfig {
   chainId: ChainEntity['id'];
 }
 
-export interface KyberSwapSwapConfig {
+export interface OneInchSwapConfig {
   id: string;
-  type: 'kyber';
+  type: 'one-inch';
   chainId: ChainEntity['id'];
   priorityTokens: TokenEntity['id'][];
   blockedTokens: TokenEntity['id'][];
   blockedVaults: VaultEntity['id'][];
 }
 
-export interface OdosSwapConfig {
+export interface KyberSwapSwapConfig {
   id: string;
-  type: 'odos';
+  type: 'kyber';
   chainId: ChainEntity['id'];
   priorityTokens: TokenEntity['id'][];
   blockedTokens: TokenEntity['id'][];
@@ -313,7 +313,7 @@ export interface LiquidSwapSwapConfig {
   blockedVaults: VaultEntity['id'][];
 }
 
-export type SwapAggregatorConfig = KyberSwapSwapConfig | OdosSwapConfig | LiquidSwapSwapConfig;
+export type SwapAggregatorConfig = OneInchSwapConfig | KyberSwapSwapConfig | LiquidSwapSwapConfig;
 
 export type SwapAggregatorConfigLoose = ChangeTypeOfKeys<
   SwapAggregatorConfig,
@@ -435,27 +435,8 @@ export type TreasuryConfig = {
   };
 };
 
-export type MarketMakerHoldingConfig = {
-  symbol: string;
-  name: string;
-  oracleId: string;
-  oracleType: 'tokens' | 'lps';
-  usdValue: string;
-  balance: string;
-  price: number;
-};
-
-export type MarketMakerConfig = {
-  [marketMakerId: string]: {
-    [exchange: string]: {
-      [tokenId: string]: MarketMakerHoldingConfig;
-    };
-  };
-};
-
 export type TreasuryCompleteBreakdownConfig = {
   treasury: TreasuryConfig;
-  marketMaker: MarketMakerConfig;
 };
 
 export interface BridgeConfig {

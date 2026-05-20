@@ -1,7 +1,7 @@
 import { styled } from '@repo/styles/jsx';
 import { type FC, memo, useEffect } from 'react';
 import { stepperUpdateCurrentStep } from '../../features/data/actions/wallet/stepper.ts';
-import { StepContent } from '../../features/data/reducers/wallet/stepper-types.ts';
+import { StepContent as StepContentEnum } from '../../features/data/reducers/wallet/stepper-types.ts';
 import {
   selectStepperCurrentStepData,
   selectStepperState,
@@ -9,21 +9,23 @@ import {
 } from '../../features/data/selectors/stepper.ts';
 import { isEmpty } from '../../helpers/utils.ts';
 import { useAppDispatch, useAppSelector } from '../../features/data/store/hooks.ts';
-import {
-  ErrorContent,
-  StepsCountContent,
-  StepsStartContent,
-  SuccessContent,
-  WaitingContent,
-} from './components/Content/Content.tsx';
+import { BridgingContent } from './components/Content/BridgingContent.tsx';
+import { ErrorContent } from './components/Content/ErrorContent.tsx';
+import { RecoveryContent } from './components/Content/RecoveryContent.tsx';
+import { StepsCountContent } from './components/Content/StepsCountContent.tsx';
+import { StepsStartContent } from './components/Content/StepsStartContent.tsx';
+import { SuccessContent } from './components/Content/Success/SuccessContent.tsx';
+import { WaitingContent } from './components/Content/WaitingContent.tsx';
 import { ProgressBar } from './components/ProgressBar/ProgressBar.tsx';
 
-const stepToComponent: Record<StepContent, FC> = {
-  [StepContent.StartTx]: StepsStartContent,
-  [StepContent.WalletTx]: StepsCountContent,
-  [StepContent.WaitingTx]: WaitingContent,
-  [StepContent.ErrorTx]: ErrorContent,
-  [StepContent.SuccessTx]: SuccessContent,
+const stepToComponent: Record<StepContentEnum, FC> = {
+  [StepContentEnum.StartTx]: StepsStartContent,
+  [StepContentEnum.WalletTx]: StepsCountContent,
+  [StepContentEnum.WaitingTx]: WaitingContent,
+  [StepContentEnum.ErrorTx]: ErrorContent,
+  [StepContentEnum.SuccessTx]: SuccessContent,
+  [StepContentEnum.BridgingTx]: BridgingContent,
+  [StepContentEnum.RecoveryTx]: RecoveryContent,
 };
 
 const StepperImpl = () => {
@@ -58,16 +60,22 @@ const StepperImpl = () => {
 
 const Modal = styled('div', {
   base: {
-    width: '408px',
-    maxWidth: 'calc(100% - 48x)',
-    maxHeight: 'calc(100% - 48px)',
+    position: 'fixed',
+    zIndex: 'modal',
+    flexDirection: 'column',
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
-    flexDirection: 'column',
-    position: 'fixed',
-    top: '24px',
-    left: '24px',
-    zIndex: 'modal',
+    top: '12px',
+    left: '12px',
+    right: '12px',
+    maxHeight: 'calc(100% - 24px)',
+    sm: {
+      width: '408px',
+      top: '24px',
+      left: '24px',
+      right: 'auto',
+      maxHeight: 'calc(100% - 48px)',
+    },
   },
 });
 
@@ -78,6 +86,8 @@ const Inner = styled('div', {
     display: 'flex',
     flexDirection: 'column',
     minHeight: '0',
+    borderRadius: '16px',
+    overflow: 'hidden',
   },
 });
 

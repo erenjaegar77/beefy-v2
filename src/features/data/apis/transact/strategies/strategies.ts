@@ -22,9 +22,13 @@ const strategyLoadersByIdUnchecked = {
     (await import('./vault/VaultComposerStrategy.ts')).VaultComposerStrategy,
   cowcentrated: async () =>
     (await import('./cowcentrated/CowcentratedStrategy.ts')).CowcentratedStrategy,
+  'cowcentrated-dual': async () =>
+    (await import('./cowcentrated/CowcentratedDualStrategy.ts')).CowcentratedDualStrategy,
   'reward-pool-to-vault': async () =>
     (await import('./RewardPoolToVaultStrategy.ts')).RewardPoolToVaultStrategy,
   balancer: async () => (await import('./balancer/BalancerStrategy.ts')).BalancerStrategy,
+  'cross-chain': async () =>
+    (await import('./cross-chain/CrossChainStrategy.ts')).CrossChainStrategy,
 } as const satisfies Record<ZapStrategyId, AnyLoader>;
 
 type StrategyIdToStaticPromise = typeof strategyLoadersByIdUnchecked;

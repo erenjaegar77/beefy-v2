@@ -1,19 +1,25 @@
+import type BigNumber from 'bignumber.js';
 import { partition, uniq } from 'lodash-es';
 import type { Namespace, TFunction } from 'react-i18next';
 import { allFulfilled, isFulfilledResult } from '../../../../helpers/promises.ts';
+import type { ChainEntity } from '../../entities/chain.ts';
 import { isCowcentratedLikeVault, type VaultEntity } from '../../entities/vault.ts';
 import type { Step } from '../../reducers/wallet/stepper-types.ts';
 import { selectVaultById, selectVaultUnderlyingVault } from '../../selectors/vaults.ts';
 import { selectSwapAggregatorsExistForChain, selectZapByChainId } from '../../selectors/zap.ts';
-import type { BeefyStateFn } from '../../store/types.ts';
+import type { CrossChainRecoveryParams } from '../../reducers/wallet/transact-types.ts';
+import type { BeefyState, BeefyStateFn } from '../../store/types.ts';
 import { isDefined } from '../../utils/array-utils.ts';
 import { getSwapAggregator } from '../instances.ts';
+import * as cctp from './cctp/CCTPProvider.ts';
 import {
   type AnyComposableStrategy,
   type IComposableStrategyStatic,
   type IComposerStrategyStatic,
   type IStrategy,
+  isComposableStrategy,
   isZapTransactHelpers,
+  type ChainTransactHelpers,
   type IZapStrategyStatic,
   type TransactHelpers,
   type ZapTransactHelpers,
@@ -34,12 +40,14 @@ import type {
   ZapStrategyConfig,
   ZapStrategyId,
 } from './strategies/strategy-configs.ts';
+import { CrossChainStrategy } from './strategies/cross-chain/CrossChainStrategy.ts';
 import { VaultStrategy } from './strategies/vault/VaultStrategy.ts';
 import {
   type DepositOption,
   type DepositQuote,
   type InputTokenAmount,
   type ITransactApi,
+  type RecoveryQuote,
   type TransactQuote,
   type WithdrawOption,
   type WithdrawQuote,
@@ -75,22 +83,54 @@ export function isComposableStrategyConstructorWithOptions(
 }
 
 export class TransactApi implements ITransactApi {
-  protected async getHelpersForVault(
+  // Per-state cache: lets v2v dst enumeration share helpers across the ~hundreds of candidates.
+  private helpersCache = new WeakMap<
+    BeefyState,
+    Map<VaultEntity['id'], Promise<Omit<TransactHelpers, 'getState'>>>
+  >();
+
+  async getHelpersForChain(
+    chainId: ChainEntity['id'],
+    getState: BeefyStateFn
+  ): Promise<ChainTransactHelpers> {
+    const state = getState();
+    const zap = selectZapByChainId(state, chainId);
+    if (!zap) {
+      throw new Error(`No zap router configured for chain ${chainId}`);
+    }
+
+    const swapAggregator = await getSwapAggregator();
+
+    return {
+      zap,
+      swapAggregator,
+      getState,
+    };
+  }
+
+  async getHelpersForVault(
     vaultId: VaultEntity['id'],
     getState: BeefyStateFn
   ): Promise<TransactHelpers> {
     const state = getState();
-    const vault = selectVaultById(state, vaultId);
-    const vaultType = await this.getVaultTypeFor(vault, getState);
-    const zap = selectZapByChainId(state, vault.chainId);
-
-    return {
-      vault,
-      vaultType,
-      zap,
-      swapAggregator: await getSwapAggregator(),
-      getState,
-    };
+    let perState = this.helpersCache.get(state);
+    if (!perState) {
+      perState = new Map();
+      this.helpersCache.set(state, perState);
+    }
+    let cached = perState.get(vaultId);
+    if (!cached) {
+      cached = (async () => {
+        const vault = selectVaultById(state, vaultId);
+        const vaultType = await this.getVaultTypeFor(vault, getState);
+        const zap = selectZapByChainId(state, vault.chainId);
+        const swapAggregator = await getSwapAggregator();
+        return { vault, vaultType, zap, swapAggregator };
+      })();
+      perState.set(vaultId, cached);
+    }
+    const partial = await cached;
+    return { ...partial, getState };
   }
 
   async fetchDepositOptionsFor(
@@ -101,10 +141,8 @@ export class TransactApi implements ITransactApi {
     const { vaultType } = helpers;
     const options: DepositOption[] = [];
 
-    // direct deposit option
     let vaultDepositOption: DepositOption | undefined = await vaultType.fetchDepositOption();
 
-    // zaps
     const zapStrategies = await this.getZapStrategiesForVault(helpers);
     if (zapStrategies.length) {
       const zapOptions = await Promise.allSettled(
@@ -120,11 +158,27 @@ export class TransactApi implements ITransactApi {
           }
         }
       });
+
+      // Cross-chain deposit options
+      if (
+        isZapTransactHelpers(helpers) &&
+        cctp.isChainSupported(helpers.vault.chainId) &&
+        this.anyComposableStrategyAcceptsUsdcDeposit(helpers, zapStrategies, zapOptions)
+      ) {
+        try {
+          const xChainStrategy = new CrossChainStrategy({ strategyId: 'cross-chain' }, helpers);
+          const xChainOptions = await xChainStrategy.fetchDepositOptions();
+          options.push(...xChainOptions);
+        } catch (err) {
+          console.warn('Failed to load cross-chain deposit options:', err);
+        }
+      }
     }
 
     // if not disabled by a zap strategy, add the vault deposit option as the first item
     if (vaultDepositOption) {
-      options.unshift(vaultDepositOption);
+      const deduped = dropSingleIdentityOption(options, vaultDepositOption.inputs[0].address);
+      return [vaultDepositOption, ...deduped];
     }
 
     return options;
@@ -136,16 +190,15 @@ export class TransactApi implements ITransactApi {
     getState: BeefyStateFn
   ): Promise<DepositQuote[]> {
     const vaultId = options[0].vaultId;
+    const strategyIds = uniq(options.map(option => option.strategyId));
     const helpers = await this.getHelpersForVault(vaultId, getState);
 
     // Init each strategy at most once
-    const strategyIds = uniq(options.map(option => option.strategyId));
     const strategies = await Promise.all(strategyIds.map(id => this.getStrategyById(id, helpers)));
     const strategiesById = Object.fromEntries(
       strategies.map((strategy, i) => [strategyIds[i], strategy])
     );
 
-    // Call beforeQuote hooks
     await Promise.allSettled(
       strategies.map(async strategy => {
         if (strategy.beforeQuote) {
@@ -154,7 +207,6 @@ export class TransactApi implements ITransactApi {
       })
     );
 
-    // Get quotes
     const quotes = await Promise.allSettled(
       options.map(async option => {
         const strategy = strategiesById[option.strategyId];
@@ -195,12 +247,13 @@ export class TransactApi implements ITransactApi {
     const helpers = await this.getHelpersForVault(quote.option.vaultId, getState);
     const strategy = await this.getStrategyById(quote.option.strategyId, helpers);
 
-    // Call beforeStep hooks
     if (strategy.beforeStep) {
       await strategy.beforeStep();
     }
 
-    return await strategy.fetchDepositStep(quote, t);
+    const step = await strategy.fetchDepositStep(quote, t);
+
+    return step;
   }
 
   async fetchWithdrawOptionsFor(
@@ -211,10 +264,8 @@ export class TransactApi implements ITransactApi {
     const { vaultType } = helpers;
     const options: WithdrawOption[] = [];
 
-    // direct deposit option
     let vaultWithdrawOption: WithdrawOption | undefined = await vaultType.fetchWithdrawOption();
 
-    // zaps
     const zapStrategies = await this.getZapStrategiesForVault(helpers);
     if (zapStrategies.length) {
       const zapOptions = await Promise.allSettled(
@@ -230,11 +281,27 @@ export class TransactApi implements ITransactApi {
           }
         }
       });
+
+      // Cross-chain withdraw options
+      if (
+        isZapTransactHelpers(helpers) &&
+        cctp.isChainSupported(helpers.vault.chainId) &&
+        this.anyComposableStrategyAcceptsUsdcWithdraw(helpers, zapStrategies, zapOptions)
+      ) {
+        try {
+          const xChainStrategy = new CrossChainStrategy({ strategyId: 'cross-chain' }, helpers);
+          const xChainOptions = await xChainStrategy.fetchWithdrawOptions();
+          options.push(...xChainOptions);
+        } catch (err) {
+          console.warn('Failed to load cross-chain withdraw options:', err);
+        }
+      }
     }
 
     // if not disabled by a zap strategy, add the vault withdraw option as the first item
     if (vaultWithdrawOption) {
-      options.unshift(vaultWithdrawOption);
+      const deduped = dropSingleIdentityOption(options, vaultWithdrawOption.inputs[0].address);
+      return [vaultWithdrawOption, ...deduped];
     }
 
     return options;
@@ -246,16 +313,15 @@ export class TransactApi implements ITransactApi {
     getState: BeefyStateFn
   ): Promise<WithdrawQuote[]> {
     const vaultId = options[0].vaultId;
+    const strategyIds = uniq(options.map(option => option.strategyId));
     const helpers = await this.getHelpersForVault(vaultId, getState);
 
     // Init each strategy at most once
-    const strategyIds = uniq(options.map(option => option.strategyId));
     const strategies = await Promise.all(strategyIds.map(id => this.getStrategyById(id, helpers)));
     const strategiesById = Object.fromEntries(
       strategies.map((strategy, i) => [strategyIds[i], strategy])
     );
 
-    // Call beforeQuote hooks
     await Promise.allSettled(
       strategies.map(async strategy => {
         if (strategy.beforeQuote) {
@@ -264,7 +330,6 @@ export class TransactApi implements ITransactApi {
       })
     );
 
-    // Get quotes
     const quotes = await Promise.allSettled(
       options.map(option => {
         const strategy = strategiesById[option.strategyId];
@@ -320,18 +385,17 @@ export class TransactApi implements ITransactApi {
     const helpers = await this.getHelpersForVault(quote.option.vaultId, getState);
     const strategy = await this.getStrategyById(quote.option.strategyId, helpers);
 
-    // Call beforeStep hooks
     if (strategy.beforeStep) {
       await strategy.beforeStep();
     }
 
-    return await strategy.fetchWithdrawStep(quote, t);
+    const step = await strategy.fetchWithdrawStep(quote, t);
+    return step;
   }
 
   async fetchVaultHasZap(vaultId: VaultEntity['id'], getState: BeefyStateFn): Promise<boolean> {
     const helpers = await this.getHelpersForVault(vaultId, getState);
 
-    // No zap in config
     if (!helpers.vault.zaps || helpers.vault.zaps.length === 0) {
       return false;
     }
@@ -345,7 +409,6 @@ export class TransactApi implements ITransactApi {
       return false;
     }
 
-    // No strategies could be initialized
     const zapStrategies = await this.getZapStrategiesForVault(helpers);
     if (!zapStrategies.length) {
       return false;
@@ -355,11 +418,13 @@ export class TransactApi implements ITransactApi {
       zapStrategies.map(zapStrategy => zapStrategy.fetchDepositOptions())
     );
 
-    // Must have at least 1 deposit option from any strategy
     return options.flat().length > 0;
   }
 
-  private async getZapStrategiesForVault(helpers: TransactHelpers): Promise<IStrategy[]> {
+  async getZapStrategiesForVault(
+    helpers: TransactHelpers,
+    filter?: (zapConfig: ZapStrategyConfig) => boolean
+  ): Promise<IStrategy[]> {
     const { vault } = helpers;
 
     if (!vault.zaps || vault.zaps.length === 0) {
@@ -371,8 +436,11 @@ export class TransactApi implements ITransactApi {
       return [];
     }
 
+    const zaps = filter ? vault.zaps.filter(filter) : vault.zaps;
+    if (zaps.length === 0) return [];
+
     const strategies = await Promise.all(
-      vault.zaps.map(async zapConfig => {
+      zaps.map(async zapConfig => {
         if (!zapConfig.strategyId) {
           console.warn(`Vault ${vault.id} has a zap config but no strategyId specified`);
           return undefined;
@@ -458,12 +526,12 @@ export class TransactApi implements ITransactApi {
     const ctor = await loader();
 
     if (isComposerStrategyStatic(ctor)) {
-      const underlyingStrategy = await this.getComposableStrategyForZap(helpers);
+      const underlyingStrategies = await this.getComposableStrategyForZap(helpers);
       const genericCtor = ctor as IComposerStrategyStatic;
       return new genericCtor(
         strategyConfig as StrategyIdToConfig<ComposerStrategyId>,
         helpers,
-        underlyingStrategy
+        underlyingStrategies
       );
     }
 
@@ -482,7 +550,7 @@ export class TransactApi implements ITransactApi {
 
   private async getComposableStrategyForZap(
     helpers: ZapTransactHelpers
-  ): Promise<AnyComposableStrategy> {
+  ): Promise<AnyComposableStrategy[]> {
     const { getState, vault } = helpers;
     const underlyingVault = selectVaultUnderlyingVault(getState(), vault.id);
     const underlyingHelpers = await this.getHelpersForVault(underlyingVault.id, getState);
@@ -501,19 +569,13 @@ export class TransactApi implements ITransactApi {
       );
     }
 
-    const underlyingStrategy = composableUnderlyingStrategies[0];
-    if (composableUnderlyingStrategies.length > 1) {
-      console.warn(
-        `Underlying vault ${underlyingVault.id} of ${vault.id} has multiple composable strategies, using the first ${underlyingStrategy.ctor.id}`
-      );
-    }
-
-    const ctor = underlyingStrategy.ctor as new (
-      options: ZapStrategyConfig,
-      helpers: ZapTransactHelpers
-    ) => AnyComposableStrategy;
-    const options = underlyingStrategy.options;
-    return new ctor(options, underlyingHelpers);
+    return composableUnderlyingStrategies.map(s => {
+      const ctor = s.ctor as new (
+        options: ZapStrategyConfig,
+        helpers: ZapTransactHelpers
+      ) => AnyComposableStrategy;
+      return new ctor(s.options, underlyingHelpers);
+    });
   }
 
   private async getStrategyById(
@@ -523,12 +585,16 @@ export class TransactApi implements ITransactApi {
     const { vault, vaultType } = helpers;
 
     if (strategyId === 'vault') {
-      // Wrapper for common interface
       return new VaultStrategy(vaultType);
     }
 
     if (!isZapTransactHelpers(helpers)) {
       throw new Error(`Strategy "${strategyId}" requires zap contract`);
+    }
+
+    // Cross-chain strategy is not in vault.zaps — instantiate inline
+    if (strategyId === 'cross-chain') {
+      return await this.buildZapStrategy({ strategyId: 'cross-chain' }, helpers);
     }
 
     if (!vault.zaps) {
@@ -542,4 +608,130 @@ export class TransactApi implements ITransactApi {
 
     return await this.buildZapStrategy(zap, helpers);
   }
+
+  async fetchRecoveryQuote(
+    recovery: CrossChainRecoveryParams,
+    actualBridgedAmount: BigNumber,
+    getState: BeefyStateFn,
+    pageVaultId: VaultEntity['id']
+  ): Promise<RecoveryQuote> {
+    if (recovery.destHandlerKind === 'passthrough') {
+      throw new Error('Passthrough withdraw recovery does not require a quote');
+    }
+
+    const helpers = await this.getHelpersForVault(pageVaultId, getState);
+    if (!isZapTransactHelpers(helpers)) {
+      throw new Error(`No zap router configured for vault ${pageVaultId}`);
+    }
+    const xChainStrategy = new CrossChainStrategy({ strategyId: 'cross-chain' }, helpers);
+    const destChainHelpers = await this.getHelpersForChain(recovery.destChainId, getState);
+    return xChainStrategy.fetchRecoveryQuote(recovery, actualBridgedAmount, destChainHelpers);
+  }
+
+  async fetchRecoveryStep(
+    recovery: CrossChainRecoveryParams,
+    quote: RecoveryQuote,
+    opId: string,
+    getState: BeefyStateFn,
+    t: TFunction<Namespace>,
+    pageVaultId: VaultEntity['id']
+  ): Promise<Step> {
+    if (recovery.destHandlerKind === 'passthrough') {
+      throw new Error('Passthrough withdraw recovery does not require a step');
+    }
+
+    const helpers = await this.getHelpersForVault(pageVaultId, getState);
+    if (!isZapTransactHelpers(helpers)) {
+      throw new Error(`No zap router configured for vault ${pageVaultId}`);
+    }
+    const xChainStrategy = new CrossChainStrategy({ strategyId: 'cross-chain' }, helpers);
+    const destChainHelpers = await this.getHelpersForChain(recovery.destChainId, getState);
+    return xChainStrategy.fetchRecoveryStep(recovery, quote, destChainHelpers, opId, t);
+  }
+
+  private anyComposableStrategyAcceptsUsdcDeposit(
+    helpers: ZapTransactHelpers,
+    zapStrategies: IStrategy[],
+    zapOptions: PromiseSettledResult<DepositOption[]>[]
+  ): boolean {
+    const state = helpers.getState();
+    const destUSDC = cctp.getUSDCForChain(helpers.vault.chainId, state);
+    const usdcAddr = destUSDC.address.toLowerCase();
+
+    // Vault natively accepts USDC: any composable strategy can handle direct deposit
+    if (helpers.vault.depositTokenAddress.toLowerCase() === usdcAddr) {
+      return zapStrategies.some(
+        (s, i) => isFulfilledResult(zapOptions[i]) && isComposableStrategy(s)
+      );
+    }
+
+    for (let i = 0; i < zapStrategies.length; i++) {
+      const result = zapOptions[i];
+      if (!isFulfilledResult(result) || !isComposableStrategy(zapStrategies[i])) continue;
+      if (
+        result.value.some(
+          o => o.inputs.length === 1 && o.inputs[0].address.toLowerCase() === usdcAddr
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private anyComposableStrategyAcceptsUsdcWithdraw(
+    helpers: ZapTransactHelpers,
+    zapStrategies: IStrategy[],
+    zapOptions: PromiseSettledResult<WithdrawOption[]>[]
+  ): boolean {
+    const state = helpers.getState();
+    const destUSDC = cctp.getUSDCForChain(helpers.vault.chainId, state);
+    const usdcAddr = destUSDC.address.toLowerCase();
+
+    // Vault holds USDC: any composable strategy can withdraw to USDC
+    if (helpers.vault.depositTokenAddress.toLowerCase() === usdcAddr) {
+      return zapStrategies.some(
+        (s, i) => isFulfilledResult(zapOptions[i]) && isComposableStrategy(s)
+      );
+    }
+
+    for (let i = 0; i < zapStrategies.length; i++) {
+      const result = zapOptions[i];
+      if (!isFulfilledResult(result) || !isComposableStrategy(zapStrategies[i])) continue;
+      if (
+        result.value.some(
+          o => o.wantedOutputs.length === 1 && o.wantedOutputs[0].address.toLowerCase() === usdcAddr
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
+/**
+ * Drop SingleStrategy's identity (depositToken→depositToken) option — emitted so
+ *  cross-chain can find the vault via fetchOptions; the picker uses the vault-type path instead.
+ */
+function dropSingleIdentityOption<
+  T extends {
+    strategyId: string;
+    inputs: { address: string }[];
+    wantedOutputs: { address: string }[];
+  },
+>(options: T[], tokenAddress: string): T[] {
+  const lower = tokenAddress.toLowerCase();
+  return options.filter(
+    o =>
+      !(
+        o.strategyId === 'single' &&
+        o.inputs.length === 1 &&
+        o.wantedOutputs.length === 1 &&
+        o.inputs[0].address.toLowerCase() === lower &&
+        o.wantedOutputs[0].address.toLowerCase() === lower
+      )
+  );
 }

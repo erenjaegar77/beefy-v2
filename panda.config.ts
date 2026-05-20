@@ -77,7 +77,7 @@ const config = buildConfig(
           'not dead',
           'not op_mini all',
         ]
-        : ['last 1 chrome version', 'last 1 firefox version', 'last 1 safari version'],
+      : ['last 1 chrome version', 'last 1 firefox version', 'last 1 safari version'],
     // Where css variables are defined
     cssVarRoot: ':root',
     // Plugins
@@ -271,6 +271,7 @@ const config = buildConfig(
           blueJewel: { value: '#495086', description: 'bg hover for some buttons' },
           bridgeQuoteSelectorScrollThumb: { value: '#373b60' },
           chainIconUnselectedBackground: { value: '#2e324c' },
+          pointsSurface: { value: '#19191A', description: 'points banner dark surface' },
           changeNegative: { value: '#e84525' },
           changePositive: { value: '#509658' },
           contentBackgroundLight: { value: '#2d3153', description: 'contentLight' },
@@ -304,7 +305,9 @@ const config = buildConfig(
           redError: { value: '#da5932', description: 'indicators.error' },
           scrollableShadowSolid: { value: '#0000007f' },
           selectOptionActiveBackground: { value: '#ffffff28' },
+          stepperBridgingBackground: { value: '#999cb33d' },
           stepperErrorBackground: { value: '#db323219' },
+          stepperRecoveryBackground: { value: '#ffd1a33d' },
           stepperSuccessBackground: { value: '#59a66226' },
           tagClmBackground: { value: '#0052CC', description: 'tag.clm' },
           tagPausedBackground: { value: '#564a46', description: 'tag.paused' },
@@ -330,7 +333,6 @@ const config = buildConfig(
           transactDebuggerItemAltBackground: { value: '#222222' },
           transactErrorBackground: { value: '#da59327c' },
           transactWarningBackground: { value: '#d198477c' },
-          treasuryHeaderSystem9: { value: '#f3f3c87f' },
           vaultClmPoolBackground: { value: '#252c63', description: 'vaults clm + vaults clmPool' },
           vaultClmVaultBackground: { value: '#1e2a48', description: 'vaults clmVault' },
           vaultGovBackground: { value: '#322460', description: 'vaults gov' },
@@ -371,6 +373,7 @@ const config = buildConfig(
             '50-20a': { value: '#53be6433' },
             '60': { value: '#449a4d' },
             '70': { value: '#368a4d' },
+            '70-56a': { value: '#2748468F' },
             '80': { value: '#2a784c' },
             '80-40': { value: '#274846' },
             '80-40a': { value: '#2a784c66' },
@@ -378,6 +381,7 @@ const config = buildConfig(
             '100': { value: '#155042' },
           },
           darkBlue: {
+            '30': { value: '#151728' },
             '40': { value: '#3f4574' },
             '50': { value: '#363b63' },
             '50-56a': { value: '#363b638e' },
@@ -515,6 +519,7 @@ const config = buildConfig(
             dark: { value: '{colors.white.70}' },
             black: { value: '{colors.darkBlue.90}' },
             boosted: { value: '{colors.gold.30}' },
+            points: { value: '{colors.green.40}' },
             warning: { value: '{colors.orange.40}' },
             disabled: { value: '{colors.darkBlue.90-56a}' },
             underline: { value: '{colors.white.70-64a}' },
@@ -531,6 +536,7 @@ const config = buildConfig(
               light: { value: '{colors.contentBackgroundLight}' },
               gray: { value: '{colors.text.dark}' },
               darkest: { value: '{colors.darkBlue.90}' },
+              points: { value: '{colors.pointsSurface}' },
             },
             vaults: {
               standard: { value: '{colors.blackMarket}' },
@@ -782,6 +788,10 @@ const config = buildConfig(
             transform: 'rotate(360deg)',
           },
         },
+        addressInputCaretBlink: {
+          '0%, 50%': { backgroundSize: '2px 12px' },
+          '50.01%, 100%': { backgroundSize: '0 12px' },
+        },
         highlight: {
           to: {
             backgroundPosition: '200% center',
@@ -989,6 +999,22 @@ const config = buildConfig(
           color: '{colors.text.black}',
         },
       },
+      recovery: {
+        base: {
+          color: '{colors.text.black}',
+          background: '{colors.gold.50}',
+          border: '{colors.gold.50}',
+        },
+        hover: {
+          background: '{colors.gold.30}',
+          border: '{colors.gold.30}',
+        },
+        disabled: {
+          color: '{colors.text.disabled}',
+          background: '{colors.gold.40-12a}',
+          border: '{colors.gold.40-12a}',
+        },
+      },
       filter: {
         base: {
           color: '{colors.text.dark}',
@@ -1063,6 +1089,23 @@ const config = buildConfig(
         active: {
           background: 'transparent',
           border: 'transparent',
+        },
+      },
+      card: {
+        base: {
+          color: '{colors.text.light}',
+          background: '{colors.background.content.dark}',
+          border: '{colors.background.border}',
+        },
+        hover: {
+          color: '{colors.text.light}',
+          background: '{colors.background.content.dark}',
+          border: '{colors.background.content.light}',
+        },
+        active: {
+          color: '{colors.text.light}',
+          background: '{colors.darkBlue.50}',
+          border: '{colors.background.content.light}',
         },
       },
     },

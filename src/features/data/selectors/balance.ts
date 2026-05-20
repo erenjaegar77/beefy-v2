@@ -14,6 +14,7 @@ import {
   isGovVault,
   isSingleGovVault,
   isStandardVault,
+  isVaultActive,
   isVaultWithReceipt,
   type VaultEntity,
   type VaultGov,
@@ -853,10 +854,12 @@ export const selectUserUnstakedClms = createSelector(
     }
 
     return allCowcentratedVaults
-      .filter(clm =>
-        userBalance.tokenAmount.byChainId[clm.chainId]?.byTokenAddress[
-          clm.receiptTokenAddress.toLocaleLowerCase()
-        ]?.balance.gt(BIG_ZERO)
+      .filter(
+        clm =>
+          isVaultActive(clm) &&
+          userBalance.tokenAmount.byChainId[clm.chainId]?.byTokenAddress[
+            clm.receiptTokenAddress.toLocaleLowerCase()
+          ]?.balance.gt(BIG_ZERO)
       )
       .map(vault => vault.id);
   }
@@ -922,4 +925,24 @@ export const selectPastBoostIdsWithUserBalance = (
     }
   }
   return boostIds;
+};
+
+export const selectDepositOptionTokensBalanceByChainId = (
+  state: BeefyState,
+  chainId: ChainEntity['id'],
+  walletAddress: string
+): BigNumber => {
+  const selectionIds = state.ui.transact.selections.byChainId[chainId];
+  if (!selectionIds) return BIG_ZERO;
+
+  return selectionIds.reduce((acc, selectionId) => {
+    const selection = state.ui.transact.selections.bySelectionId[selectionId];
+    if (!selection) return acc;
+    if (selection.vaultRefId) return acc;
+    return selection.tokens.reduce((sum, token) => {
+      const balance = selectUserBalanceOfToken(state, token.chainId, token.address, walletAddress);
+      const price = selectTokenPriceByAddress(state, token.chainId, token.address);
+      return sum.plus(balance.multipliedBy(price));
+    }, acc);
+  }, BIG_ZERO);
 };

@@ -1,7 +1,10 @@
 import type {
   QuoteOutputTokenAmountChange,
+  RecoveryQuote,
+  TokenAmount,
   TransactOption,
   TransactQuote,
+  ZapQuoteStep,
 } from '../../apis/transact/transact-types.ts';
 import type { VaultEntity } from '../../entities/vault.ts';
 import type { TokenEntity } from '../../entities/token.ts';
@@ -12,8 +15,10 @@ import type { SerializedError } from '../../apis/transact/strategies/error-types
 export enum TransactStep {
   Loading,
   Form,
+  ChainSelect,
   TokenSelect,
   QuoteSelect,
+  DepositFromVaultSelect,
 }
 
 export enum TransactMode {
@@ -21,6 +26,11 @@ export enum TransactMode {
   Withdraw,
   Claim,
   Boost,
+}
+
+export enum DepositSource {
+  Wallet = 'wallet',
+  Vault = 'vault',
 }
 
 export enum TransactStatus {
@@ -35,6 +45,8 @@ export type TransactSelection = {
   tokens: TokenEntity[];
   order: number;
   hideIfZeroBalance: boolean;
+  /** Cross-chain v2v: src vaultId on deposit, dst vaultId on withdraw. */
+  vaultRefId?: VaultEntity['id'];
 };
 
 export type TransactSelections = {
@@ -70,6 +82,77 @@ export type TransactConfirm = {
   error: SerializedError | undefined;
 };
 
+export type CrossChainOpStatus =
+  | 'source-pending'
+  | 'source-done'
+  | 'source-failed'
+  | 'dest-pending'
+  | 'dest-done'
+  | 'dest-failed'
+  | 'dest-recovered';
+
+export type CrossChainRecoveryPassthrough = {
+  destHandlerKind: 'passthrough';
+  destChainId: ChainEntity['id'];
+  bridgeTokenAddress: string;
+  bridgedAmount: string;
+};
+
+export type CrossChainRecoverySwap = {
+  destHandlerKind: 'swap';
+  destChainId: ChainEntity['id'];
+  bridgeTokenAddress: string;
+  bridgedAmount: string;
+  desiredOutputAddress: string;
+};
+
+export type CrossChainRecoveryVault = {
+  destHandlerKind: 'vault';
+  destChainId: ChainEntity['id'];
+  destVaultId: VaultEntity['id'];
+  bridgeTokenAddress: string;
+  bridgedAmount: string;
+};
+
+export type CrossChainRecoveryParams =
+  | CrossChainRecoveryPassthrough
+  | CrossChainRecoverySwap
+  | CrossChainRecoveryVault;
+
+export type PendingCrossChainOp = {
+  id: string;
+  status: CrossChainOpStatus;
+  direction: 'deposit' | 'withdraw';
+  sourceChainId: ChainEntity['id'];
+  destChainId: ChainEntity['id'];
+  /** Page-vault id. For v2v withdraws, the destination vault is on recovery.destVaultId. */
+  vaultId: VaultEntity['id'];
+  sourceTxHash: string;
+  destTxHash?: string;
+  sourceInput: TokenAmount;
+  expectedOutput: TokenAmount;
+  sourceDisplaySteps: ZapQuoteStep[];
+  destDisplaySteps: ZapQuoteStep[];
+  recovery: CrossChainRecoveryParams;
+  twoStep?: boolean;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type CrossChainRecoveryQuoteState = {
+  opId: string | undefined;
+  quote: RecoveryQuote | undefined;
+  status: TransactStatus;
+  error: SerializedError | undefined;
+  isStale: boolean;
+};
+
+export type TransactCrossChain = {
+  pendingOps: Record<string, PendingCrossChainOp>;
+  pendingOpIds: string[];
+  recoveryQuote: CrossChainRecoveryQuoteState;
+};
+
 export type TransactState = {
   vaultId: VaultEntity['id'] | undefined;
   pendingVaultId: VaultEntity['id'] | undefined;
@@ -81,9 +164,15 @@ export type TransactState = {
   inputMaxes: boolean[];
   mode: TransactMode;
   step: TransactStep;
+  depositSource: DepositSource;
   forceSelection: boolean;
   selections: TransactSelections;
   options: TransactOptions;
   quotes: TransactQuotes;
   confirm: TransactConfirm;
+  crossChain: TransactCrossChain;
+  /** True while building steps / about to open stepper (disables deposit/withdraw/claim/recovery buttons) */
+  executing: boolean;
+  /** True after a successful tx when the stepper has been closed; keeps the route visible with finished steps */
+  successClosed: boolean;
 };

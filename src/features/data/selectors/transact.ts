@@ -1,27 +1,38 @@
 import { createSelector } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
 import { orderBy } from 'lodash-es';
-import { BIG_ZERO } from '../../../helpers/big-number.ts';
+import { BIG_ONE, BIG_ZERO, compareBigNumber } from '../../../helpers/big-number.ts';
 import { extractTagFromLpSymbol } from '../../../helpers/tokens.ts';
 import type { PulseHighlightProps } from '../../vault/components/PulseHighlight/PulseHighlight.tsx';
 import type { BoostReward } from '../apis/balance/balance-types.ts';
 import {
+  type CrossChainChainOption,
+  type CrossChainTokenOption,
+  isCrossChainOption,
   type TokenAmount,
   type TransactOption,
   type TransactQuote,
 } from '../apis/transact/transact-types.ts';
 import type { ChainEntity } from '../entities/chain.ts';
 import { isSingleGovVault, type VaultEntity } from '../entities/vault.ts';
-import { TransactStatus } from '../reducers/wallet/transact-types.ts';
+import {
+  DepositSource,
+  TransactMode,
+  TransactStatus,
+  type PendingCrossChainOp,
+  type TransactSelection,
+} from '../reducers/wallet/transact-types.ts';
 import type { BeefyState } from '../store/types.ts';
 import { valueOrThrow } from '../utils/selector-utils.ts';
 import {
   selectAddressHasVaultPendingWithdrawal,
   selectBoostUserRewardsInToken,
+  selectDepositOptionTokensBalanceByChainId,
   selectPastBoostIdsWithUserBalance,
   selectUserBalanceOfToken,
   selectUserVaultBalanceInDepositToken,
   selectUserVaultBalanceInShareTokenIncludingDisplaced,
+  selectUserVaultBalanceInUsdIncludingDisplaced,
   selectUserVaultBalanceNotInActiveBoostInShareToken,
 } from './balance.ts';
 import { selectAllVaultBoostIds, selectPreStakeOrActiveBoostIds } from './boosts.ts';
@@ -38,6 +49,11 @@ import {
 } from './user-rewards.ts';
 import { selectVaultById } from './vaults.ts';
 import { selectWalletAddressIfKnown } from './wallet.ts';
+import { selectChainById } from './chains.ts';
+import {
+  getSupportedChainIds,
+  getBridgeFeeForUsdcAmount,
+} from '../apis/transact/cctp/CCTPProvider.ts';
 
 export const selectTransactStep = (state: BeefyState) => state.ui.transact.step;
 export const selectTransactVaultId = (state: BeefyState) =>
@@ -48,6 +64,17 @@ export const selectTransactPendingVaultIdOrUndefined = (state: BeefyState) =>
 
 export const selectTransactMode = (state: BeefyState) => state.ui.transact.mode;
 export const selectTransactSlippage = (state: BeefyState) => state.ui.transact.swapSlippage;
+
+export const selectTransactDepositSource = (state: BeefyState) => state.ui.transact.depositSource;
+
+export const selectTransactDepositFromVaultId = (
+  state: BeefyState
+): VaultEntity['id'] | undefined => {
+  if (state.ui.transact.depositSource !== DepositSource.Vault) return undefined;
+  const selectionId = state.ui.transact.selectedSelectionId;
+  if (!selectionId) return undefined;
+  return state.ui.transact.selections.bySelectionId[selectionId]?.vaultRefId;
+};
 
 export const selectTransactOptionsStatus = (state: BeefyState) => state.ui.transact.options.status;
 export const selectTransactOptionsError = (state: BeefyState) => state.ui.transact.options.error;
@@ -127,6 +154,12 @@ export const selectTransactSelected = createSelector(
 export const selectTransactDepositInputAmountExceedsBalance = (state: BeefyState) => {
   const selection = selectTransactSelected(state);
   const inputAmounts = selectTransactInputAmounts(state);
+  // Vault-to-vault src deposit: input is denominated in the src vault's deposit token,
+  // so compare against the user's balance *in the src vault*, not their wallet balance.
+  if (selection.vaultRefId) {
+    const userBalance = selectUserVaultBalanceInDepositToken(state, selection.vaultRefId);
+    return (inputAmounts[0] || BIG_ZERO).gt(userBalance);
+  }
   const userBalances = selection.tokens.map(token =>
     selectUserBalanceOfToken(state, token.chainId, token.address)
   );
@@ -192,6 +225,10 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
 
   return orderBy(
     selectionsWithModifiedSymbols.map(selection => {
+      if (selection.vaultRefId) {
+        return selection;
+      }
+
       if (selection.tokens.length === 1) {
         const token = selection.tokens[0];
         const price = selectTokenPriceByAddress(state, token.chainId, token.address);
@@ -206,7 +243,6 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
           ...selection,
           balance,
           decimals: token.decimals,
-          price,
           balanceValue: balance.multipliedBy(price),
         };
       }
@@ -216,6 +252,13 @@ export const selectTransactWithdrawSelectionsForChainWithBalances = (
     [o => o.order, o => o.balanceValue.toNumber()],
     ['asc', 'desc']
   );
+};
+
+export type SelectionRow = TransactSelection & {
+  balanceValue: BigNumber;
+  balance: BigNumber | undefined;
+  decimals: number;
+  tag: string | undefined;
 };
 
 export const selectTransactDepositTokensForChainIdWithBalances = (
@@ -233,48 +276,124 @@ export const selectTransactDepositTokensForChainIdWithBalances = (
     selectionId => state.ui.transact.selections.bySelectionId[selectionId]
   );
 
-  return orderBy(
-    options
-      .map(option => {
-        const tokens = option.tokens;
-        const balances = tokens.map(token =>
-          selectUserBalanceOfToken(state, token.chainId, token.address, walletAddress)
-        );
-        const prices = tokens.map(token =>
-          selectTokenPriceByAddress(state, token.chainId, token.address)
-        );
-        const balanceValues = balances.map((balance, index) => balance.multipliedBy(prices[index]));
-        const balanceValueTotal = balanceValues.reduce((acc, value) => acc.plus(value), BIG_ZERO);
+  const rows = options.map((option): SelectionRow => {
+    const tokens = option.tokens;
 
-        const optionWithBalances = {
+    if (option.vaultRefId) {
+      if (!walletAddress) {
+        return {
           ...option,
-          balances,
-          prices,
-          balanceValues,
-          balanceValue: balanceValueTotal,
-          balance: undefined,
-          decimals: 0,
-          price: undefined,
+          balanceValue: BIG_ZERO,
+          balance: BIG_ZERO,
+          decimals: tokens[0].decimals,
           tag: undefined,
         };
+      }
+      const shareBalance = selectUserVaultBalanceInShareTokenIncludingDisplaced(
+        state,
+        option.vaultRefId,
+        walletAddress
+      );
+      const balanceValue = selectUserVaultBalanceInUsdIncludingDisplaced(
+        state,
+        option.vaultRefId,
+        walletAddress
+      );
+      return {
+        ...option,
+        balanceValue,
+        balance: shareBalance,
+        decimals: tokens[0].decimals,
+        tag: undefined,
+      };
+    }
 
-        if (tokens.length === 1) {
-          return {
-            ...optionWithBalances,
-            ...extractTagFromLpSymbol(tokens, vault),
-            balance: balances[0],
-            decimals: tokens[0].decimals,
-            price: prices[0],
-          };
-        }
+    const balances = tokens.map(token =>
+      selectUserBalanceOfToken(state, token.chainId, token.address, walletAddress)
+    );
+    const prices = tokens.map(token =>
+      selectTokenPriceByAddress(state, token.chainId, token.address)
+    );
+    const balanceValueTotal = balances.reduce(
+      (acc, balance, index) => acc.plus(balance.multipliedBy(prices[index])),
+      BIG_ZERO
+    );
 
-        return optionWithBalances;
-      })
-      .filter(option => !option.hideIfZeroBalance || !option.balanceValue.isZero()),
+    const base: SelectionRow = {
+      ...option,
+      balanceValue: balanceValueTotal,
+      balance: undefined,
+      decimals: 0,
+      tag: undefined,
+    };
+
+    if (tokens.length === 1) {
+      return {
+        ...base,
+        ...extractTagFromLpSymbol(tokens, vault),
+        balance: balances[0],
+        decimals: tokens[0].decimals,
+      };
+    }
+
+    return base;
+  });
+  return orderBy(
+    rows.filter(row => !row.hideIfZeroBalance || !row.balanceValue.isZero()),
     [o => o.order, o => o.balanceValue.toNumber()],
     ['asc', 'desc']
   );
 };
+
+export type DepositFromVaultEntry = TransactSelection & {
+  balance: BigNumber;
+  balanceUsd: BigNumber;
+  decimals: number;
+  vaultId: VaultEntity['id'];
+};
+
+// Global (cross-chain) src-vault entries from CrossChainStrategy selections, dust-filtered.
+export const selectTransactDepositFromVaultEntries = (
+  state: BeefyState
+): DepositFromVaultEntry[] => {
+  const walletAddress = selectWalletAddressIfKnown(state);
+  if (!walletAddress) return [];
+  const bySelectionId = state.ui.transact.selections.bySelectionId;
+  const entries: DepositFromVaultEntry[] = [];
+
+  for (const selection of Object.values(bySelectionId)) {
+    if (!selection.vaultRefId) continue;
+    const vaultId = selection.vaultRefId;
+    const balanceUsd =
+      selectUserVaultBalanceInUsdIncludingDisplaced(state, vaultId, walletAddress) ?? BIG_ZERO;
+    // Vaults with USD value below this threshold are hidden from the picker
+    if (balanceUsd.lt(BIG_ONE)) continue;
+    const balance = selectUserVaultBalanceInShareTokenIncludingDisplaced(
+      state,
+      vaultId,
+      walletAddress
+    );
+    entries.push({
+      ...selection,
+      balance,
+      balanceUsd,
+      decimals: selection.tokens[0].decimals,
+      vaultId,
+    });
+  }
+
+  return entries.sort((a, b) => compareBigNumber(b.balanceUsd, a.balanceUsd));
+};
+
+export const selectTransactUserHasOtherDepositedVaults = createSelector(
+  selectTransactDepositFromVaultEntries,
+  entries => entries.length > 0
+);
+
+export const selectTransactIsDepositFromVault = (state: BeefyState): boolean =>
+  state.ui.transact.mode === TransactMode.Deposit &&
+  state.ui.transact.depositSource === DepositSource.Vault &&
+  selectTransactUserHasOtherDepositedVaults(state);
 
 export const selectTransactOptionById = createSelector(
   (_state: BeefyState, optionId: string) => optionId,
@@ -312,12 +431,149 @@ export function selectTokenAmountValue(state: BeefyState, tokenAmount: TokenAmou
   ).multipliedBy(tokenAmount.amount);
 }
 
+export const selectTransactExecuting = (state: BeefyState) => state.ui.transact.executing;
 export const selectTransactConfirmStatus = (state: BeefyState) => state.ui.transact.confirm.status;
 export const selectTransactConfirmError = (state: BeefyState) => state.ui.transact.confirm.error;
 export const selectTransactConfirmChanges = (state: BeefyState) =>
   state.ui.transact.confirm.changes;
 
+/** True when "quote has changed, please confirm" is shown — button should be enabled so user can confirm with new quote */
+export const selectTransactConfirmNeededWithChanges = createSelector(
+  [selectTransactConfirmStatus, selectTransactConfirmChanges],
+  (status, changes) => status === TransactStatus.Fulfilled && changes != null && changes.length > 0
+);
+
 export const selectTransactForceSelection = (state: BeefyState) => state.ui.transact.forceSelection;
+
+export const selectTransactVaultHasCrossChainZap = (state: BeefyState) => {
+  const byOptionId = state.ui.transact.options.byOptionId;
+  return Object.values(byOptionId).some(option => option.strategyId === 'cross-chain');
+};
+
+const CROSS_CHAIN_PREFLIGHT_SAFETY_BUFFER = 0.05;
+
+export function selectTransactCrossChainPreflight(state: BeefyState): boolean {
+  const selectionId = state.ui.transact.selectedSelectionId;
+  if (!selectionId) return true;
+
+  const selection = selectTransactSelectionById(state, selectionId);
+  if (!selection) return true;
+
+  const inputAmounts = selectTransactInputAmounts(state);
+  if (inputAmounts.length === 0 || inputAmounts.every(amount => amount.lte(BIG_ZERO))) {
+    return true;
+  }
+
+  const options = selectTransactOptionsForSelectionId(state, selectionId);
+  if (options.length === 0 || !options.every(isCrossChainOption)) return true;
+  const option = options[0];
+
+  const slippage = selectTransactSlippage(state);
+  const slippageDivisor = 1 - slippage - CROSS_CHAIN_PREFLIGHT_SAFETY_BUFFER;
+  if (slippageDivisor <= 0) return true;
+
+  const inputUsd = BigNumber.sum(
+    ...option.inputs.map((token, i) =>
+      selectTokenAmountValue(state, { token, amount: inputAmounts[i] || BIG_ZERO })
+    )
+  );
+
+  const usdcPriceUsd = selectTokenPriceByAddress(
+    state,
+    option.bridgeToken.chainId,
+    option.bridgeToken.address
+  );
+  const feeUsdc = getBridgeFeeForUsdcAmount(
+    option.sourceChainId,
+    option.destChainId,
+    inputUsd,
+    option.bridgeToken.decimals
+  );
+  const feeUsd = feeUsdc.multipliedBy(usdcPriceUsd);
+  const requiredInputUsd = feeUsd.dividedBy(slippageDivisor);
+  return inputUsd.gte(requiredInputUsd);
+}
+
+/**
+ * Returns the list of chains available for cross-chain deposit, sorted as:
+ * 1. Chains with balance before chains without
+ * 2. Among chains with balance, sorted by USD balance descending
+ * 3. Among chains with $0 balance, sorted alphabetically by chain name
+ */
+export const selectCrossChainSortedChains = (
+  state: BeefyState,
+  vaultId: VaultEntity['id']
+): CrossChainChainOption[] => {
+  const vault = selectVaultById(state, vaultId);
+  const cctpChainIds = getSupportedChainIds();
+  // Deduplicated set: vault chain + supported source chains
+  const allChainIds = Array.from(new Set([vault.chainId, ...cctpChainIds]));
+
+  const walletAddress = selectWalletAddressIfKnown(state);
+  const chainsWithBalance: CrossChainChainOption[] = allChainIds.map(chainId => {
+    const chain = selectChainById(state, chainId);
+    const totalBalanceUsd =
+      walletAddress ?
+        selectDepositOptionTokensBalanceByChainId(state, chainId, walletAddress)
+      : BIG_ZERO;
+
+    const selectionIds = state.ui.transact.selections.byChainId[chainId];
+    const seenAddresses = new Set<string>();
+    const tokenOptions: CrossChainTokenOption[] = [];
+    if (selectionIds) {
+      for (const selectionId of selectionIds) {
+        const selection = state.ui.transact.selections.bySelectionId[selectionId];
+        if (!selection) continue;
+        if (selection.vaultRefId) continue;
+        for (const token of selection.tokens) {
+          const key = `${token.chainId}:${token.address.toLowerCase()}`;
+          if (seenAddresses.has(key)) continue;
+          seenAddresses.add(key);
+          let tokenBalanceUsd = BIG_ZERO;
+          if (walletAddress) {
+            const balance = selectUserBalanceOfToken(
+              state,
+              token.chainId,
+              token.address,
+              walletAddress
+            );
+            const price = selectTokenPriceByAddress(state, token.chainId, token.address);
+            tokenBalanceUsd = balance.multipliedBy(price);
+          }
+          tokenOptions.push({ token, balanceUsd: tokenBalanceUsd });
+        }
+      }
+    }
+
+    const sortedTokens = orderBy(
+      tokenOptions,
+      [o => o.balanceUsd.toNumber(), o => o.token.symbol.toLowerCase()],
+      ['desc', 'asc']
+    );
+
+    const tokensWithBalance = sortedTokens.filter(o => o.balanceUsd.gt(BIG_ZERO));
+
+    return {
+      chainId,
+      chainName: chain.name,
+      balanceUsd: totalBalanceUsd,
+      tokens: tokensWithBalance,
+    };
+  });
+
+  return orderBy(
+    chainsWithBalance,
+    [
+      // 1. Chains with balance before chains without
+      o => (o.balanceUsd.isGreaterThan(BIG_ZERO) ? 0 : 1),
+      // 2. Among chains with balance, sort by balance descending
+      o => o.balanceUsd.toNumber(),
+      // 3. Among chains with $0 balance, sort alphabetically by chain name
+      o => o.chainName.toLowerCase(),
+    ],
+    ['asc', 'desc', 'asc']
+  );
+};
 
 export const selectTransactShouldShowClaims = createSelector(
   selectVaultById,
@@ -424,3 +680,55 @@ export const selectTransactShouldShowWithdrawNotification = (
     }
   }
 };
+
+// ---------------------------------------------------------------------------
+// Cross-chain operation selectors
+// ---------------------------------------------------------------------------
+
+export const selectCrossChainPendingOps = createSelector(
+  (state: BeefyState) => state.ui.transact.crossChain,
+  (crossChain): PendingCrossChainOp[] =>
+    crossChain.pendingOpIds.map(id => crossChain.pendingOps[id]).filter(Boolean)
+);
+
+export const selectCrossChainPendingOpById = (state: BeefyState, opId: string) =>
+  state.ui.transact.crossChain.pendingOps[opId];
+
+export const selectCrossChainRecoverableOps = createSelector(
+  selectCrossChainPendingOps,
+  (ops): PendingCrossChainOp[] => ops.filter(op => op.status === 'dest-failed')
+);
+
+/** Dest-failed op for the current transact vault, if any (most recent by updatedAt). Used to show recovery UI after modal close. */
+export const selectRecoveryOpForCurrentVault = createSelector(
+  [(state: BeefyState) => state.ui.transact.vaultId, selectCrossChainRecoverableOps],
+  (vaultId, recoverableOps): PendingCrossChainOp | undefined => {
+    if (!vaultId) return undefined;
+    const forVault = recoverableOps.filter(op => op.vaultId === vaultId);
+    if (forVault.length === 0) return undefined;
+    return orderBy(forVault, 'updatedAt', 'desc')[0];
+  }
+);
+
+export const selectCrossChainActiveOps = createSelector(
+  selectCrossChainPendingOps,
+  (ops): PendingCrossChainOp[] =>
+    ops.filter(op => op.status !== 'dest-done' && op.status !== 'dest-recovered')
+);
+
+export const selectCrossChainRecoveryQuoteStatus = (state: BeefyState) =>
+  state.ui.transact.crossChain.recoveryQuote.status;
+
+export const selectCrossChainRecoveryQuote = (state: BeefyState) =>
+  state.ui.transact.crossChain.recoveryQuote.quote;
+
+export const selectCrossChainRecoveryQuoteOpId = (state: BeefyState) =>
+  state.ui.transact.crossChain.recoveryQuote.opId;
+
+export const selectCrossChainRecoveryQuoteError = (state: BeefyState) =>
+  state.ui.transact.crossChain.recoveryQuote.error;
+
+export const selectCrossChainRecoveryQuoteIsStale = (state: BeefyState) =>
+  state.ui.transact.crossChain.recoveryQuote.isStale;
+
+export const selectTransactSuccessClosed = (state: BeefyState) => state.ui.transact.successClosed;

@@ -54,7 +54,7 @@ export class SwapAggregator implements ISwapAggregator {
 
   protected async providerSupportedTokens(
     provider: ISwapProvider,
-    vaultId: VaultEntity['id'],
+    vaultId: VaultEntity['id'] | undefined,
     chainId: ChainEntity['id'],
     state: BeefyState,
     options: StrategySwapConfig | undefined
@@ -70,7 +70,7 @@ export class SwapAggregator implements ISwapAggregator {
 
   async fetchTokenSupport(
     wantedTokens: TokenEntity[],
-    vaultId: VaultEntity['id'],
+    vaultId: VaultEntity['id'] | undefined,
     chainId: ChainEntity['id'],
     state: BeefyState,
     options?: StrategySwapConfig
@@ -91,7 +91,6 @@ export class SwapAggregator implements ISwapAggregator {
       )
     );
 
-    // @dev any is same as wanted[0] if there is only 1 token to check
     if (supportPerWanted.length === 1) {
       return {
         tokens: supportPerWanted,
@@ -141,9 +140,31 @@ export class SwapAggregator implements ISwapAggregator {
     );
   }
 
+  async canSwapTokenPair(
+    fromToken: TokenEntity,
+    toToken: TokenEntity,
+    vaultId: VaultEntity['id'] | undefined,
+    chainId: ChainEntity['id'],
+    state: BeefyState,
+    options?: StrategySwapConfig
+  ): Promise<boolean> {
+    const allowedProviders = this.allowedProviders(options);
+    const tokensPerProvider = await Promise.all(
+      allowedProviders.map(provider =>
+        this.providerSupportedTokens(provider, vaultId, chainId, state, options)
+      )
+    );
+    return tokensPerProvider.some(
+      providerTokens =>
+        providerTokens.length > 1 &&
+        providerTokens.some(t => isTokenEqual(t, fromToken)) &&
+        providerTokens.some(t => isTokenEqual(t, toToken))
+    );
+  }
+
   protected async canSwapBetween(
     provider: ISwapProvider,
-    vaultId: VaultEntity['id'],
+    vaultId: VaultEntity['id'] | undefined,
     tokenA: TokenEntity,
     tokenB: TokenEntity,
     state: BeefyState,
@@ -235,6 +256,7 @@ export class SwapAggregator implements ISwapAggregator {
       throw new Error(`Provider ${providerId} not found`);
     }
 
-    return await provider.fetchSwap(request, state);
+    const result = await provider.fetchSwap(request, state);
+    return result;
   }
 }

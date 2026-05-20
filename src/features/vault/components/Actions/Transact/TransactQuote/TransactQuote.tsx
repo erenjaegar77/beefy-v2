@@ -12,19 +12,25 @@ import {
   transactFetchQuotesIfNeeded,
 } from '../../../../../data/actions/transact.ts';
 import {
+  CrossChainBridgeBelowFeeError,
   QuoteCowcentratedNoSingleSideError,
   QuoteCowcentratedNotCalmError,
 } from '../../../../../data/apis/transact/strategies/error.ts';
 import {
   type CowcentratedVaultDepositQuote,
   type CowcentratedZapDepositQuote,
+  type CowcentratedDualZapDepositQuote,
   isCowcentratedDepositQuote,
   isZapQuote,
   quoteNeedsSlippage,
 } from '../../../../../data/apis/transact/transact-types.ts';
 import { isCowcentratedLikeVault } from '../../../../../data/entities/vault.ts';
-import { TransactStatus } from '../../../../../data/reducers/wallet/transact-types.ts';
 import {
+  TransactMode,
+  TransactStatus,
+} from '../../../../../data/reducers/wallet/transact-types.ts';
+import {
+  selectTransactCrossChainPreflight,
   selectTransactInputAmounts,
   selectTransactInputMaxes,
   selectTransactMode,
@@ -62,11 +68,17 @@ export const TransactQuote = memo(function TransactQuote({
   const inputMaxes = useAppSelector(selectTransactInputMaxes);
   const chainId = useAppSelector(selectTransactSelectedChainId);
   const status = useAppSelector(selectTransactQuoteStatus);
+  const preflightOk = useAppSelector(selectTransactCrossChainPreflight);
   const debouncedFetchQuotes = useMemo(
     () =>
       debounce(
-        (dispatch: ReturnType<typeof useAppDispatch>, inputAmounts: BigNumber[]) => {
-          if (inputAmounts.every(amount => amount.lte(BIG_ZERO))) {
+        (
+          dispatch: ReturnType<typeof useAppDispatch>,
+          inputAmounts: BigNumber[],
+          preflightOk: boolean
+        ) => {
+          const inputIsZero = inputAmounts.every(amount => amount.lte(BIG_ZERO));
+          if (inputIsZero || !preflightOk) {
             dispatch(transactClearQuotes());
           } else {
             dispatch(transactFetchQuotesIfNeeded());
@@ -79,7 +91,7 @@ export const TransactQuote = memo(function TransactQuote({
   );
 
   useEffect(() => {
-    debouncedFetchQuotes(dispatch, inputAmounts);
+    debouncedFetchQuotes(dispatch, inputAmounts, preflightOk);
   }, [
     dispatch,
     mode,
@@ -88,6 +100,7 @@ export const TransactQuote = memo(function TransactQuote({
     selection,
     inputAmounts,
     inputMaxes,
+    preflightOk,
     debouncedFetchQuotes,
   ]);
 
@@ -152,8 +165,13 @@ const QuoteError = memo(function QuoteError() {
   const classes = useStyles();
   const { t } = useTranslation();
   const error = useAppSelector(selectTransactQuoteError);
+  const mode = useAppSelector(selectTransactMode);
 
   if (error) {
+    if (CrossChainBridgeBelowFeeError.match(error)) {
+      const action = mode === TransactMode.Deposit ? 'deposit' : 'withdraw';
+      return <AlertError>{t(`Transact-Quote-Error-CrossChain-TooLow-${action}`)}</AlertError>;
+    }
     if (QuoteCowcentratedNoSingleSideError.match(error)) {
       return (
         <AlertError>
@@ -163,7 +181,8 @@ const QuoteError = memo(function QuoteError() {
           })}
         </AlertError>
       );
-    } else if (QuoteCowcentratedNotCalmError.match(error)) {
+    }
+    if (QuoteCowcentratedNotCalmError.match(error)) {
       return (
         <AlertError>
           <Trans
@@ -249,7 +268,10 @@ const QuoteLoaded = memo(function QuoteLoaded() {
 export const CowcentratedLoadedQuote = memo(function CowcentratedLoadedQuote({
   quote,
 }: {
-  quote: CowcentratedVaultDepositQuote | CowcentratedZapDepositQuote;
+  quote:
+    | CowcentratedVaultDepositQuote
+    | CowcentratedZapDepositQuote
+    | CowcentratedDualZapDepositQuote;
 }) {
   const { t } = useTranslation();
   const shares = quote.outputs[0];
@@ -275,7 +297,7 @@ export const CowcentratedLoadedQuote = memo(function CowcentratedLoadedQuote({
           );
         })}
       </div>
-      <div className={classes.label}>{t('Your Position Will Be')}</div>
+      <div className={classes.label}>{t('Transact-YourPositionWillBe')}</div>
       <div className={classes.cowcentratedSharesDepositContainer}>
         <TokenAmountIcon
           key={shares.token.id}
