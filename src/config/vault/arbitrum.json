@@ -1,6 +1,6 @@
 [
   {
-    "id": "uniswap-cow-arbitrum-weth-mor-rp",
+    "id": "uniswap-cow-arbitrum-mor-weth-rp",
     "name": "MOR-WETH Reward Pool",
     "type": "gov",
     "version": 2,
@@ -13,7 +13,7 @@
     "earnedTokenDecimals": 18,
     "earnedTokenAddresses": [],
     "oracle": "lps",
-    "oracleId": "uniswap-cow-arbitrum-weth-mor",
+    "oracleId": "uniswap-cow-arbitrum-mor-weth",
     "status": "active",
     "createdAt": 1779100673,
     "platformId": "uniswap",
@@ -37,7 +37,7 @@
     ]
   },
   {
-    "id": "uniswap-cow-arbitrum-weth-mor",
+    "id": "uniswap-cow-arbitrum-mor-weth",
     "name": "MOR-WETH",
     "type": "cowcentrated",
     "token": "MOR-WETH uniswap",
@@ -52,7 +52,7 @@
     "earnedToken": "cowUniswapArbitrumMOR-WETH",
     "earnedTokenAddress": "0x2AC513Bc6432063B391E5b12F04eAba71Aaf30dC",
     "oracle": "lps",
-    "oracleId": "uniswap-cow-arbitrum-weth-mor",
+    "oracleId": "uniswap-cow-arbitrum-mor-weth",
     "status": "active",
     "createdAt": 1779100673,
     "platformId": "beefy",
