@@ -1,5 +1,124 @@
 [
   {
+    "id": "aerodrome-cow-base-kellyclaude-usdc-v2-vault",
+    "name": "KELLYCLAUDE-USDC",
+    "type": "standard",
+    "token": "KELLYCLAUDE-USDC",
+    "tokenAddress": "0xbf5dcb55AFA0FB30a653DeC0641165b99a932C56",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "earnContractAddress": "0x0B556f9712E5f68AE6e180C7457997698e5B2D75",
+    "earnedToken": "mooCowAerodromeBaseKellyClaude-USDC",
+    "earnedTokenAddress": "0x0B556f9712E5f68AE6e180C7457997698e5B2D75",
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-kellyclaude-usdc-v2",
+    "status": "active",
+    "createdAt": 1779392365,
+    "platformId": "aerodrome",
+    "assets": ["KELLYCLAUDE", "USDC"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "vault-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "aerodrome-cow-base-kellyclaude-usdc-v2-rp",
+    "name": "KELLYCLAUDE-USDC Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowAerodromeBaseKellyClaude-USDC",
+    "tokenAddress": "0xbf5dcb55AFA0FB30a653DeC0641165b99a932C56",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "earnContractAddress": "0xace8f96ea4043B99a9c25D3b6ddC80BD45534167",
+    "earnedToken": "rCowAerodromeBaseKellyClaude-USDC",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": ["0x940181a94A35A4569E4529A3CDfB74e38FD98631"],
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-kellyclaude-usdc-v2",
+    "status": "active",
+    "createdAt": 1779392364,
+    "platformId": "aerodrome",
+    "assets": ["KELLYCLAUDE", "USDC"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "aerodrome-cow-base-kellyclaude-usdc-v2",
+    "name": "KELLYCLAUDE-USDC",
+    "type": "cowcentrated",
+    "token": "KELLYCLAUDE-USDC aerodrome",
+    "tokenAddress": "0xD03FF08155a70D5Ba88E5Ff204B43fa09a2EE0D9",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "depositTokenAddresses": [
+      "0x50D2280441372486BeecdD328c1854743EBaCb07",
+      "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    ],
+    "earnContractAddress": "0xbf5dcb55AFA0FB30a653DeC0641165b99a932C56",
+    "earnedToken": "cowAerodromeBaseKellyClaude-USDC",
+    "earnedTokenAddress": "0xbf5dcb55AFA0FB30a653DeC0641165b99a932C56",
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-kellyclaude-usdc-v2",
+    "status": "active",
+    "createdAt": 1779392364,
+    "platformId": "beefy",
+    "feeTier": "1",
+    "tickSpacing": 200,
+    "assets": ["KELLYCLAUDE", "USDC"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
+      }
+    ]
+  },
+  {
     "id": "uniswap-cow-base-weth-mor-rp",
     "name": "MOR-WETH Reward Pool",
     "type": "gov",
