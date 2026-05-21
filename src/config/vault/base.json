@@ -56,7 +56,7 @@
     "status": "active",
     "createdAt": 1779388160,
     "platformId": "beefy",
-    "feeTier": "1",
+    "feeTier": "0.3",
     "tickSpacing": 60,
     "assets": ["uXRP", "WETH"],
     "risks": {
@@ -175,7 +175,7 @@
     "status": "active",
     "createdAt": 1779385555,
     "platformId": "beefy",
-    "feeTier": "1",
+    "feeTier": "0.25",
     "tickSpacing": 200,
     "assets": ["msUSD", "msETH"],
     "risks": {
