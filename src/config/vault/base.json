@@ -1,5 +1,124 @@
 [
   {
+    "id": "aerodrome-cow-base-msusd-mseth-v2-vault",
+    "name": "msUSD-msETH",
+    "type": "standard",
+    "token": "msUSD-msETH",
+    "tokenAddress": "0xB48042cD2287C664E1b612b24635B2435704FC89",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "earnContractAddress": "0x5Bf3101A7f695C1C4A28246bafB2E717a11806F4",
+    "earnedToken": "mooCowAerodromemsUSD-msETHv2",
+    "earnedTokenAddress": "0x5Bf3101A7f695C1C4A28246bafB2E717a11806F4",
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-msusd-mseth-v2",
+    "status": "active",
+    "createdAt": 1779385556,
+    "platformId": "aerodrome",
+    "assets": ["msUSD", "msETH"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "vault-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "aerodrome-cow-base-msusd-mseth-v2-rp",
+    "name": "msUSD-msETH Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowAerodromemsUSD-msETHv2",
+    "tokenAddress": "0xB48042cD2287C664E1b612b24635B2435704FC89",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "earnContractAddress": "0x6A1BFfE0850679aeF51a404222FEb5eB14CeF0Ba",
+    "earnedToken": "rCowAerodromemsUSD-msETHv2",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": ["0x940181a94A35A4569E4529A3CDfB74e38FD98631"],
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-msusd-mseth-v2",
+    "status": "active",
+    "createdAt": 1779385555,
+    "platformId": "aerodrome",
+    "assets": ["msUSD", "msETH"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      },
+      {
+        "strategyId": "reward-pool-to-vault"
+      }
+    ]
+  },
+  {
+    "id": "aerodrome-cow-base-msusd-mseth-v2",
+    "name": "msUSD-msETH",
+    "type": "cowcentrated",
+    "token": "msUSD-msETH aerodrome",
+    "tokenAddress": "0x00145e8Fc9F06a0b71bd57fEfBF451ec1dB9D69f",
+    "tokenDecimals": 18,
+    "tokenProviderId": "aerodrome",
+    "depositTokenAddresses": [
+      "0x526728DBc96689597F85ae4cd716d4f7fCcBAE9d",
+      "0x7Ba6F01772924a82D9626c126347A28299E98c98"
+    ],
+    "earnContractAddress": "0xB48042cD2287C664E1b612b24635B2435704FC89",
+    "earnedToken": "cowAerodromemsUSD-msETHv2",
+    "earnedTokenAddress": "0xB48042cD2287C664E1b612b24635B2435704FC89",
+    "oracle": "lps",
+    "oracleId": "aerodrome-cow-base-msusd-mseth-v2",
+    "status": "active",
+    "createdAt": 1779385555,
+    "platformId": "beefy",
+    "feeTier": "1",
+    "tickSpacing": 200,
+    "assets": ["msUSD", "msETH"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "pool",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
+      }
+    ]
+  },
+  {
     "id": "uniswap-cow-base-weth-mor-rp",
     "name": "MOR-WETH Reward Pool",
     "type": "gov",
