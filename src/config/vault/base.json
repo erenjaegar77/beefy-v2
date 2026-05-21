@@ -1,5 +1,83 @@
 [
   {
+    "id": "uniswap-cow-base-uxrp-weth-rp",
+    "name": "uXRP-WETH Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowUniswapBaseuXRP-WETH",
+    "tokenAddress": "0x2020D09F8EdAFf59b35871ee7B981671aA31D314",
+    "tokenDecimals": 18,
+    "tokenProviderId": "uniswap",
+    "earnContractAddress": "0x26d66649d9637b5F272c5f8394cDE553b7120D18",
+    "earnedToken": "rCowUniswapBaseuXRP-WETH",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": [],
+    "oracle": "lps",
+    "oracleId": "uniswap-cow-base-uxrp-weth",
+    "status": "active",
+    "createdAt": 1779388160,
+    "platformId": "uniswap",
+    "assets": ["uXRP", "WETH"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      }
+    ]
+  },
+  {
+    "id": "uniswap-cow-base-uxrp-weth",
+    "name": "uXRP-WETH",
+    "type": "cowcentrated",
+    "token": "uXRP-WETH uniswap",
+    "tokenAddress": "0xc8da14d7467814A91384796Db3cA2c273b30B361",
+    "tokenDecimals": 18,
+    "tokenProviderId": "uniswap",
+    "depositTokenAddresses": [
+      "0x2615a94df961278DcbC41Fb0a54fEc5f10a693aE",
+      "0x4200000000000000000000000000000000000006"
+    ],
+    "earnContractAddress": "0x2020D09F8EdAFf59b35871ee7B981671aA31D314",
+    "earnedToken": "cowUniswapBaseuXRP-WETH",
+    "earnedTokenAddress": "0x2020D09F8EdAFf59b35871ee7B981671aA31D314",
+    "oracle": "lps",
+    "oracleId": "uniswap-cow-base-uxrp-weth",
+    "status": "active",
+    "createdAt": 1779388160,
+    "platformId": "beefy",
+    "feeTier": "1",
+    "tickSpacing": 60,
+    "assets": ["uXRP", "WETH"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "base",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
+      }
+    ]
+  },
+  {
     "id": "aerodrome-cow-base-msusd-mseth-v2-vault",
     "name": "msUSD-msETH",
     "type": "standard",
