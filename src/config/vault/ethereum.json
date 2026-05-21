@@ -1,5 +1,83 @@
 [
   {
+    "id": "uniswap-cow-ethereum-weth-asteroid-rp",
+    "name": "WETH-ASTEROID Reward Pool",
+    "type": "gov",
+    "version": 2,
+    "token": "cowUniswapEthereumWETH-ASTEROID",
+    "tokenAddress": "0x1f2E246a23D9E620F0c643e1239D77dDc5a82743",
+    "tokenDecimals": 18,
+    "tokenProviderId": "uniswap",
+    "earnContractAddress": "0x8CEa55446F8C2314B3995C448Be8F04AeaABd5C4",
+    "earnedToken": "rCowUniswapEthereumWETH-ASTEROID",
+    "earnedTokenDecimals": 18,
+    "earnedTokenAddresses": [],
+    "oracle": "lps",
+    "oracleId": "uniswap-cow-ethereum-weth-asteroid",
+    "status": "active",
+    "createdAt": 1779365946,
+    "platformId": "uniswap",
+    "assets": ["ASTEROID", "WETH"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "ethereum",
+    "zaps": [
+      {
+        "strategyId": "gov-composer"
+      }
+    ]
+  },
+  {
+    "id": "uniswap-cow-ethereum-weth-asteroid",
+    "name": "WETH-ASTEROID",
+    "type": "cowcentrated",
+    "token": "WETH-ASTEROID uniswap",
+    "tokenAddress": "0x53e3d506F468c4BC30cc8CaA21Eb7E56c2fA2D55",
+    "tokenDecimals": 18,
+    "tokenProviderId": "uniswap",
+    "depositTokenAddresses": [
+      "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "0xf280B16EF293D8e534e370794ef26bF312694126"
+    ],
+    "earnContractAddress": "0x1f2E246a23D9E620F0c643e1239D77dDc5a82743",
+    "earnedToken": "cowUniswapEthereumWETH-ASTEROID",
+    "earnedTokenAddress": "0x1f2E246a23D9E620F0c643e1239D77dDc5a82743",
+    "oracle": "lps",
+    "oracleId": "uniswap-cow-ethereum-weth-asteroid",
+    "status": "active",
+    "createdAt": 1779365946,
+    "platformId": "beefy",
+    "feeTier": "1",
+    "tickSpacing": 200,
+    "assets": ["ASTEROID", "WETH"],
+    "risks": {
+      "complex": true,
+      "curated": false,
+      "notAudited": false,
+      "notBattleTested": false,
+      "notCorrelated": true,
+      "notTimelocked": false,
+      "notVerified": false,
+      "synthAsset": false
+    },
+    "strategyTypeId": "compounds",
+    "network": "ethereum",
+    "zaps": [
+      {
+        "strategyId": "cowcentrated"
+      }
+    ]
+  },
+  {
     "id": "morpho-v2-ethereum-steakhouse-prime-usdt",
     "name": "USDT (Steakhouse, Prime V2)",
     "type": "standard",
