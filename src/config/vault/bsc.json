@@ -135,6 +135,7 @@
     "createdAt": 1778526638,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["USDT", "OPG"],
     "risks": {
       "complex": true,
@@ -213,6 +214,7 @@
     "createdAt": 1776358218,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["ZEC", "WBNB"],
     "risks": {
       "updatedAt": 1776358218,
@@ -292,6 +294,7 @@
     "createdAt": 1776357709,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["ZEC", "BTCB"],
     "risks": {
       "updatedAt": 1776357709,
@@ -371,6 +374,7 @@
     "createdAt": 1776357293,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["ZEC", "USDT"],
     "risks": {
       "updatedAt": 1776357293,
@@ -450,6 +454,7 @@
     "createdAt": 1776355040,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["ZEC", "USDT"],
     "risks": {
       "updatedAt": 1776355040,
@@ -529,6 +534,7 @@
     "createdAt": 1776161346,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["GENIUS", "USDT"],
     "risks": {
       "updatedAt": 1776161346,
@@ -608,6 +614,7 @@
     "createdAt": 1776161346,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["GENIUS", "USDT"],
     "risks": {
       "updatedAt": 1776161346,
@@ -686,6 +693,7 @@
     "createdAt": 1772743311,
     "platformId": "beefy",
     "feeTier": "0.01",
+    "tickSpacing": 1,
     "assets": ["USDT", "Q"],
     "risks": {
       "complex": true,
@@ -764,6 +772,7 @@
     "createdAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["XPL", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -843,6 +852,7 @@
     "createdAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["ASTER", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -922,6 +932,7 @@
     "createdAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["XRP", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1001,6 +1012,7 @@
     "createdAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["CAKE", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1080,6 +1092,7 @@
     "createdAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["CAKE", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1159,6 +1172,7 @@
     "createdAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.3",
+    "tickSpacing": 60,
     "assets": ["LINK", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1238,6 +1252,7 @@
     "createdAt": 1760558657,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["COAI", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1317,6 +1332,7 @@
     "createdAt": 1760558657,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["COAI", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1396,6 +1412,7 @@
     "createdAt": 1760025594,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["FORM", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1475,6 +1492,7 @@
     "createdAt": 1760028289,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["BNBHolder", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1554,6 +1572,7 @@
     "createdAt": 1760028289,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["BNBHolder", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1633,6 +1652,7 @@
     "createdAt": 1759882318,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["PALU", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1712,6 +1732,7 @@
     "createdAt": 1759882163,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["PALU", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1791,6 +1812,7 @@
     "createdAt": 1759881841,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["FOUR", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1870,6 +1892,7 @@
     "createdAt": 1759881699,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["FOUR", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -1949,6 +1972,7 @@
     "createdAt": 1759881666,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["BINANCE_LIFE", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2028,6 +2052,7 @@
     "createdAt": 1759880427,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["PUP", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2107,6 +2132,7 @@
     "createdAt": 1759848879,
     "platformId": "beefy",
     "feeTier": "0.30",
+    "tickSpacing": 60,
     "assets": ["ASTER", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2186,6 +2212,7 @@
     "createdAt": 1758816621,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["XPL", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2265,6 +2292,7 @@
     "createdAt": 1758640238,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["GIGGLE", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2344,6 +2372,7 @@
     "createdAt": 1758640204,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["ASTER", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2427,6 +2456,7 @@
     "retiredAt": 1767991369,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["RION", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2510,6 +2540,7 @@
     "retiredAt": 1767991369,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["B", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2589,6 +2620,7 @@
     "createdAt": 1747915358,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["USD1", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2668,6 +2700,7 @@
     "createdAt": 1743158532,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 50,
     "assets": ["mubarak", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2747,6 +2780,7 @@
     "createdAt": 1743158347,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["WBNB", "TUT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2826,6 +2860,7 @@
     "createdAt": 1743158166,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["BroccoliCZDog", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2905,6 +2940,7 @@
     "createdAt": 1740568031,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["SIREN", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -2984,6 +3020,7 @@
     "createdAt": 1740566296,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["Broccoli", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -3105,6 +3142,7 @@
     "createdAt": 1740041270,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["TST", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -3226,6 +3264,7 @@
     "createdAt": 1739968877,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["WBNB", "SHELL"],
     "risks": {
       "updatedAt": 1765557014,
@@ -3755,6 +3794,7 @@
     "retiredAt": 1761205953,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["wstETH", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -3882,6 +3922,7 @@
     "retiredAt": 1761205953,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["wstETH", "BTCB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4003,6 +4044,7 @@
     "createdAt": 1726149784,
     "platformId": "beefy",
     "feeTier": "0.01",
+    "tickSpacing": 1,
     "assets": ["wstETH", "ETH"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4124,6 +4166,7 @@
     "createdAt": 1724853598,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["USDC", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4203,6 +4246,7 @@
     "createdAt": 1724853598,
     "platformId": "beefy",
     "feeTier": "0.30",
+    "tickSpacing": 60,
     "assets": ["BTCB", "ETH"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4282,6 +4326,7 @@
     "createdAt": 1724853598,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["BTCB", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4361,6 +4406,7 @@
     "createdAt": 1724687912,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["ETH", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4440,6 +4486,7 @@
     "createdAt": 1724687912,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["USDT", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4519,6 +4566,7 @@
     "createdAt": 1724687912,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["ETH", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4598,6 +4646,7 @@
     "createdAt": 1724687912,
     "platformId": "beefy",
     "feeTier": "0.01",
+    "tickSpacing": 1,
     "assets": ["USDT", "USDC"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4677,6 +4726,7 @@
     "createdAt": 1724687912,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["BTCB", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4756,6 +4806,7 @@
     "createdAt": 1724065008,
     "platformId": "beefy",
     "feeTier": "Dynamic",
+    "tickSpacing": 60,
     "assets": ["BTCB", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4835,6 +4886,7 @@
     "createdAt": 1724065008,
     "platformId": "beefy",
     "feeTier": "Dynamic",
+    "tickSpacing": 60,
     "assets": ["ETH", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -4914,6 +4966,7 @@
     "createdAt": 1724065008,
     "platformId": "beefy",
     "feeTier": "Dynamic",
+    "tickSpacing": 60,
     "assets": ["SOL", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5041,6 +5094,7 @@
     "retiredAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["WBNB", "BUSD"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5162,6 +5216,7 @@
     "createdAt": 1723067551,
     "platformId": "beefy",
     "feeTier": "0.01",
+    "tickSpacing": 1,
     "assets": ["axlUSDC", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5289,6 +5344,7 @@
     "retiredAt": 1741262041,
     "platformId": "beefy",
     "feeTier": "0.01",
+    "tickSpacing": 1,
     "assets": ["USDV", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5410,6 +5466,7 @@
     "createdAt": 1723067551,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["ZRO", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5531,6 +5588,7 @@
     "createdAt": 1723067551,
     "platformId": "beefy",
     "feeTier": "1",
+    "tickSpacing": 200,
     "assets": ["PEPE", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5652,6 +5710,7 @@
     "createdAt": 1723067551,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["XVS", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5779,6 +5838,7 @@
     "retiredAt": 1760631004,
     "platformId": "beefy",
     "feeTier": "0.01",
+    "tickSpacing": 1,
     "assets": ["USDT", "BUSD"],
     "risks": {
       "updatedAt": 1765557014,
@@ -5900,6 +5960,7 @@
     "createdAt": 1723051090,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["ETH", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6021,6 +6082,7 @@
     "createdAt": 1723051090,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["DOGE", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6142,6 +6204,7 @@
     "createdAt": 1723051090,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["SOL", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6263,6 +6326,7 @@
     "createdAt": 1723051090,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["SOL", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6384,6 +6448,7 @@
     "createdAt": 1723051090,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["slisBNB", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6505,6 +6570,7 @@
     "createdAt": 1723051090,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["lisUSD", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6630,6 +6696,7 @@
     "createdAt": 1723051090,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 1,
     "assets": ["pxETH", "ETH"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6751,6 +6818,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["CAKE", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6872,6 +6940,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["CAKE", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -6993,6 +7062,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["WBNB", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -7114,6 +7184,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.01",
+    "tickSpacing": 1,
     "assets": ["USDT", "USDC"],
     "risks": {
       "updatedAt": 1765557014,
@@ -7235,6 +7306,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["BTCB", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -7356,6 +7428,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["BTCB", "USDT"],
     "risks": {
       "updatedAt": 1765557014,
@@ -7477,6 +7550,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.05",
+    "tickSpacing": 10,
     "assets": ["ETH", "WBNB"],
     "risks": {
       "updatedAt": 1765557014,
@@ -7598,6 +7672,7 @@
     "createdAt": 1722967709,
     "platformId": "beefy",
     "feeTier": "0.25",
+    "tickSpacing": 50,
     "assets": ["ETH", "BTCB"],
     "risks": {
       "updatedAt": 1765557014,
