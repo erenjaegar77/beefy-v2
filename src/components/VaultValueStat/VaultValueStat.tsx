@@ -13,12 +13,16 @@ export type VaultValueStatProps = {
   label: string;
   /** hide the mobile label */
   hideLabel?: boolean;
+  /** keep the label visible at all breakpoints (overrides the default mobile-only behavior) */
+  keepLabel?: boolean;
   /** tooltip content to show for entire stat */
   tooltip?: ReactNode;
   /** value for line one */
   value: ReactNode;
   /** value for line 2 */
   subValue?: ReactNode;
+  /** hide the sub value line entirely */
+  hideSubValue?: boolean;
   /** set to true to show loading indicator for the sub value slot also */
   expectSubValue?: boolean;
   /** blur the values */
@@ -39,20 +43,22 @@ export const VaultValueStat = memo(function VaultValueStat({
   tooltip,
   value,
   subValue,
+  hideSubValue = false,
   expectSubValue = false,
   blur = false,
   loading = false,
   boosted,
   hideLabel = false,
+  keepLabel = false,
   Icon,
   textWrap = true,
   ...rest
 }: VaultValueStatProps) {
-  const showSubValue = expectSubValue || !!subValue;
+  const showSubValue = !hideSubValue && (expectSubValue || !!subValue);
 
   return (
     <Layout {...rest}>
-      {!hideLabel && <Label>{label}</Label>}
+      {!hideLabel && <Label to={keepLabel ? 'never' : 'lg'}>{label}</Label>}
       <Values tooltip={tooltip} disabled={!tooltip}>
         <ValueHolder kind="primary" textWrap={textWrap} boosted={boosted}>
           {loading ?
@@ -283,6 +289,7 @@ const Label = styled('div', {
           display: 'none',
         },
       },
+      never: {},
     },
     textStyle: {
       'body.sm': {
