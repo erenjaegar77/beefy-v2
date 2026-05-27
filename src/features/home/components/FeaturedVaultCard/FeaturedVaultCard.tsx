@@ -39,11 +39,11 @@ export const FeaturedVaultCard = memo(function FeaturedVaultCard({
       <Identity>
         <HeadTop>
           <MarqueeName text={punctuationWrap(vault.names.list)} />
-          <VaultIdImage vaultId={vaultId} size={40} />
+          <HeadIcon>
+            <VaultIdImage vaultId={vaultId} size={40} />
+          </HeadIcon>
         </HeadTop>
-        <Tags>
-          <VaultTags vaultId={vaultId} />
-        </Tags>
+        <MarqueeTags vaultId={vaultId} />
       </Identity>
       <Stats>
         <StatColumn>
@@ -64,12 +64,17 @@ const Card = styled(Link, {
     rowGap: '16px',
     width: '100%',
     minWidth: '0',
-    padding: '24px 20px',
+    paddingBlock: '24px 20px',
+    paddingInline: '24px',
     borderRadius: '12px',
     overflow: 'hidden',
     textDecoration: 'none',
     color: 'text.middle',
     background: 'background.cardBody',
+    _hover: {
+      '--featured-tags-fade-right-animation': 'featuredVaultMarqueeFade',
+      '--featured-tags-fade-left-animation': 'featuredVaultMarqueeFadeLeft',
+    },
   },
 });
 
@@ -100,18 +105,30 @@ const Identity = styled('div', {
   base: {
     display: 'flex',
     flexDirection: 'column',
-    rowGap: '2px',
+    rowGap: '8px',
     minWidth: '0',
-    flexGrow: 1,
   },
 });
 
 const HeadTop = styled('div', {
   base: {
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
     columnGap: '8px',
     minWidth: '0',
+    paddingRight: '48px',
+  },
+});
+
+const HeadIcon = styled('div', {
+  base: {
+    position: 'absolute',
+    right: '0',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    lineHeight: '0',
+    pointerEvents: 'none',
   },
 });
 
@@ -192,13 +209,83 @@ const NameInner = styled('div', {
   },
 });
 
-const Tags = styled('div', {
+type MarqueeTagsProps = { vaultId: VaultEntity['id'] };
+
+const MarqueeTags = memo(function MarqueeTags({ vaultId }: MarqueeTagsProps) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const { width: viewportWidth, ref: viewportRef } = useResizeDetector<HTMLDivElement>();
+  const [overflowPx, setOverflowPx] = useState(0);
+
+  useLayoutEffect(() => {
+    const inner = innerRef.current;
+    const viewport = viewportRef.current;
+    if (!inner || !viewport) {
+      setOverflowPx(0);
+      return;
+    }
+    const diff = inner.scrollWidth - viewport.clientWidth;
+    setOverflowPx(diff > 0 ? diff : 0);
+  }, [vaultId, viewportWidth, viewportRef]);
+
+  const isOverflowing = overflowPx > 0;
+  const style = { '--marquee-shift': `-${overflowPx}px` } as CSSProperties;
+
+  return (
+    <TagsViewport ref={viewportRef} data-overflowing={isOverflowing || undefined} style={style}>
+      <TagsInner ref={innerRef}>
+        <VaultTags vaultId={vaultId} />
+      </TagsInner>
+    </TagsViewport>
+  );
+});
+
+const TagsViewport = styled('div', {
   base: {
-    display: 'flex',
+    position: 'relative',
     minWidth: '0',
+    overflow: 'hidden',
+    '&[data-overflowing]::after': {
+      content: '""',
+      position: 'absolute',
+      top: '0',
+      right: '0',
+      bottom: '0',
+      width: '32px',
+      pointerEvents: 'none',
+      zIndex: '[1]',
+      background:
+        'linear-gradient(to right, rgba(36, 40, 66, 0) 0%, {colors.background.cardBody} 100%)',
+      animation: 'var(--featured-tags-fade-right-animation, none) 6s ease-in-out infinite',
+    },
+    '&[data-overflowing]::before': {
+      content: '""',
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      bottom: '0',
+      width: '32px',
+      pointerEvents: 'none',
+      zIndex: '[1]',
+      background:
+        'linear-gradient(to right, {colors.background.cardBody} 0%, rgba(36, 40, 66, 0) 100%)',
+      opacity: '0',
+      animation: 'var(--featured-tags-fade-left-animation, none) 6s ease-in-out infinite',
+    },
+  },
+});
+
+const TagsInner = styled('div', {
+  base: {
+    display: 'block',
+    width: 'max-content',
+    willChange: 'transform',
     '& > *': {
+      marginTop: '0',
       columnGap: '4px',
       rowGap: '4px',
+    },
+    'a:hover [data-overflowing] > &': {
+      animation: 'featuredVaultMarquee 6s ease-in-out infinite',
     },
   },
 });
@@ -209,6 +296,9 @@ const Stats = styled('div', {
     gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
     columnGap: '16px',
     flexShrink: 0,
+    '& > *': {
+      rowGap: '2px',
+    },
   },
 });
 
@@ -216,7 +306,7 @@ const StatColumn = styled('div', {
   base: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0 6px',
+    gap: '2px 6px',
     minWidth: '0',
     alignItems: 'flex-start',
     textAlign: 'left',

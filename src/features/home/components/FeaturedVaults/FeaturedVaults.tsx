@@ -10,20 +10,24 @@ const DRAG_THRESHOLD_PX = 5;
 
 const PAGE_SIZE_DESKTOP = 4;
 const PAGE_SIZE_TABLET = 3;
-const PAGE_SIZE_MOBILE = 2;
+const PAGE_SIZE_SMALL = 2;
+const PAGE_SIZE_STACKED = 1;
 
 const MEDIA_SIDE_BY_SIDE = '(min-width: 600px)';
-const MEDIA_DESKTOP = '(min-width: 768px)';
+const MEDIA_TABLET = '(min-width: 768px)';
+const MEDIA_DESKTOP = '(min-width: 960px)';
 
 export const FeaturedVaults = memo(function FeaturedVaults() {
   const { t } = useTranslation();
   const ids = useAppSelector(selectFeaturedVaultIds);
   const isSideBySide = useMediaQuery(MEDIA_SIDE_BY_SIDE);
+  const isTablet = useMediaQuery(MEDIA_TABLET);
   const isDesktop = useMediaQuery(MEDIA_DESKTOP);
   const pageSize =
     isDesktop ? PAGE_SIZE_DESKTOP
-    : isSideBySide ? PAGE_SIZE_TABLET
-    : PAGE_SIZE_MOBILE;
+    : isTablet ? PAGE_SIZE_TABLET
+    : isSideBySide ? PAGE_SIZE_SMALL
+    : PAGE_SIZE_STACKED;
 
   const pages = useMemo(() => {
     const chunks: string[][] = [];
@@ -252,9 +256,6 @@ const Page = styled('div', {
     width: '100%',
     columnGap: '2px',
     rowGap: '2px',
-    '&[data-stacked]': {
-      gridTemplateRows: 'repeat(2, 1fr)',
-    },
     '&:not([data-stacked]) > *': {
       borderBottomLeftRadius: '0',
       borderBottomRightRadius: '0',
