@@ -1,7 +1,7 @@
 import { styled } from '@repo/styles/jsx';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useBreakpoint } from '../../../../hooks/useBreakpoint.ts';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { FeaturedVaultCard } from '../FeaturedVaultCard/FeaturedVaultCard.tsx';
 import { selectFeaturedVaultIds } from '../../../data/selectors/featured-vaults.ts';
 import { useAppSelector } from '../../../data/store/hooks.ts';
@@ -9,13 +9,21 @@ import { useAppSelector } from '../../../data/store/hooks.ts';
 const DRAG_THRESHOLD_PX = 5;
 
 const PAGE_SIZE_DESKTOP = 4;
+const PAGE_SIZE_TABLET = 3;
 const PAGE_SIZE_MOBILE = 2;
+
+const MEDIA_SIDE_BY_SIDE = '(min-width: 600px)';
+const MEDIA_DESKTOP = '(min-width: 768px)';
 
 export const FeaturedVaults = memo(function FeaturedVaults() {
   const { t } = useTranslation();
   const ids = useAppSelector(selectFeaturedVaultIds);
-  const isDesktop = useBreakpoint({ from: 'sm' });
-  const pageSize = isDesktop ? PAGE_SIZE_DESKTOP : PAGE_SIZE_MOBILE;
+  const isSideBySide = useMediaQuery(MEDIA_SIDE_BY_SIDE);
+  const isDesktop = useMediaQuery(MEDIA_DESKTOP);
+  const pageSize =
+    isDesktop ? PAGE_SIZE_DESKTOP
+    : isSideBySide ? PAGE_SIZE_TABLET
+    : PAGE_SIZE_MOBILE;
 
   const pages = useMemo(() => {
     const chunks: string[][] = [];
@@ -117,7 +125,7 @@ export const FeaturedVaults = memo(function FeaturedVaults() {
   return (
     <Section>
       <Header>
-        <Title>{t('FeaturedVaults-Title')}</Title>
+        <Title>{t(isSideBySide ? 'FeaturedVaults-Title' : 'FeaturedVaults-Title-Short')}</Title>
         {isListing && (
           <Dots>
             {pages.map((_, i) => (
@@ -140,9 +148,9 @@ export const FeaturedVaults = memo(function FeaturedVaults() {
               pageRefs.current[pageIdx] = el;
             }}
             data-listing={isListing || undefined}
-            data-stacked={!isDesktop || undefined}
+            data-stacked={!isSideBySide || undefined}
             style={{
-              gridTemplateColumns: `repeat(${isDesktop ? pageSize : 1}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${isSideBySide ? pageSize : 1}, minmax(0, 1fr))`,
             }}
           >
             {pageIds.map(id => (

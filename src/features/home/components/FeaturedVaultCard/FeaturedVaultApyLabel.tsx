@@ -14,7 +14,7 @@ export const FeaturedVaultApyLabel = memo(function FeaturedVaultApyLabel() {
   const dispatch = useAppDispatch();
   const subSort = useAppSelector(selectFilterAvgApySort);
 
-  const label = useMemo(() => {
+  const prefix = useMemo(() => {
     if (subSort === 'default') return t('Filter-SortApy-default-Featured');
     return t('Filter-SortApy-avgNd-Featured', { count: subSort });
   }, [t, subSort]);
@@ -30,7 +30,12 @@ export const FeaturedVaultApyLabel = memo(function FeaturedVaultApyLabel() {
     [dispatch, subSort]
   );
 
-  return <LabelButton onClick={handleClick}>{label}</LabelButton>;
+  return (
+    <LabelButton onClick={handleClick}>
+      <Prefix>{prefix}</Prefix>
+      <span>{t('VaultStat-APY')}</span>
+    </LabelButton>
+  );
 });
 
 const LabelButton = styled('button', {
@@ -40,13 +45,21 @@ const LabelButton = styled('button', {
     padding: '0',
     textStyle: 'subline.sm',
     color: 'text.dark',
-    textDecoration: 'underline',
-    textDecorationColor: 'text.underline',
-    textUnderlineOffset: '3px',
     textAlign: 'left',
     cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'baseline',
+    columnGap: '4px',
     _hover: {
       color: 'text.light',
     },
+  },
+});
+
+const Prefix = styled('span', {
+  base: {
+    textDecoration: 'underline',
+    textDecorationColor: 'text.underline',
+    textUnderlineOffset: '3px',
   },
 });

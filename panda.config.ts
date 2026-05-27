@@ -788,6 +788,21 @@ const config = buildConfig(
             transform: 'rotate(360deg)',
           },
         },
+        featuredVaultMarquee: {
+          '0%, 15%': { transform: 'translateX(0)' },
+          '50%, 65%': { transform: 'translateX(var(--marquee-shift, 0))' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        featuredVaultMarqueeFade: {
+          '0%, 40%': { opacity: '1' },
+          '50%, 65%': { opacity: '0' },
+          '90%, 100%': { opacity: '1' },
+        },
+        featuredVaultMarqueeFadeLeft: {
+          '0%, 10%': { opacity: '0' },
+          '25%, 80%': { opacity: '1' },
+          '95%, 100%': { opacity: '0' },
+        },
         addressInputCaretBlink: {
           '0%, 50%': { backgroundSize: '2px 12px' },
           '50.01%, 100%': { backgroundSize: '0 12px' },

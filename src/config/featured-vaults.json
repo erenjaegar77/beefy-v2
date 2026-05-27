@@ -7,5 +7,7 @@
 
   "aerodrome-cow-base-cbbtc-usdc-rp": true,
 
-  "aerodrome-cow-base-msusd-mseth-v2-vault": true
+  "aerodrome-cow-base-msusd-mseth-v2-vault": true,
+
+  "uniswap-cow-base-clanker-weth-rp": true
 }
