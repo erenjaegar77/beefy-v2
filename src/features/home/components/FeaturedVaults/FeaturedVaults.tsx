@@ -1,5 +1,5 @@
 import { styled } from '@repo/styles/jsx';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { FeaturedVaultCard } from '../FeaturedVaultCard/FeaturedVaultCard.tsx';
@@ -7,6 +7,8 @@ import { selectFeaturedVaultIds } from '../../../data/selectors/featured-vaults.
 import { useAppSelector } from '../../../data/store/hooks.ts';
 
 const DRAG_THRESHOLD_PX = 5;
+// Keep in sync with the `columnGap` on Scroller below.
+const GAP_PX = 2;
 
 const PAGE_SIZE_DESKTOP = 4;
 const PAGE_SIZE_TABLET = 3;
@@ -29,41 +31,39 @@ export const FeaturedVaults = memo(function FeaturedVaults() {
     : isSideBySide ? PAGE_SIZE_SMALL
     : PAGE_SIZE_STACKED;
 
-  const pages = useMemo(() => {
-    const chunks: string[][] = [];
-    for (let i = 0; i < ids.length; i += pageSize) {
-      chunks.push(ids.slice(i, i + pageSize));
-    }
-    return chunks;
-  }, [ids, pageSize]);
-
-  const isListing = pages.length > 1;
+  const pageCount = Math.ceil(ids.length / pageSize);
+  const isListing = pageCount > 1;
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activePage, setActivePage] = useState(0);
 
   useEffect(() => {
-    if (!isListing || !scrollerRef.current) return;
-    const observer = new IntersectionObserver(
-      entries => {
-        const visible = entries
-          .filter(e => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (!visible) return;
-        const idx = pageRefs.current.indexOf(visible.target as HTMLDivElement);
-        if (idx >= 0) setActivePage(idx);
-      },
-      { root: scrollerRef.current, threshold: [0.5, 0.75, 1] }
-    );
-    for (const el of pageRefs.current) {
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, [isListing, pages.length]);
+    const scroller = scrollerRef.current;
+    if (!isListing || !scroller) return;
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const stride = scroller.clientWidth + GAP_PX;
+      if (stride <= 0) return;
+      const idx = Math.min(pageCount - 1, Math.max(0, Math.round(scroller.scrollLeft / stride)));
+      setActivePage(idx);
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+
+    update();
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    return () => scroller.removeEventListener('scroll', onScroll);
+  }, [isListing, pageCount]);
 
   const handleDotClick = useCallback((pageIdx: number) => {
-    const target = pageRefs.current[pageIdx];
-    if (target) target.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    scroller.scrollTo({ left: pageIdx * (scroller.clientWidth + GAP_PX), behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export const FeaturedVaults = memo(function FeaturedVaults() {
         </Title>
         {isListing && (
           <Dots>
-            {pages.map((_, i) => (
+            {Array.from({ length: pageCount }, (_, i) => (
               <Dot
                 key={i}
                 type="button"
@@ -149,23 +149,24 @@ export const FeaturedVaults = memo(function FeaturedVaults() {
           </Dots>
         )}
       </Header>
-      <Scroller ref={scrollerRef} data-listing={isListing || undefined}>
-        {pages.map((pageIds, pageIdx) => (
-          <Page
-            key={pageIdx}
-            ref={el => {
-              pageRefs.current[pageIdx] = el;
-            }}
+      <Scroller
+        ref={scrollerRef}
+        data-listing={isListing || undefined}
+        data-stacked={!isSideBySide || undefined}
+      >
+        {ids.map(id => (
+          <CardSlot
+            key={id}
             data-listing={isListing || undefined}
-            data-stacked={!isSideBySide || undefined}
             style={{
-              gridTemplateColumns: `repeat(${isSideBySide ? pageSize : 1}, minmax(0, 1fr))`,
+              flexBasis:
+                isSideBySide ?
+                  `calc((100% - ${pageSize - 1} * ${GAP_PX}px) / ${pageSize})`
+                : '100%',
             }}
           >
-            {pageIds.map(id => (
-              <FeaturedVaultCard key={id} vaultId={id} />
-            ))}
-          </Page>
+            <FeaturedVaultCard vaultId={id} />
+          </CardSlot>
         ))}
       </Scroller>
     </Section>
@@ -259,11 +260,21 @@ const Scroller = styled('div', {
     flexDirection: 'row',
     minWidth: '0',
     width: '100%',
+    columnGap: '2px',
+    '&:not([data-stacked]) > * > a': {
+      borderBottomLeftRadius: '0',
+      borderBottomRightRadius: '0',
+    },
+    '&:not([data-stacked]) > *:first-child > a': {
+      borderBottomLeftRadius: '12px',
+    },
+    '&:not([data-stacked]) > *:last-child > a': {
+      borderBottomRightRadius: '12px',
+    },
     '&[data-listing]': {
       overflowX: 'auto',
       scrollSnapType: 'x mandatory',
       scrollbarWidth: 'none',
-      columnGap: '2px',
       '&::-webkit-scrollbar': {
         display: 'none',
       },
@@ -271,25 +282,14 @@ const Scroller = styled('div', {
   },
 });
 
-const Page = styled('div', {
+const CardSlot = styled('div', {
   base: {
-    display: 'grid',
-    width: '100%',
-    columnGap: '2px',
-    rowGap: '2px',
-    '&:not([data-stacked]) > *': {
-      borderBottomLeftRadius: '0',
-      borderBottomRightRadius: '0',
-    },
-    '&:not([data-stacked]) > *:first-child': {
-      borderBottomLeftRadius: '12px',
-    },
-    '&:not([data-stacked]) > *:last-child': {
-      borderBottomRightRadius: '12px',
-    },
+    display: 'flex',
+    minWidth: '0',
+    flexGrow: 1,
+    flexShrink: 0,
+    // flexBasis supplied inline (depends on the runtime pageSize)
     '&[data-listing]': {
-      flex: '0 0 100%',
-      minWidth: '0',
       scrollSnapAlign: 'start',
     },
   },

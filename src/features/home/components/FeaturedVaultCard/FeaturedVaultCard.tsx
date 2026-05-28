@@ -65,6 +65,7 @@ const Card = styled(Link, {
     width: '100%',
     minWidth: '0',
     paddingBlock: '24px 20px',
+    borderBottomRadius: '12px',
     paddingInline: '24px',
     overflow: 'hidden',
     textDecoration: 'none',
@@ -130,25 +131,26 @@ type MarqueeNameProps = { text: string };
 const MarqueeName = memo(function MarqueeName({ text }: MarqueeNameProps) {
   const innerRef = useRef<HTMLDivElement>(null);
   const { width: viewportWidth, ref: viewportRef } = useResizeDetector<HTMLDivElement>();
-  const [overflowPx, setOverflowPx] = useState(0);
+  const [isOverflowing, setIsOverflowing] = useState(false);
 
   useLayoutEffect(() => {
     const inner = innerRef.current;
     const viewport = viewportRef.current;
     if (!inner || !viewport) {
-      setOverflowPx(0);
+      setIsOverflowing(false);
       return;
     }
-    const diff = inner.scrollWidth - viewport.clientWidth;
-    setOverflowPx(diff > 0 ? diff : 0);
+    setIsOverflowing(inner.scrollWidth > viewport.clientWidth);
   }, [text, viewportWidth, viewportRef]);
 
-  const isOverflowing = overflowPx > 0;
-  const style = { '--marquee-shift': `-${overflowPx}px` } as CSSProperties;
-
   return (
-    <NameViewport ref={viewportRef} data-overflowing={isOverflowing || undefined} style={style}>
-      <NameInner ref={innerRef}>{text}</NameInner>
+    <NameViewport ref={viewportRef} data-overflowing={isOverflowing || undefined}>
+      <NameTrack>
+        <NameInner ref={innerRef}>{text}</NameInner>
+        {isOverflowing ?
+          <NameInner aria-hidden="true">{text}</NameInner>
+        : null}
+      </NameTrack>
     </NameViewport>
   );
 });
@@ -170,7 +172,6 @@ const NameViewport = styled('div', {
       zIndex: '[1]',
       background:
         'linear-gradient(to right, rgba(36, 40, 66, 0) 0%, {colors.background.cardBody} 100%)',
-      animation: 'featuredVaultMarqueeFade 6s ease-in-out infinite',
     },
     '&[data-overflowing]::before': {
       content: '""',
@@ -183,8 +184,17 @@ const NameViewport = styled('div', {
       zIndex: '[1]',
       background:
         'linear-gradient(to right, {colors.background.cardBody} 0%, rgba(36, 40, 66, 0) 100%)',
-      opacity: '0',
-      animation: 'featuredVaultMarqueeFadeLeft 6s ease-in-out infinite',
+    },
+  },
+});
+
+const NameTrack = styled('div', {
+  base: {
+    display: 'flex',
+    width: 'max-content',
+    willChange: 'transform',
+    '[data-overflowing] > &': {
+      animation: 'featuredVaultMarqueeLoop 10s linear infinite',
     },
   },
 });
@@ -195,9 +205,8 @@ const NameInner = styled('div', {
     textStyle: 'h3',
     color: 'text.light',
     whiteSpace: 'nowrap',
-    willChange: 'transform',
-    '[data-overflowing] > &': {
-      animation: 'featuredVaultMarquee 6s ease-in-out infinite',
+    '[data-overflowing] &': {
+      paddingRight: '48px',
     },
   },
 });

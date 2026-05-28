@@ -23,8 +23,8 @@ export const styles = {
   }),
   vaultNetwork: css.raw({
     position: 'absolute',
-    top: '0px',
-    left: '0px',
+    top: '-2px',
+    left: '-2px',
     padding: '2px',
     border: 'solid 2px {colors.background.content.dark}',
     backgroundColor: 'colorPalette.primary',
