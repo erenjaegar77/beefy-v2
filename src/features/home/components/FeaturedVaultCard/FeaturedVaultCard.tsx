@@ -128,10 +128,16 @@ const HeadIcon = styled('div', {
 
 type MarqueeNameProps = { text: string };
 
+// Scroll the looping name at a constant speed so longer names take proportionally
+// longer (rather than every name sharing a fixed duration).
+const MARQUEE_SCROLL_SPEED_PX_PER_S = 40;
+
 const MarqueeName = memo(function MarqueeName({ text }: MarqueeNameProps) {
   const innerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const { width: viewportWidth, ref: viewportRef } = useResizeDetector<HTMLDivElement>();
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [duration, setDuration] = useState(0);
 
   useLayoutEffect(() => {
     const inner = innerRef.current;
@@ -143,9 +149,23 @@ const MarqueeName = memo(function MarqueeName({ text }: MarqueeNameProps) {
     setIsOverflowing(inner.scrollWidth > viewport.clientWidth);
   }, [text, viewportWidth, viewportRef]);
 
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track || !isOverflowing) {
+      setDuration(0);
+      return;
+    }
+    // The loop translates by -50% of the track, i.e. exactly one copy (text + its
+    // trailing gap) = half the two-copy track width. duration = distance / speed.
+    const distance = track.scrollWidth / 2;
+    setDuration(distance / MARQUEE_SCROLL_SPEED_PX_PER_S);
+  }, [isOverflowing, text, viewportWidth]);
+
+  const style = { '--marquee-duration': `${duration}s` } as CSSProperties;
+
   return (
-    <NameViewport ref={viewportRef} data-overflowing={isOverflowing || undefined}>
-      <NameTrack>
+    <NameViewport ref={viewportRef} data-overflowing={isOverflowing || undefined} style={style}>
+      <NameTrack ref={trackRef}>
         <NameInner ref={innerRef}>{text}</NameInner>
         {isOverflowing ?
           <NameInner aria-hidden="true">{text}</NameInner>
@@ -194,7 +214,7 @@ const NameTrack = styled('div', {
     width: 'max-content',
     willChange: 'transform',
     '[data-overflowing] > &': {
-      animation: 'featuredVaultMarqueeLoop 10s linear infinite',
+      animation: 'featuredVaultMarqueeLoop var(--marquee-duration, 10s) linear infinite',
     },
   },
 });
