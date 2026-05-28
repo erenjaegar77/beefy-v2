@@ -34,7 +34,7 @@ export const FeaturedVaultCard = memo(function FeaturedVaultCard({
           isGradient && chainBadgeGradient
         )}
       >
-        <ChainIcon chainId={vault.chainId} size={22} />
+        <ChainIcon chainId={vault.chainId} size={20} />
       </ChainBadge>
       <Identity>
         <HeadTop>
@@ -81,11 +81,11 @@ const Card = styled(Link, {
 const ChainBadge = styled('div', {
   base: {
     position: 'absolute',
-    top: '0',
-    left: '0',
+    top: '0px',
+    left: '0px',
     lineHeight: '0',
     backgroundColor: 'colorPalette.primary',
-    borderRadius: '0 0 8px 0',
+    borderBottomRightRadius: '12px',
     padding: '2px',
   },
 });

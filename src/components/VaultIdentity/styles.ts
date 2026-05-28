@@ -23,17 +23,12 @@ export const styles = {
   }),
   vaultNetwork: css.raw({
     position: 'absolute',
-    top: '-2px',
-    left: '-2px',
-    width: '28px',
-    height: '28px',
+    top: '0px',
+    left: '0px',
+    padding: '2px',
     border: 'solid 2px {colors.background.content.dark}',
     backgroundColor: 'colorPalette.primary',
-    borderBottomRightRadius: '16px',
-    '& img': {
-      width: '22px',
-      height: '22px',
-    },
+    borderBottomRightRadius: '12px',
   }),
   vaultNetworkGradient: css.raw({
     // panda seems to have token replacement bug here, so using css variables
