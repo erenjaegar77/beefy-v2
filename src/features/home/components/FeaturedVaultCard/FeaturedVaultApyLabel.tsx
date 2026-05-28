@@ -31,35 +31,38 @@ export const FeaturedVaultApyLabel = memo(function FeaturedVaultApyLabel() {
   );
 
   return (
-    <LabelButton onClick={handleClick}>
-      <Prefix>{prefix}</Prefix>
+    <Label>
+      <Prefix type="button" onClick={handleClick}>
+        {prefix}
+      </Prefix>
       <span>{t('VaultStat-APY')}</span>
-    </LabelButton>
+    </Label>
   );
 });
 
-const LabelButton = styled('button', {
+const Label = styled('div', {
+  base: {
+    textStyle: 'subline.sm',
+    color: 'text.dark',
+    display: 'inline-flex',
+    alignItems: 'baseline',
+    columnGap: '4px',
+  },
+});
+
+const Prefix = styled('button', {
   base: {
     background: 'none',
     border: 'none',
     padding: '0',
-    textStyle: 'subline.sm',
-    color: 'text.dark',
-    textAlign: 'left',
+    font: 'inherit',
+    color: 'inherit',
     cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'baseline',
-    columnGap: '4px',
-    _hover: {
-      color: 'text.light',
-    },
-  },
-});
-
-const Prefix = styled('span', {
-  base: {
     textDecoration: 'underline',
     textDecorationColor: 'text.underline',
     textUnderlineOffset: '3px',
+    _hover: {
+      color: 'text.light',
+    },
   },
 });

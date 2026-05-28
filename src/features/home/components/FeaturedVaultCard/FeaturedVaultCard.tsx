@@ -66,7 +66,7 @@ const Card = styled(Link, {
     minWidth: '0',
     paddingBlock: '24px 20px',
     paddingInline: '24px',
-    borderRadius: '12px',
+    borderRadius: '0px 12px 12px 12px',
     overflow: 'hidden',
     textDecoration: 'none',
     color: 'text.middle',
@@ -82,17 +82,11 @@ const ChainBadge = styled('div', {
   base: {
     position: 'absolute',
     top: '0',
-    right: '0',
+    left: '0',
     lineHeight: '0',
     backgroundColor: 'colorPalette.primary',
-    borderRadius: '0 0 0 8px',
+    borderRadius: '0 0 8px 0',
     padding: '2px',
-    sm: {
-      top: '0',
-      left: '0',
-      right: 'auto',
-      borderRadius: '0 0 8px 0',
-    },
   },
 });
 

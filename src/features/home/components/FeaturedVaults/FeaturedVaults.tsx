@@ -129,7 +129,12 @@ export const FeaturedVaults = memo(function FeaturedVaults() {
   return (
     <Section>
       <Header>
-        <Title>{t(isSideBySide ? 'FeaturedVaults-Title' : 'FeaturedVaults-Title-Short')}</Title>
+        <Title>
+          {t('FeaturedVaults-Title')}
+          {isSideBySide && (
+            <TitleDescription>{t('FeaturedVaults-Title-Description')}</TitleDescription>
+          )}
+        </Title>
         {isListing && (
           <Dots>
             {pages.map((_, i) => (
@@ -191,9 +196,25 @@ const Header = styled('div', {
 
 const Title = styled('div', {
   base: {
+    display: 'flex',
+    alignItems: 'baseline',
+    columnGap: '8px',
+    minWidth: '0',
     textStyle: 'body.medium',
     fontWeight: 'semiBold',
     color: 'text.middle',
+  },
+});
+
+const TitleDescription = styled('span', {
+  base: {
+    textStyle: 'body',
+    fontWeight: 'normal',
+    color: 'text.dark',
+    minWidth: '0',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
 });
 
