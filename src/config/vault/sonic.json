@@ -1041,8 +1041,10 @@
     "earnedTokenAddress": "0xa5dcb39359F8b67e2C6E7125fCBe0752e558a52a",
     "oracle": "lps",
     "oracleId": "defive-usdc.e-bes",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1744815689,
+    "retireReason": "tvl",
+    "retiredAt": 1779945587,
     "platformId": "defive",
     "assets": ["beS", "USDCe"],
     "risks": {
@@ -1204,8 +1206,10 @@
     "earnedTokenAddress": "0x6c9F512c379120BCB0bBe89B8817E74d2BC061B0",
     "oracle": "lps",
     "oracleId": "defive-ws-five",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1744660905,
+    "retireReason": "tvl",
+    "retiredAt": 1779945587,
     "platformId": "defive",
     "assets": ["FIVE", "WS"],
     "risks": {
@@ -1242,8 +1246,10 @@
     "earnedTokenAddress": "0x8cdAABBB2844227dCc2CDBd1a5bd8b974A022622",
     "oracle": "lps",
     "oracleId": "defive-ws-usdc.e",
-    "status": "active",
+    "status": "eol",
     "createdAt": 1744660905,
+    "retireReason": "tvl",
+    "retiredAt": 1779945587,
     "platformId": "defive",
     "assets": ["WS", "USDCe"],
     "risks": {
@@ -1339,44 +1345,6 @@
     },
     "strategyTypeId": "lp",
     "addLiquidityUrl": "https://defive.com/pools/add/S/0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
-    "network": "sonic",
-    "zaps": [
-      {
-        "strategyId": "uniswap-v2",
-        "ammId": "sonic-defive"
-      }
-    ]
-  },
-  {
-    "id": "defive-usdc.e-weth",
-    "name": "USDC-WETH",
-    "type": "standard",
-    "token": "USDC-WETH",
-    "tokenAddress": "0x7E50357098dA4d25735127128B2ffce21A269913",
-    "tokenDecimals": 18,
-    "tokenProviderId": "defive",
-    "earnContractAddress": "0x95912f56ce4F05A085b9Fbee9Dc481DE72E2c38f",
-    "earnedToken": "mooDefiveUSDC.e-WETH",
-    "earnedTokenAddress": "0x95912f56ce4F05A085b9Fbee9Dc481DE72E2c38f",
-    "oracle": "lps",
-    "oracleId": "defive-usdc.e-weth",
-    "status": "active",
-    "createdAt": 1744660905,
-    "platformId": "defive",
-    "assets": ["USDCe", "WETH"],
-    "risks": {
-      "updatedAt": 1765557014,
-      "complex": false,
-      "curated": false,
-      "notAudited": false,
-      "notBattleTested": true,
-      "notCorrelated": true,
-      "notTimelocked": false,
-      "notVerified": false,
-      "synthAsset": false
-    },
-    "strategyTypeId": "lp",
-    "addLiquidityUrl": "https://defive.com/pools/add/0x29219dd400f2Bf60E5a23d13Be72B486D4038894/0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
     "network": "sonic",
     "zaps": [
       {
