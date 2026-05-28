@@ -33,58 +33,6 @@
     "network": "sonic"
   },
   {
-    "id": "stakedao-sonic-sceth-frxeth",
-    "name": "scETH/frxETH",
-    "type": "standard",
-    "token": "xfrxETH",
-    "tokenAddress": "0x346704605c72d9f5f9F02D651e5A3DccE6964F3d",
-    "tokenDecimals": 18,
-    "tokenProviderId": "curve",
-    "earnContractAddress": "0xAF6AC77d8e40035f9879eA6bE48c3DA1F7A84120",
-    "earnedToken": "mooStakeDaoxfrxETH",
-    "earnedTokenAddress": "0xAF6AC77d8e40035f9879eA6bE48c3DA1F7A84120",
-    "oracle": "lps",
-    "oracleId": "curve-sonic-sceth-frxeth",
-    "status": "eol",
-    "createdAt": 1755850437,
-    "retireReason": "rewards",
-    "retiredAt": 1773999152,
-    "platformId": "stakedao",
-    "assets": ["scETH", "frxETH"],
-    "migrationIds": ["l2-convex", "l2-curve"],
-    "risks": {
-      "updatedAt": 1765557014,
-      "complex": false,
-      "curated": false,
-      "notAudited": false,
-      "notBattleTested": false,
-      "notCorrelated": false,
-      "notTimelocked": true,
-      "notVerified": false,
-      "synthAsset": false
-    },
-    "strategyTypeId": "multi-lp",
-    "addLiquidityUrl": "https://www.curve.finance/dex/sonic/pools/factory-stable-ng-26/deposit",
-    "removeLiquidityUrl": "https://www.curve.finance/dex/sonic/pools/factory-stable-ng-26/withdraw",
-    "network": "sonic",
-    "zaps": [
-      {
-        "strategyId": "curve",
-        "poolAddress": "0x346704605c72d9f5f9F02D651e5A3DccE6964F3d",
-        "methods": [
-          {
-            "type": "dynamic-deposit",
-            "target": "0x346704605c72d9f5f9F02D651e5A3DccE6964F3d",
-            "coins": [
-              "0x3bcE5CB273F0F148010BbEa2470e7b5df84C7812",
-              "0x43eDD7f3831b08FE70B7555ddD373C8bF65a9050"
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
     "id": "pendle-sonic-wos-18dec25",
     "name": "wOS 18Dec25",
     "type": "standard",
