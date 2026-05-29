@@ -1,13 +1,6 @@
 {
-  "morpho-v2-ethereum-steakhouse-high-yield-instant-ausd": true,
-
-  "morpho-v2-ethereum-steakhouse-prime-usdc": true,
-
-  "uniswap-cow-bsc-zest-usdt-rp": true,
-
-  "aerodrome-cow-base-cbbtc-usdc-rp": true,
-
-  "aerodrome-cow-base-msusd-mseth-v2-vault": true,
-
-  "uniswap-cow-base-clanker-weth-rp": true
+  "velo-cow-op-wsteth-usdc-v2-vault": true,
+  "uniswap-cow-base-aero-weth-rp": true,
+  "pendle-reusde-25jun26": true,
+  "uniswap-cow-weth-degen-rp": true
 }
