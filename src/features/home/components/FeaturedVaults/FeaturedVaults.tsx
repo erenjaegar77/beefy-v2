@@ -149,15 +149,12 @@ export const FeaturedVaults = memo(function FeaturedVaults() {
           </Dots>
         )}
       </Header>
-      <Scroller
-        ref={scrollerRef}
-        data-listing={isListing || undefined}
-        data-stacked={!isSideBySide || undefined}
-      >
-        {ids.map(id => (
+      <Scroller ref={scrollerRef} data-listing={isListing || undefined}>
+        {ids.map((id, index) => (
           <CardSlot
             key={id}
             data-listing={isListing || undefined}
+            data-page-start={index % pageSize === 0 || undefined}
             style={{
               flexBasis:
                 isSideBySide ?
@@ -181,6 +178,7 @@ const Section = styled('div', {
     paddingTop: '12px',
     marginBottom: '14px',
     borderRadius: '16px',
+    overflow: 'hidden',
     background: 'background.content.dark',
   },
 });
@@ -261,16 +259,6 @@ const Scroller = styled('div', {
     minWidth: '0',
     width: '100%',
     columnGap: '2px',
-    '&:not([data-stacked]) > * > a': {
-      borderBottomLeftRadius: '0',
-      borderBottomRightRadius: '0',
-    },
-    '&:not([data-stacked]) > *:first-child > a': {
-      borderBottomLeftRadius: '12px',
-    },
-    '&:not([data-stacked]) > *:last-child > a': {
-      borderBottomRightRadius: '12px',
-    },
     '&[data-listing]': {
       overflowX: 'auto',
       scrollSnapType: 'x mandatory',
@@ -288,8 +276,7 @@ const CardSlot = styled('div', {
     minWidth: '0',
     flexGrow: 1,
     flexShrink: 0,
-    // flexBasis supplied inline (depends on the runtime pageSize)
-    '&[data-listing]': {
+    '&[data-listing][data-page-start]': {
       scrollSnapAlign: 'start',
     },
   },

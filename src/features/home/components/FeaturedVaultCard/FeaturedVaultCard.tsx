@@ -65,7 +65,6 @@ const Card = styled(Link, {
     width: '100%',
     minWidth: '0',
     paddingBlock: '24px 20px',
-    borderBottomRadius: '12px',
     paddingInline: '24px',
     overflow: 'hidden',
     textDecoration: 'none',
