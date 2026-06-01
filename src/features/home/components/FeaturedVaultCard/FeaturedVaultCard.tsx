@@ -26,6 +26,8 @@ export const FeaturedVaultCard = memo(function FeaturedVaultCard({
   const chain = useAppSelector(state => selectChainById(state, vault.chainId));
   const isGradient = chain?.brand?.icon === 'gradient';
 
+  const imageSize = vault.assetIds.length === 1 ? 32 : 40;
+
   return (
     <Card to={`/vault/${vaultId}`}>
       <ChainBadge
@@ -40,7 +42,7 @@ export const FeaturedVaultCard = memo(function FeaturedVaultCard({
         <HeadTop>
           <MarqueeName text={punctuationWrap(vault.names.list)} />
           <HeadIcon>
-            <VaultIdImage vaultId={vaultId} size={40} />
+            <VaultIdImage vaultId={vaultId} size={imageSize} />
           </HeadIcon>
         </HeadTop>
         <MarqueeTags vaultId={vaultId} />
