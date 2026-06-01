@@ -6922,6 +6922,7 @@
     "feeTier": "0.3",
     "tickSpacing": 200,
     "assets": ["VVV", "DIEM"],
+    "replacementVaultId": "aerodrome-cow-base-vvv-diem-v2",
     "risks": {
       "complex": true,
       "curated": false,
@@ -7203,6 +7204,7 @@
     "feeTier": "1",
     "tickSpacing": 100,
     "assets": ["UP", "cbBTC"],
+    "replacementVaultId": "aerodrome-cow-base-up-cbbtc-v2",
     "risks": {
       "complex": true,
       "curated": false,
@@ -11982,6 +11984,7 @@
     "feeTier": "1",
     "tickSpacing": 2000,
     "assets": ["USDC", "GHST"],
+    "replacementVaultId": "aerodrome-cow-base-usdc-ghst-v2",
     "risks": {
       "complex": true,
       "curated": false,
@@ -12183,6 +12186,7 @@
     "feeTier": "0.3",
     "tickSpacing": 100,
     "assets": ["WETH", "VVV"],
+    "replacementVaultId": "aerodrome-cow-base-weth-vvv-v2",
     "risks": {
       "complex": true,
       "curated": false,
@@ -12308,6 +12312,7 @@
     "feeTier": "0.03",
     "tickSpacing": 2000,
     "assets": ["USDC", "cbBTC"],
+    "replacementVaultId": "aerodrome-cow-base-usdc-cbbtc-v2",
     "risks": {
       "complex": true,
       "curated": false,
@@ -12427,6 +12432,7 @@
     "feeTier": "0.27",
     "tickSpacing": 200,
     "assets": ["AERO", "cbBTC"],
+    "replacementVaultId": "aerodrome-cow-base-aero-cbbtc-v2",
     "risks": {
       "complex": true,
       "curated": false,
@@ -12753,6 +12759,7 @@
     "feeTier": "0.035",
     "tickSpacing": 10,
     "assets": ["SOL", "USDC"],
+    "replacementVaultId": "aerodrome-cow-base-sol-usdc-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -14936,6 +14943,7 @@
     "feeTier": "0.01",
     "tickSpacing": 1,
     "assets": ["cbBTC", "WETH"],
+    "replacementVaultId": "aerodrome-cow-base-weth-cbbtc-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -16602,6 +16610,7 @@
     "feeTier": "0.25",
     "tickSpacing": 100,
     "assets": ["cbDOGE", "cbBTC"],
+    "replacementVaultId": "aerodrome-cow-base-cbbtc-cbdoge-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -17096,6 +17105,7 @@
     "feeTier": "1",
     "tickSpacing": 100,
     "assets": ["cbXRP", "cbBTC"],
+    "replacementVaultId": "aerodrome-cow-base-cbxrp-cbbtc-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -17224,6 +17234,7 @@
     "feeTier": "0.25",
     "tickSpacing": 2000,
     "assets": ["cbXRP", "WETH"],
+    "replacementVaultId": "aerodrome-cow-base-weth-cbxrp-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -17718,6 +17729,7 @@
     "feeTier": "1",
     "tickSpacing": 200,
     "assets": ["GIZA", "USDC"],
+    "replacementVaultId": "aerodrome-cow-base-giza-usdc-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -18328,6 +18340,7 @@
     "feeTier": "0.27",
     "tickSpacing": 200,
     "assets": ["MORPHO", "WETH"],
+    "replacementVaultId": "aerodrome-cow-base-weth-morpho-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -23363,6 +23376,7 @@
     "feeTier": "1",
     "tickSpacing": 200,
     "assets": ["WETH", "DRV"],
+    "replacementVaultId": "aerodrome-cow-base-weth-drv",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -26305,6 +26319,7 @@
     "feeTier": "0.05",
     "tickSpacing": 50,
     "assets": ["EURC", "USDC"],
+    "replacementVaultId": "aerodrome-cow-base-eurc-usdc",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -30598,6 +30613,7 @@
     "feeTier": "0.05",
     "tickSpacing": 100,
     "assets": ["WETH", "EURC"],
+    "replacementVaultId": "aerodrome-cow-base-weth-eurc",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -31489,6 +31505,7 @@
     "feeTier": "0.25",
     "tickSpacing": 100,
     "assets": ["WETH", "ZRO"],
+    "replacementVaultId": "aerodrome-cow-base-weth-zro",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -35137,6 +35154,7 @@
     "retiredAt": 1779978155,
     "platformId": "aerodrome",
     "assets": ["AERO", "WETH"],
+    "replacementVaultId": "aerodrome-cow-base-weth-aero",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,
@@ -36778,6 +36796,7 @@
     "feeTier": "0.04",
     "tickSpacing": 100,
     "assets": ["WETH", "USDC"],
+    "replacementVaultId": "aerodrome-cow-base-usdc-weth-v2",
     "risks": {
       "updatedAt": 1765557014,
       "complex": true,

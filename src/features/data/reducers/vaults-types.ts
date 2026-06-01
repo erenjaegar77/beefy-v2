@@ -29,6 +29,12 @@ export type VaultsState = NormalizedEntity<VaultEntity> & {
         [vaultId: VaultEntity['id']]: VaultEntity['id'][];
       };
     };
+    /** which OLD vault declares vaultId (the NEW vault) as its replacementVaultId */
+    replacedBy: {
+      byId: {
+        [newVaultId: VaultEntity['id']]: VaultEntity['id'];
+      };
+    };
   };
   /** Vaults id look up by type */
   byType: {

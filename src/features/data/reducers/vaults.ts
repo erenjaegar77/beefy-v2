@@ -25,6 +25,9 @@ export const initialVaultsState: VaultsState = {
     depositFor: {
       byId: {},
     },
+    replacedBy: {
+      byId: {},
+    },
   },
   byType: {
     standard: {
@@ -262,6 +265,7 @@ function rebuildVaultsState(sliceState: Draft<VaultsState>) {
 function getVaultRelations(sliceState: Draft<VaultsState>): VaultsState['relations'] {
   const underlyingOf: VaultsState['relations']['underlyingOf']['byId'] = {};
   const depositForById: VaultsState['relations']['depositFor']['byId'] = {};
+  const replacedBy: VaultsState['relations']['replacedBy']['byId'] = {};
 
   for (const chainSlice of Object.values(sliceState.byChainId)) {
     for (const vaultId of chainSlice.allIds) {
@@ -269,6 +273,12 @@ function getVaultRelations(sliceState: Draft<VaultsState>): VaultsState['relatio
       if (!vault) {
         continue;
       }
+
+      // vaultId (old vault) declares replacementVaultId (new vault) as its replacement
+      if (vault.replacementVaultId) {
+        replacedBy[vault.replacementVaultId] = vaultId;
+      }
+
       const underlyingVaultId = chainSlice.byAddress[vault.depositTokenAddress.toLowerCase()];
       if (!underlyingVaultId) {
         continue;
@@ -292,6 +302,9 @@ function getVaultRelations(sliceState: Draft<VaultsState>): VaultsState['relatio
     },
     depositFor: {
       byId: depositForById,
+    },
+    replacedBy: {
+      byId: replacedBy,
     },
   };
 }
